@@ -9,49 +9,51 @@
 
 using System;
 
-namespace TSCP_Sharp_unsafe
+namespace CharlieChess
 {
-    unsafe public partial class TSCP
+    unsafe public partial class Tscp
     {
         Random rand;
 
-
-        void init_board(string s)
+        private void InitBoard(string s)
         {
-            fen(s);
+            Fen(s);
             fifty = 0;
             ply = 0;
             hply = 0;
-            set_hash();  /* init_hash() must be called before this function */
+            SetHash();  /* InitHash() must be called before this function */
             first_move[0] = 0;
         }
-        void init_hash()
+
+        private void InitHash()
         {
-            long i, j, k;
             rand = new Random(DateTime.Now.Millisecond);
 
-            for (i = 0; i < 2; ++i)
-                for (j = 0; j < 6; ++j)
-                    for (k = 0; k < 64; ++k)
-                        hash_piece[(i * 6 * 64 ) + (j * 64 ) + k] = hash_rand();
-            hash_side = hash_rand();
-            for (i = 0; i < 64; ++i)
-                hash_ep[i] = hash_rand();
+            for (int i = 0; i < 2; ++i)
+                for (int j = 0; j < 6; ++j)
+                    for (int k = 0; k < 64; ++k)
+                        hash_piece[(i * 6 * 64) + (j * 64) + k] = HashRand();
+
+            hash_side = HashRand();
+
+            for (int i = 0; i < 64; ++i)
+                hash_ep[i] = HashRand();
         }
-        /* hash_rand() XORs some shifted random numbers together to make sure
+
+        /* HashRand() XORs some shifted random numbers together to make sure
         we have good coverage of all 32 bits. (rand() returns 16-bit numbers
         on some systems.) */
-        long hash_rand()
+        private long HashRand()
         {
-            int i;
             long r = 0;
-            
-            for (i = 0; i < 32; ++i)
-                r ^= (long)(rand.Next() << i);
+
+            for (int i = 0; i < 32; ++i)
+                r ^= rand.Next() << i;
+
             return r;
         }
 
-        /* set_hash() uses the Zobrist method of generating a unique number (hash)
+        /* SetHash() uses the Zobrist method of generating a unique number (hash)
         for the current chess position. Of course, there are many more chess
         positions than there are 32 bit numbers, so the numbers generated are
         not really unique, but they're unique enough for our purposes (to detect
@@ -62,17 +64,16 @@ namespace TSCP_Sharp_unsafe
         hash_side is XORed if it's black's move, and the en passant square is
         XORed if there is one. (A chess technicality is that one position can't
         be a repetition of another if the en passant state is different.) */
-
-        void set_hash()
+        private void SetHash()
         {
-            long i;
-
             hash = 0;
-            for (i = 0; i < 64; ++i)
+            for (int i = 0; i < 64; ++i)
                 if (col[i] != EMPTY)
                     hash ^= hp[(6 * 64 * col[i]) + (ptr[i] * 64) + i];
+
             if (side == DARK)
                 hash ^= hash_side;
+
             if (ep != -1)
                 hash ^= hash_ep[ep];
         }
@@ -80,26 +81,21 @@ namespace TSCP_Sharp_unsafe
         /* in_check() returns TRUE if side s is in check and FALSE
            otherwise. It just scans the board to find side s's king
            and calls attack() to see if it's being attacked. */
-
-        bool in_check(long s)
+        private bool InCheck(long s)
         {
-            long i;
-
-            for (i = 0; i < 64; ++i)
+            for (int i = 0; i < 64; ++i)
                 if (ptr[i] == KING && col[i] == s)
-                    return attack(i, s ^ 1);
+                    return Attack(i, s ^ 1);
+
             return true;  /* shouldn't get here */
         }
 
-        /* attack() returns TRUE if square sq is being attacked by side
+        /* Attack() returns TRUE if square sq is being attacked by side
         s and FALSE otherwise. */
-
-        unsafe bool attack(long sq, long s)
+        private unsafe bool Attack(long sq, long s)
         {
-            long i, j, n;
-
-
-            for (i = 0; i < 64; ++i)
+            for (int i = 0; i < 64; ++i)
+            {
                 if (col[i] == s)
                 {
                     if (ptr[i] == PAWN)
@@ -120,8 +116,11 @@ namespace TSCP_Sharp_unsafe
                         }
                     }
                     else
-                        for (j = 0; j < ofss[ptr[i]]; ++j)
-                            for (n = i; ; )
+                    {
+                        for (int j = 0; j < ofss[ptr[i]]; ++j)
+                        {
+                            long n = i;
+                            while (true)
                             {
                                 n = mb[mb64[n] + ofs[ptr[i] * 8 + j]];
                                 if (n == -1)
@@ -133,7 +132,11 @@ namespace TSCP_Sharp_unsafe
                                 if (!sl[ptr[i]])
                                     break;
                             }
+                        }
+                    }
                 }
+            }
+
             return false;
         }
 
@@ -142,14 +145,13 @@ namespace TSCP_Sharp_unsafe
         what squares they attack. When it finds a ptr/square
         combination, it calls gen_push to put the move on the "move
         stack." */
-        void gen()
+        private void Gen()
         {
-            long i, j, n;
-
             /* so far, we have no moves for the current ply */
             fm[ply + 1] = fm[ply];
 
-            for (i = 0; i < 64; ++i)
+            for (int i = 0; i < 64; ++i)
+            {
                 if (col[i] == side)
                 {
                     if (ptr[i] == PAWN)
@@ -157,33 +159,38 @@ namespace TSCP_Sharp_unsafe
                         if (side == LIGHT)
                         {
                             if ((i & 7) != 0 && col[i - 9] == DARK)
-                                gen_push(i, i - 9, 17);
+                                GenPush(i, i - 9, 17);
                             if ((i & 7) != 7 && col[i - 7] == DARK)
-                                gen_push(i, i - 7, 17);
+                                GenPush(i, i - 7, 17);
+
                             if (col[i - 8] == EMPTY)
                             {
-                                gen_push(i, i - 8, 16);
+                                GenPush(i, i - 8, 16);
                                 if (i >= 48 && col[i - 16] == EMPTY)
-                                    gen_push(i, i - 16, 24);
+                                    GenPush(i, i - 16, 24);
                             }
                         }
                         else
                         {
                             if ((i & 7) != 0 && col[i + 7] == LIGHT)
-                                gen_push(i, i + 7, 17);
+                                GenPush(i, i + 7, 17);
                             if ((i & 7) != 7 && col[i + 9] == LIGHT)
-                                gen_push(i, i + 9, 17);
+                                GenPush(i, i + 9, 17);
+
                             if (col[i + 8] == EMPTY)
                             {
-                                gen_push(i, i + 8, 16);
+                                GenPush(i, i + 8, 16);
                                 if (i <= 15 && col[i + 16] == EMPTY)
-                                    gen_push(i, i + 16, 24);
+                                    GenPush(i, i + 16, 24);
                             }
                         }
                     }
                     else
-                        for (j = 0; j < ofss[ptr[i]]; ++j)
-                            for (n = i; ; )
+                    {
+                        for (long j = 0; j < ofss[ptr[i]]; ++j)
+                        {
+                            long n = i;
+                            while (true)
                             {
                                 n = mb[mb64[n] + ofs[ptr[i] * 8 + j]];
                                 if (n == -1)
@@ -191,29 +198,32 @@ namespace TSCP_Sharp_unsafe
                                 if (col[n] != EMPTY)
                                 {
                                     if (col[n] == xside)
-                                        gen_push(i, n, 1);
+                                        GenPush(i, n, 1);
                                     break;
                                 }
-                                gen_push(i, n, 0);
+                                GenPush(i, n, 0);
                                 if (!sl[ptr[i]])
                                     break;
                             }
+                        }
+                    }
                 }
+            }
 
             /* generate castle moves */
             if (side == LIGHT)
             {
                 if ((castle & 1) != 0)
-                    gen_push(E1, G1, 2);
+                    GenPush(E1, G1, 2);
                 if ((castle & 2) != 0)
-                    gen_push(E1, C1, 2);
+                    GenPush(E1, C1, 2);
             }
             else
             {
                 if ((castle & 4) != 0)
-                    gen_push(E8, G8, 2);
+                    GenPush(E8, G8, 2);
                 if ((castle & 8) != 0)
-                    gen_push(E8, C8, 2);
+                    GenPush(E8, C8, 2);
             }
 
             /* generate en passant moves */
@@ -222,30 +232,28 @@ namespace TSCP_Sharp_unsafe
                 if (side == LIGHT)
                 {
                     if ((ep & 7) != 0 && col[ep + 7] == LIGHT && ptr[ep + 7] == PAWN)
-                        gen_push(ep + 7, ep, 21);
+                        GenPush(ep + 7, ep, 21);
                     if ((ep & 7) != 7 && col[ep + 9] == LIGHT && ptr[ep + 9] == PAWN)
-                        gen_push(ep + 9, ep, 21);
+                        GenPush(ep + 9, ep, 21);
                 }
                 else
                 {
                     if ((ep & 7) != 0 && col[ep - 9] == DARK && ptr[ep - 9] == PAWN)
-                        gen_push(ep - 9, ep, 21);
+                        GenPush(ep - 9, ep, 21);
                     if ((ep & 7) != 7 && col[ep - 7] == DARK && ptr[ep - 7] == PAWN)
-                        gen_push(ep - 7, ep, 21);
+                        GenPush(ep - 7, ep, 21);
                 }
             }
         }
 
-        /* gen_caps() is basically a copy of gen() that's modified to
+        /* GenCaps() is basically a copy of gen() that's modified to
         only generate capture and promote moves. It's used by the
         quiescence search. */
-
-        void gen_caps()
+        private void GenCaps()
         {
-            long i, j, n;
-
             fm[ply + 1] = fm[ply];
-            for (i = 0; i < 64; ++i)
+            for (int i = 0; i < 64; ++i)
+            {
                 if (col[i] == side)
                 {
                     if (ptr[i] == PAWN)
@@ -253,59 +261,68 @@ namespace TSCP_Sharp_unsafe
                         if (side == LIGHT)
                         {
                             if ((i & 7) != 0 && col[i - 9] == DARK)
-                                gen_push(i, i - 9, 17);
+                                GenPush(i, i - 9, 17);
                             if ((i & 7) != 7 && col[i - 7] == DARK)
-                                gen_push(i, i - 7, 17);
+                                GenPush(i, i - 7, 17);
                             if (i <= 15 && col[i - 8] == EMPTY)
-                                gen_push(i, i - 8, 16);
+                                GenPush(i, i - 8, 16);
                         }
                         if (side == DARK)
                         {
                             if ((i & 7) != 0 && col[i + 7] == LIGHT)
-                                gen_push(i, i + 7, 17);
+                                GenPush(i, i + 7, 17);
                             if ((i & 7) != 7 && col[i + 9] == LIGHT)
-                                gen_push(i, i + 9, 17);
+                                GenPush(i, i + 9, 17);
                             if (i >= 48 && col[i + 8] == EMPTY)
-                                gen_push(i, i + 8, 16);
+                                GenPush(i, i + 8, 16);
                         }
                     }
                     else
-                        for (j = 0; j < ofss[ptr[i]]; ++j)
-                            for (n = i; ; )
+                    {
+                        for (long j = 0; j < ofss[ptr[i]]; ++j)
+                        {
+                            long n = i;
+                            while (true)
                             {
                                 n = mb[mb64[n] + ofs[ptr[i] * 8 + j]];
                                 if (n == -1)
                                     break;
+
                                 if (col[n] != EMPTY)
                                 {
                                     if (col[n] == xside)
-                                        gen_push(i, n, 1);
+                                        GenPush(i, n, 1);
                                     break;
                                 }
+
                                 if (!sl[ptr[i]])
                                     break;
                             }
+                        }
+                    }
                 }
+            }
+
             if (ep != -1)
             {
                 if (side == LIGHT)
                 {
                     if ((ep & 7) != 0 && col[ep + 7] == LIGHT && ptr[ep + 7] == PAWN)
-                        gen_push(ep + 7, ep, 21);
+                        GenPush(ep + 7, ep, 21);
                     if ((ep & 7) != 7 && col[ep + 9] == LIGHT && ptr[ep + 9] == PAWN)
-                        gen_push(ep + 9, ep, 21);
+                        GenPush(ep + 9, ep, 21);
                 }
                 else
                 {
                     if ((ep & 7) != 0 && col[ep - 9] == DARK && ptr[ep - 9] == PAWN)
-                        gen_push(ep - 9, ep, 21);
+                        GenPush(ep - 9, ep, 21);
                     if ((ep & 7) != 7 && col[ep - 7] == DARK && ptr[ep - 7] == PAWN)
-                        gen_push(ep - 7, ep, 21);
+                        GenPush(ep - 7, ep, 21);
                 }
             }
         }
 
-        /* gen_push() puts a move on the move stack, unless it's a
+        /* GenPush() puts a move on the move stack, unless it's a
         pawn promotion that needs to be handled by gen_promote().
         It also assigns a score to the move for alpha-beta move
         ordering. If the move is a capture, it uses MVV/LVA
@@ -313,10 +330,9 @@ namespace TSCP_Sharp_unsafe
         it uses the move's history heuristic value. Note that
         1,000,000 is added to a capture move's score, so it
         always gets ordered above a "normal" move. */
-
-        void gen_push(long from, long to, long bits)
+        private void GenPush(long from, long to, long bits)
         {
-            gen_t g;
+            GenT g;
 
             if ((bits & 16) != 0)
             {
@@ -324,39 +340,36 @@ namespace TSCP_Sharp_unsafe
                 {
                     if (to <= H8)
                     {
-                        gen_promote(from, to, bits);
+                        GenPromote(from, to, bits);
                         return;
                     }
                 }
-                else
+                else if (to >= A1)
                 {
-                    if (to >= A1)
-                    {
-                        gen_promote(from, to, bits);
-                        return;
-                    }
+                    GenPromote(from, to, bits);
+                    return;
                 }
             }
+
             g = gen_dat[fm[ply + 1]++];
             g.m.b.from = (sbyte)from;
             g.m.b.to = (sbyte)to;
             g.m.b.promote = 0;
             g.m.b.bits = (sbyte)bits;
+
             if (col[to] != EMPTY)
                 g.score = 1000000 + (ptr[to] * 10) - ptr[from];
             else
-                g.score = histo[from*64 + to];
+                g.score = histo[from * 64 + to];
         }
 
-        /* gen_promote() is just like gen_push(), only it puts 4 moves
+        /* GenPromote() is just like gen_push(), only it puts 4 moves
         n the move stack, one for each possible promotion ptr */
-
-        void gen_promote(long from, long to, long bits)
+        private void GenPromote(long from, long to, long bits)
         {
-            long i;
-            gen_t g;
+            GenT g;
 
-            for (i = KNIGHT; i <= QUEEN; ++i)
+            for (long i = KNIGHT; i <= QUEEN; ++i)
             {
                 g = gen_dat[fm[ply + 1]++];
                 g.m.b.from = (sbyte)from;
@@ -367,47 +380,45 @@ namespace TSCP_Sharp_unsafe
             }
         }
 
-        /* makemove() makes a move. If the move is illegal, it
+        /* MakeMove() makes a move. If the move is illegal, it
         undoes whatever it did and returns FALSE. Otherwise, it
         returns TRUE. */
-
-        bool makemove(ref move_bytes m)
+        private bool MakeMove(ref MoveBytes m)
         {
-
             // test to see if a castle move is legal and move the rook
             //(the king is moved with the usual move code later) */
             if ((m.bits & 2) != 0)
             {
                 long from, to;
 
-                if (in_check(side))
-                    return false;
+                if (InCheck(side)) return false;
+
                 switch (m.to)
                 {
                     case 62:
                         if (col[F1] != EMPTY || col[G1] != EMPTY ||
-                                attack(F1, xside) || attack(G1, xside))
+                                Attack(F1, xside) || Attack(G1, xside))
                             return false;
                         from = H1;
                         to = F1;
                         break;
                     case 58:
                         if (col[B1] != EMPTY || col[C1] != EMPTY || col[D1] != EMPTY ||
-                                attack(C1, xside) || attack(D1, xside))
+                                Attack(C1, xside) || Attack(D1, xside))
                             return false;
                         from = A1;
                         to = D1;
                         break;
                     case 6:
                         if (col[F8] != EMPTY || col[G8] != EMPTY ||
-                                attack(F8, xside) || attack(G8, xside))
+                                Attack(F8, xside) || Attack(G8, xside))
                             return false;
                         from = H8;
                         to = F8;
                         break;
                     case 2:
                         if (col[B8] != EMPTY || col[C8] != EMPTY || col[D8] != EMPTY ||
-                                attack(C8, xside) || attack(D8, xside))
+                                Attack(C8, xside) || Attack(D8, xside))
                             return false;
                         from = A8;
                         to = D8;
@@ -425,7 +436,7 @@ namespace TSCP_Sharp_unsafe
 
             /* back up information so we can take the move back later. */
             histdat[hply].m.b = m;
-            histdat[hply].capture = ptr[(long)m.to];
+            histdat[hply].capture = ptr[m.to];
             histdat[hply].castle = castle;
             histdat[hply].ep = ep;
             histdat[hply].fifty = fifty;
@@ -435,7 +446,7 @@ namespace TSCP_Sharp_unsafe
 
             //update the castle, en passant, and
             //fifty-move-draw variables */
-            castle &= castle_mask[(long)m.from] & castle_mask[(long)m.to];
+            castle &= castle_mask[m.from] & castle_mask[m.to];
             if ((m.bits & 8) != 0)
             {
                 if (side == LIGHT)
@@ -445,19 +456,22 @@ namespace TSCP_Sharp_unsafe
             }
             else
                 ep = -1;
+
             if ((m.bits & 17) != 0)
                 fifty = 0;
             else
                 ++fifty;
 
             /* move the ptr */
-            col[(long)m.to] = side;
+            col[m.to] = side;
+
             if ((m.bits & 32) != 0)
-                ptr[(long)m.to] = m.promote;
+                ptr[m.to] = m.promote;
             else
-                ptr[(long)m.to] = ptr[(long)m.from];
-            col[(long)m.from] = EMPTY;
-            ptr[(long)m.from] = EMPTY;
+                ptr[m.to] = ptr[m.from];
+
+            col[m.from] = EMPTY;
+            ptr[m.from] = EMPTY;
 
             /* erase the pawn if this is an en passant move */
             if ((m.bits & 4) != 0)
@@ -479,20 +493,20 @@ namespace TSCP_Sharp_unsafe
             //we need to take the move back) */
             side ^= 1;
             xside ^= 1;
-            if (in_check(xside))
+            if (InCheck(xside))
             {
-                takeback();
+                Takeback();
                 return false;
             }
-            set_hash();
+            SetHash();
             return true;
         }
 
-        /* takeback() is very similar to makemove(), only backwards :)  */
+        /* Takeback() is very similar to makemove(), only backwards :)  */
 
-        void takeback()
+        private void Takeback()
         {
-            move_bytes m;
+            MoveBytes m;
 
             side ^= 1;
             xside ^= 1;
@@ -503,21 +517,23 @@ namespace TSCP_Sharp_unsafe
             ep = histdat[hply].ep;
             fifty = histdat[hply].fifty;
             hash = histdat[hply].hash;
-            col[(long)m.from] = side;
+            col[m.from] = side;
             if ((m.bits & 32) != 0)
-                ptr[(long)m.from] = PAWN;
+                ptr[m.from] = PAWN;
             else
-                ptr[(long)m.from] = ptr[(long)m.to];
+                ptr[m.from] = ptr[m.to];
+
             if (histdat[hply].capture == EMPTY)
             {
-                col[(long)m.to] = EMPTY;
-                ptr[(long)m.to] = EMPTY;
+                col[m.to] = EMPTY;
+                ptr[m.to] = EMPTY;
             }
             else
             {
-                col[(long)m.to] = xside;
-                ptr[(long)m.to] = histdat[hply].capture;
+                col[m.to] = xside;
+                ptr[m.to] = histdat[hply].capture;
             }
+
             if ((m.bits & 2) != 0)
             {
                 long from, to;
@@ -545,11 +561,13 @@ namespace TSCP_Sharp_unsafe
                         to = -1;
                         break;
                 }
+
                 col[to] = side;
                 ptr[to] = ROOK;
                 col[from] = EMPTY;
                 ptr[from] = EMPTY;
             }
+
             if ((m.bits & 4) != 0)
             {
                 if (side == LIGHT)

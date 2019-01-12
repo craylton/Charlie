@@ -7,9 +7,9 @@
 /* with fen and null move capabilities - N.Blais 3/5/05 */
 using System;
 
-namespace TSCP_Sharp_unsafe
+namespace CharlieChess
 {
-    unsafe public partial class TSCP: IDisposable 
+    unsafe public partial class Tscp : IDisposable
     {
         long* ptr;
         long* col;
@@ -21,120 +21,121 @@ namespace TSCP_Sharp_unsafe
         bool* sl;
         long* hp;
         long* histo;
-        hist_t* histdat;
-        move* pvptr;
+        HistT* histdat;
+        Move* pvptr;
         long* pvl;
         long* pr;
         long* pm;
         long* pam;
         long* scr;
 
-        public TSCP()
+        public Tscp()
         {
             for (long x = 0; x < gen_dat.Length; x++)
-                gen_dat[x] = new gen_t();
+                gen_dat[x] = new GenT();
+
             InitPointers();
             Main();
         }
 
         private void InitPointers()
         {
-        fixed (long* colorptr = &color[0] )
-         {
-           fixed (long* pieceptr = &piece[0] )
-         {
-             fixed (long* mbptr = &mailbox[0])
-             {
-                 fixed (long* mb64ptr = &mailbox64[0])
-                 {
-                     fixed (long* ofsptr = &offset[0])
-                     {
-                         fixed (long* ofssptr = &offsets[0])
-                         {
-                             fixed (bool* slideptr = &slide[0])
-                             {
-                                 fixed (long* firstmoveptr = &first_move[0])
-                                 {
-                                     fixed (long* hashpieceptr = &hash_piece[0])
-                                     {
-                                         fixed (long* histoptr = &history[0])
-                                         {
-                                             fixed (hist_t* histdatptr = &hist_dat[0])
-                                             {
-                                                 fixed (move* pv_ptr = &pv[0])
-                                                 {
-                                                     fixed (long* pvlptr = &pv_length[0])
-                                                     {
-                                                         fixed (long* pawnrptr = &pawn_rank[0])
-                                                         {
-                                                             fixed (long* piecemptr = &piece_mat [0])
-                                                             {
-                                                                 fixed (long* pawnmptr = &pawn_mat [0])
-                                                                 {
-                                                                     fixed (long* scoreptr = &score[0])
-                                                                     {
+            fixed (long* colorptr = &color[0])
+            {
+                fixed (long* pieceptr = &piece[0])
+                {
+                    fixed (long* mbptr = &mailbox[0])
+                    {
+                        fixed (long* mb64ptr = &mailbox64[0])
+                        {
+                            fixed (long* ofsptr = &offset[0])
+                            {
+                                fixed (long* ofssptr = &offsets[0])
+                                {
+                                    fixed (bool* slideptr = &slide[0])
+                                    {
+                                        fixed (long* firstmoveptr = &first_move[0])
+                                        {
+                                            fixed (long* hashpieceptr = &hash_piece[0])
+                                            {
+                                                fixed (long* histoptr = &history[0])
+                                                {
+                                                    fixed (HistT* histdatptr = &hist_dat[0])
+                                                    {
+                                                        fixed (Move* pv_ptr = &pv[0])
+                                                        {
+                                                            fixed (long* pvlptr = &pv_length[0])
+                                                            {
+                                                                fixed (long* pawnrptr = &pawn_rank[0])
+                                                                {
+                                                                    fixed (long* piecemptr = &piece_mat[0])
+                                                                    {
+                                                                        fixed (long* pawnmptr = &pawn_mat[0])
+                                                                        {
+                                                                            fixed (long* scoreptr = &score[0])
+                                                                            {
 
-                                                                         pm=piecemptr;
-                                                                         pam=pawnmptr;
-                                                                         scr = scoreptr;
-                                                                         pr = pawnrptr;
-                                                                         pvl = pvlptr;
-                                                                         pvptr = pv_ptr;
-                                                                         mb64 = mb64ptr;
-                                                                         mb = mbptr;
-                                                                         ptr = pieceptr;
-                                                                         col = colorptr;
-                                                                         ofs = ofsptr;
-                                                                         ofss = ofssptr;
-                                                                         sl = slideptr;
-                                                                         fm = firstmoveptr;
-                                                                         hp = hashpieceptr;
-                                                                         histo = histoptr;
-                                                                         histdat = histdatptr;
-                                                                     }
-                                                                 }
-                                                             }
-                                                         }
-                                                     }
-                                                 }
-                                             }
-                                         }
-                                     }
-                                 }
-                             }
-                         }
-                     }
-                 }
-             }
-          }
-         }
+                                                                                pm = piecemptr;
+                                                                                pam = pawnmptr;
+                                                                                scr = scoreptr;
+                                                                                pr = pawnrptr;
+                                                                                pvl = pvlptr;
+                                                                                pvptr = pv_ptr;
+                                                                                mb64 = mb64ptr;
+                                                                                mb = mbptr;
+                                                                                ptr = pieceptr;
+                                                                                col = colorptr;
+                                                                                ofs = ofsptr;
+                                                                                ofss = ofssptr;
+                                                                                sl = slideptr;
+                                                                                fm = firstmoveptr;
+                                                                                hp = hashpieceptr;
+                                                                                histo = histoptr;
+                                                                                histdat = histdatptr;
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
-        public void Dispose() 
-        { close_book(); }
-        
-/* main() is basically an infinite loop that either calls
-think() when it's the computer's turn to move or prompts
-the user for a command (and deciphers it). */
-        void Main()
-        {  
+
+        public void Dispose() => CloseBook();
+
+        /* Main() is basically an infinite loop that either calls
+        think() when it's the computer's turn to move or prompts
+        the user for a command (and deciphers it). */
+        private void Main()
+        {
             long computer_side = 0;
-            string s = String.Empty;
-            string fens = String.Empty;
-            long arg = 0 , p = 0;
+            string s = string.Empty;
+            string fens = string.Empty;
+            long arg = 0, p = 0;
             long m = 0;
 
             Console.WriteLine();
-            Console.WriteLine("Tom Kerrigan's Simple Chess Program (TSCP)");
-            Console.Write("version 1.81, 2/5/03");
-            Console.WriteLine(" (fen and null move capabilities - N.Blais 3/5/05)");
-            Console.WriteLine("Copyright 1997 Tom Kerrigan");
+            Console.WriteLine("\t-----\t");
+            Console.WriteLine("Charlie Chess");
+            Console.WriteLine("\t-----\t");
+            Console.WriteLine("(Derived from Tom Kerrigan's Simple Chess Program (TSCP))");
             Console.WriteLine();
             Console.WriteLine("\"help\" displays a list of commands.");
             Console.WriteLine();
-            init_hash();
-            init_board(spos);
-            open_book();
-            gen();
+            InitHash();
+            InitBoard(spos);
+            OpenBook();
+            Gen();
             computer_side = EMPTY;
             max_time = 1 << 25;
             max_depth = 4;
@@ -144,22 +145,22 @@ the user for a command (and deciphers it). */
                 if (side == computer_side)/* computer's turn */
                 {
                     /* think about the move and make it */
-                    think(1);
+                    Think(1);
                     if (pv[0].u <= 0)
                     {
                         Console.WriteLine("(no legal moves)");
                         computer_side = EMPTY;
                         continue;
                     }
-                    Console.WriteLine("Computer's move: {0}", move_str(pv[0].b));
-                    makemove(ref pv[0].b);
+                    Console.WriteLine("Computer's move: {0}", MoveStr(pv[0].b));
+                    MakeMove(ref pv[0].b);
                     ply = 0;
-                    gen();
-                    print_result();
+                    Gen();
+                    PrintResult();
                     continue;
                 }
                 /* get user input */
-                Console.Write("tscp> ");
+                Console.Write("charlie> ");
 
                 s = Console.ReadLine();
 
@@ -178,63 +179,59 @@ the user for a command (and deciphers it). */
 
                 switch (s)
                 {
-                    case "on": computer_side = side;
+                    case "on":
+                        computer_side = side;
                         continue;
-                    case "off": computer_side = EMPTY;
+                    case "off":
+                        computer_side = EMPTY;
                         continue;
-                    case "fen": print_fen();
+                    case "fen":
+                        PrintFen();
                         continue;
                     case "sb":
                         {
-                            init_board(fens);
+                            InitBoard(fens);
                             continue;
                         }
-
                     case "st":
                         {
                             max_time = arg * 1000;
                             max_depth = 32;
                             continue;
                         }
-
                     case "sd":
                         {
                             max_depth = arg;
                             max_time = 1 << 25;
                             continue;
                         }
-
                     case "undo":
                         {
                             if (hply == 0) continue;
                             computer_side = EMPTY;
-                            takeback();
+                            Takeback();
                             ply = 0;
-                            gen();
+                            Gen();
                             continue;
                         }
-
                     case "new":
                         {
                             computer_side = EMPTY;
-                            init_board(spos);
-                            gen();
+                            InitBoard(spos);
+                            Gen();
                             continue;
                         }
-
                     case "d":
                         {
-                            print_board();
+                            PrintBoard();
                             continue;
                         }
-
                     case "bench":
                         {
                             computer_side = EMPTY;
-                            bench();
+                            Bench();
                             continue;
                         }
-
                     case "quit": return;
 
                     case "bye":
@@ -242,13 +239,11 @@ the user for a command (and deciphers it). */
                             Console.WriteLine("Share and enjoy!");
                             return;
                         }
-
                     case "xboard":
                         {
-                            xboard();
+                            XBoard();
                             return;
                         }
-
                     case "help":
                         {
                             Console.WriteLine("on - computer plays for the side to move");
@@ -266,34 +261,36 @@ the user for a command (and deciphers it). */
                             Console.WriteLine("Enter moves in coordinate notation, e.g., e2e4, e7e8Q");
                             continue;
                         }
-
                 }
+
                 /* maybe the user entered a move? */
-                m = parse_move(s);
-                if (m == -1 || !makemove(ref gen_dat[m].m.b))
+                m = ParseMove(s);
+                if (m == -1 || !MakeMove(ref gen_dat[m].m.b))
+                {
                     Console.WriteLine("Illegal move.");
+                }
                 else
                 {
                     ply = 0;
-                    gen();
-                    print_result();
+                    Gen();
+                    PrintResult();
                 }
             }
-          
+
         }
 
-/* parse the move s (in coordinate notation) and return the move's
-index in gen_dat, or -1 if the move is illegal */
-
-        long parse_move(string s)
+        /* parse the move s (in coordinate notation) and return the move's
+        index in gen_dat, or -1 if the move is illegal */
+        private long ParseMove(string s)
         {
             long from, to, i;
 
             /* make sure the string looks like a move */
-            if (s.Length <4 || s[0] < 'a' || s[0] > 'h' ||
-                 s[1] < '0' || s[1] > '9' ||
-                 s[2] < 'a' || s[2] > 'h' ||
-                 s[3] < '0' || s[3] > '9')
+            if (s.Length < 4 ||
+                s[0] < 'a' || s[0] > 'h' ||
+                s[1] < '0' || s[1] > '9' ||
+                s[2] < 'a' || s[2] > 'h' ||
+                s[3] < '0' || s[3] > '9')
                 return -1;
 
             from = s[0] - 'a';
@@ -302,6 +299,7 @@ index in gen_dat, or -1 if the move is illegal */
             to += 8 * (8 - (s[3] - '0'));
 
             for (i = 0; i < first_move[1]; ++i)
+            {
                 if (gen_dat[i].m.b.from == from && gen_dat[i].m.b.to == to)
                 {
 
@@ -325,18 +323,17 @@ index in gen_dat, or -1 if the move is illegal */
                         }
                     return i;
                 }
+            }
 
             /* didn't find the move */
             return -1;
         }
 
         /* move_str returns a string with move m in coordinate notation */
-
-        string  move_str(move_bytes m)
+        private string MoveStr(MoveBytes m)
         {
             string str;
-
-	        char c;
+            char c;
 
             if ((m.bits & 32) != 0)
             {
@@ -355,6 +352,7 @@ index in gen_dat, or -1 if the move is illegal */
                         c = 'q';
                         break;
                 }
+
                 str = string.Format("{0}{1:D}{2}{3:D}{4}",
                         (char)((m.from & 7) + 'a'),
                         8 - (m.from >> 3),
@@ -363,22 +361,22 @@ index in gen_dat, or -1 if the move is illegal */
                         c);
             }
             else
+            {
                 str = string.Format("{0}{1:D}{2}{3:D}",
                         (char)((m.from & 7) + 'a'),
                         8 - (m.from >> 3),
                         (char)((m.to & 7) + 'a'),
                         8 - (m.to >> 3));
-                           
-	        return str;
+            }
+
+            return str;
         }
 
-        /* print_board() prints the board */
-
-        void print_board()
+        /* PrintBoard() prints the board */
+        private void PrintBoard()
         {
-            long i;
             Console.Write("\n8 ");
-            for (i = 0; i < 64; ++i)
+            for (int i = 0; i < 64; ++i)
             {
                 switch (color[i])
                 {
@@ -386,31 +384,32 @@ index in gen_dat, or -1 if the move is illegal */
                         Console.Write(" .");
                         break;
                     case LIGHT:
-                        Console.Write(" "+piece_char[piece[i]]);
+                        Console.Write(" " + piece_char[piece[i]]);
                         break;
                     case DARK:
-                        Console.Write((" "+piece_char[piece[i]]).ToLower());
+                        Console.Write((" " + piece_char[piece[i]]).ToLower());
                         break;
                 }
+
                 if ((i + 1) % 8 == 0 && i != 63)
-                    Console.Write("\n{0} ",7 - (i >> 3));
+                    Console.Write("\n{0} ", 7 - (i >> 3));
             }
+
             Console.WriteLine("\n\n" + "   a b c d e f g h\n");
         }
 
-
-        void xboard()
+        private void XBoard()
         {
             long computer_side = 0;
-            string command = String.Empty;
+            string command = string.Empty;
             long m = 0;
             long post = 0;
             long p = 0;
             long arg = 0;
 
             Console.WriteLine();
-            init_board(spos);
-            gen();
+            InitBoard(spos);
+            Gen();
             computer_side = EMPTY;
 
             while (true)
@@ -419,17 +418,17 @@ index in gen_dat, or -1 if the move is illegal */
                 if (side == computer_side)/* computer's turn */
                 {
                     /* think about the move and make it */
-                    think(post);
+                    Think(post);
                     if (pv[0].u <= 0)
                     {
                         computer_side = EMPTY;
                         continue;
                     }
-                    Console.WriteLine("move {0}", move_str(pv[0].b));
-                    makemove(ref pv[0].b);
+                    Console.WriteLine("move {0}", MoveStr(pv[0].b));
+                    MakeMove(ref pv[0].b);
                     ply = 0;
-                    gen();
-                    print_result();
+                    Gen();
+                    PrintResult();
                     continue;
                 }
 
@@ -443,130 +442,132 @@ index in gen_dat, or -1 if the move is illegal */
 
                 switch (command)
                 {
-                    case "xboard":continue;
-                    case "new": 
+                    case "xboard": continue;
+                    case "new":
                         {
-                          init_board(spos);
-                          gen();
-                          computer_side = DARK;
-                          continue;
+                            InitBoard(spos);
+                            Gen();
+                            computer_side = DARK;
+                            continue;
                         }
                     case "quit": return;
                     case "force":
                         {
-                          computer_side = EMPTY;
-                          continue;
+                            computer_side = EMPTY;
+                            continue;
                         }
                     case "white":
                         {
-                          side = LIGHT;
-                          xside = DARK;
-                          gen();
-                          computer_side = DARK;
-                          continue;
+                            side = LIGHT;
+                            xside = DARK;
+                            Gen();
+                            computer_side = DARK;
+                            continue;
                         }
                     case "black":
                         {
-                          side = DARK;
-                          xside = LIGHT;
-                          gen();
-                          computer_side = LIGHT;
-                          continue;
+                            side = DARK;
+                            xside = LIGHT;
+                            Gen();
+                            computer_side = LIGHT;
+                            continue;
                         }
                     case "st":
                         {
-                          max_time = arg * 1000;
-                          max_depth = 32;
-                          continue;
+                            max_time = arg * 1000;
+                            max_depth = 32;
+                            continue;
                         }
                     case "sd":
                         {
-                          max_depth = arg;
-                          max_time = 1 << 25;
-                          continue;
+                            max_depth = arg;
+                            max_time = 1 << 25;
+                            continue;
                         }
                     case "time":
                         {
-                          max_time = arg * 10; 
-                          max_time /= 30;
-                          max_depth = 32;
-                          continue;
+                            max_time = arg * 10;
+                            max_time /= 30;
+                            max_depth = 32;
+                            continue;
                         }
                     case "otim": continue;
                     case "go":
                         {
-                          computer_side = side;
-                          continue;
+                            computer_side = side;
+                            continue;
                         }
                     case "hint":
                         {
-                          think(0);
-                          if (pv[0].u <= 0)
-                              continue;
-                          Console.WriteLine("Hint: {0}", move_str(pv[0].b));
-                          continue;
+                            Think(0);
+                            if (pv[0].u <= 0)
+                                continue;
+                            Console.WriteLine("Hint: {0}", MoveStr(pv[0].b));
+                            continue;
                         }
                     case "undo":
                         {
-                          if (hply < 2 ) continue; 
-                          computer_side = EMPTY;
-                          takeback();
-                          ply = 0;
-                          gen();
-                          continue;
+                            if (hply < 2) continue;
+                            computer_side = EMPTY;
+                            Takeback();
+                            ply = 0;
+                            Gen();
+                            continue;
                         }
                     case "remove":
                         {
-                          if (hply < 2) continue;
-                          takeback();
-                          takeback();
-                          ply = 0;
-                          gen();
-                          continue;
+                            if (hply < 2) continue;
+                            Takeback();
+                            Takeback();
+                            ply = 0;
+                            Gen();
+                            continue;
                         }
                     case "post":
                         {
-                          post = 2;
-                          continue;
+                            post = 2;
+                            continue;
                         }
                     case "nopost":
                         {
-                          post = 0;
-                          continue;
+                            post = 0;
+                            continue;
                         }
                 }
 
-                m = parse_move(command);
-                if (m == -1 || !makemove(ref gen_dat[m].m.b))
+                m = ParseMove(command);
+                if (m == -1 || !MakeMove(ref gen_dat[m].m.b))
+                {
                     Console.WriteLine("Illegal move.");
+                }
                 else
                 {
                     ply = 0;
-                    gen();
-                    print_result();
+                    Gen();
+                    PrintResult();
                 }
-
             }
-
         }
 
-/* print_result() checks to see if the game is over, and if so,
-prints the result. */
-
-        void print_result()
+        /* PrintResult() checks to see if the game is over, and if so,
+        prints the result. */
+        private void PrintResult()
         {
             long i;
 
             /* is there a legal move? */
             for (i = 0; i < first_move[1]; ++i)
-                if (makemove(ref gen_dat[i].m.b))
+            {
+                if (MakeMove(ref gen_dat[i].m.b))
                 {
-                    takeback();
+                    Takeback();
                     break;
                 }
+            }
+
             if (i == first_move[1])
             {
-                if (in_check(side))
+                if (InCheck(side))
                 {
                     if (side == LIGHT)
                         Console.WriteLine("0-1 {Black mates}");
@@ -576,91 +577,102 @@ prints the result. */
                 else
                     Console.WriteLine("1/2-1/2 {Stalemate}");
             }
-            else if (reps() == 2)
+            else if (Reps() == 2)
                 Console.WriteLine("1/2-1/2 {Draw by repetition}");
             else if (fifty >= 100)
                 Console.WriteLine("1/2-1/2 {Draw by fifty move rule}");
         }
 
-/* bench: This is a little benchmark code that calculates how many
-   nodes per second TSCP searches.
-   It sets the position to move 17 of Bobby Fischer vs. J. Sherwin,
-   New Jersey State Open Championship, 9/2/1957.
-   Then it searches five ply three times. It calculates nodes per
-   second from the best time. */
-
-        long[] bench_color = new long[64] {
-	        6, 1, 1, 6, 6, 1, 1, 6,
-	        1, 6, 6, 6, 6, 1, 1, 1,
-	        6, 1, 6, 1, 1, 6, 1, 6,
-	        6, 6, 6, 1, 6, 6, 0, 6,
-	        6, 6, 1, 0, 6, 6, 6, 6,
-	        6, 6, 0, 6, 6, 6, 0, 6,
-	        0, 0, 0, 6, 6, 0, 0, 0,
-	        0, 6, 0, 6, 0, 6, 0, 6};
-
-
-        long[] bench_piece = new long[64] {
-	        6, 3, 2, 6, 6, 3, 5, 6,
-	        0, 6, 6, 6, 6, 0, 0, 0,
-	        6, 0, 6, 4, 0, 6, 1, 6,
-	        6, 6, 6, 1, 6, 6, 1, 6,
-	        6, 6, 0, 0, 6, 6, 6, 6,
-	        6, 6, 0, 6, 6, 6, 0, 6,
-	        0, 0, 4, 6, 6, 0, 2, 0,
-	        3, 6, 2, 6, 3, 6, 5, 6};
-
-        void bench()
+        /* bench: This is a little benchmark code that calculates how many
+           nodes per second TSCP searches.
+           It sets the position to move 17 of Bobby Fischer vs. J. Sherwin,
+           New Jersey State Open Championship, 9/2/1957.
+           Then it searches five ply three times. It calculates nodes per
+           second from the best time. */
+        long[] bench_color = new long[64]
         {
-	        long i;
-	        long[] t = new long [3];
-	        double nps;
+            6, 1, 1, 6, 6, 1, 1, 6,
+            1, 6, 6, 6, 6, 1, 1, 1,
+            6, 1, 6, 1, 1, 6, 1, 6,
+            6, 6, 6, 1, 6, 6, 0, 6,
+            6, 6, 1, 0, 6, 6, 6, 6,
+            6, 6, 0, 6, 6, 6, 0, 6,
+            0, 0, 0, 6, 6, 0, 0, 0,
+            0, 6, 0, 6, 0, 6, 0, 6
+        };
 
-	        // setting the position to a non-initial position confuses the opening
-	        //   book code. */
-	        close_book();
 
-	        for (i = 0; i < 64; ++i) {
-		        color[i] = bench_color[i];
-		        piece[i] = bench_piece[i];
-	        }
-	        side = LIGHT;
-	        xside = DARK;
-	        castle = 0;
-	        ep = -1;
-	        fifty = 0;
-	        ply = 0;
-	        hply = 0;
-	        set_hash();
-	        print_board();
-	        max_time = 1 << 25;
-	        max_depth = 5;
-	        for (i = 0; i < 3; ++i) {
-		        think(1);
+        long[] bench_piece = new long[64]
+        {
+            6, 3, 2, 6, 6, 3, 5, 6,
+            0, 6, 6, 6, 6, 0, 0, 0,
+            6, 0, 6, 4, 0, 6, 1, 6,
+            6, 6, 6, 1, 6, 6, 1, 6,
+            6, 6, 0, 0, 6, 6, 6, 6,
+            6, 6, 0, 6, 6, 6, 0, 6,
+            0, 0, 4, 6, 6, 0, 2, 0,
+            3, 6, 2, 6, 3, 6, 5, 6
+        };
+
+        private void Bench()
+        {
+            long i;
+            long[] t = new long[3];
+            double nps;
+
+            // setting the position to a non-initial position confuses the opening
+            //   book code. */
+            CloseBook();
+
+            for (i = 0; i < 64; ++i)
+            {
+                color[i] = bench_color[i];
+                piece[i] = bench_piece[i];
+            }
+
+            side = LIGHT;
+            xside = DARK;
+            castle = 0;
+            ep = -1;
+            fifty = 0;
+            ply = 0;
+            hply = 0;
+            SetHash();
+            PrintBoard();
+            max_time = 1 << 25;
+            max_depth = 5;
+
+            for (i = 0; i < 3; ++i)
+            {
+                Think(1);
                 t[i] = Environment.TickCount - start_time;
                 Console.WriteLine("Time: {0} ms", t[i]);
-	        }
-	        if (t[1] < t[0])
-		        t[0] = t[1];
-	        if (t[2] < t[0])
-		        t[0] = t[2];
+            }
+
+            if (t[1] < t[0])
+                t[0] = t[1];
+            if (t[2] < t[0])
+                t[0] = t[2];
+
             Console.WriteLine();
             Console.WriteLine("Nodes: {0}", nodes);
             Console.WriteLine("Best time: {0} ms", t[0]);
 
-	        if (t[0] == 0) {
+            if (t[0] == 0)
+            {
                 Console.WriteLine("(invalid)");
-		        return;
-	        }
-	        nps = (double)nodes / (double)t[0];
-	        nps *= 1000.0;
+                return;
+            }
 
-	        /* Score: 1.000 = my Athlon XP 2000+ */
+            nps = nodes / (double)t[0];
+            nps *= 1000.0;
+
+            /* Score: 1.000 = my Athlon XP 2000+ */
             Console.WriteLine("Nodes per second: {0} (Score: {1:0.###})", (long)nps, (float)nps / 243169.0);
 
-	        init_board(spos);
-	        open_book();
-	        gen();
+            InitBoard(spos);
+            OpenBook();
+            Gen();
         }
 
     }

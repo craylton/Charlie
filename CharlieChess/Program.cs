@@ -6,23 +6,26 @@
  */
 
 /* with fen and null move capabilities - N.Blais 3/5/05 */
+
 using System;
 
-namespace TSCP_Sharp_unsafe
+namespace CharlieChess
 {
-    public class Program
+    public static class Program
     {
         static void Main(string[] args)
         {
             try
             {
-              using (TSCP tscp = new TSCP());
+                using (Tscp tscp = new Tscp())
+                {
+                    // TSCP runs on its own
+                }
             }
             catch (Exception ex)
             {
-
                 Console.WriteLine(ex.Message);
-            }    
+            }
         }
     }
 }

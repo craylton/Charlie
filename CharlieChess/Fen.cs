@@ -7,25 +7,21 @@
 /* with fen and null move capabilities - N.Blais 3/5/05 */
 using System;
 
-namespace TSCP_Sharp_unsafe
+namespace CharlieChess
 {
-    public partial class TSCP
+    public partial class Tscp
     {
-        void fen(string s)
+        void Fen(string s)
         {
-            long n;
-            int i, sq, a=0;
+            long n = s.Length;
+            int i, sq = 0, a = 0;
             long z;
-
-            n = s.Length;
 
             for (i = 0; i < 64; ++i)
             {
                 color[i] = EMPTY;
                 piece[i] = EMPTY;
             }
-
-            sq = 0;
 
             for (i = 0, z = 0; i < n && z == 0; ++i)
             {
@@ -117,196 +113,227 @@ namespace TSCP_Sharp_unsafe
             }
         }
 
-        void print_fen()
-{
-	long i;
-	long p;
-	long c;
-	long halfmove;
-	char[] str = new char[128];
+        void PrintFen()
+        {
+            long i;
+            long p;
+            long c;
+            long halfmove;
+            char[] str = new char[128];
 
-	long cnt = 0;
-	sbyte es = 0;
+            long cnt = 0;
+            sbyte es = 0;
 
-	for (i=0; i < 64; i++) {
-		if (i != 0 && (i%8 == 0)) {
-			if (es !=0) {
-				str[cnt++] = num[es];
-				es = 0;
-			}
-			str[cnt++] = '/';
-		}
-		p = piece[i];
-		c = color[i];
-		switch(p) {
-		case PAWN:
-			if (es !=0) {
-				str[cnt++] = num[es];
-				es = 0;
-			}
-			if (c == LIGHT) {
-				str[cnt++] = 'P';
-				es = 0;
-			} else {
-				str[cnt++] = 'p';
-				es = 0;
-			}
-			break;
-		case KNIGHT:
-			if (es !=0) {
-				str[cnt++] = num[es];
-				es = -1;
-			}
-			if (c == LIGHT) {
-				str[cnt++] = 'N';
-				es = 0;
-			} else {
-				str[cnt++] = 'n';
-				es = 0;
-			}
-			break;
-		case BISHOP:
-			if (es !=0) {
-				str[cnt++] = num[es];
-				es = 0;
-			}
-			if (c == LIGHT) {
-				str[cnt++] = 'B';
-				es = 0;
-			} else {
-				str[cnt++] = 'b';
-				es = 0;
-			}
-			break;
-		case ROOK:
-            if (es != 0)
+            for (i = 0; i < 64; i++)
             {
-				str[cnt++] = num[es];
-				es = 0;
-			}
-			if (c == LIGHT) {
-				str[cnt++] = 'R';
-				es = 0;
-			} else {
-				str[cnt++] = 'r';
-				es = 0;
-			}
-			break;
-		case QUEEN:
+                if (i != 0 && (i % 8 == 0))
+                {
+                    if (es != 0)
+                    {
+                        str[cnt++] = num[es];
+                        es = 0;
+                    }
+                    str[cnt++] = '/';
+                }
+                p = piece[i];
+                c = color[i];
+                switch (p)
+                {
+                    case PAWN:
+                        if (es != 0)
+                        {
+                            str[cnt++] = num[es];
+                            es = 0;
+                        }
+                        if (c == LIGHT)
+                        {
+                            str[cnt++] = 'P';
+                            es = 0;
+                        }
+                        else
+                        {
+                            str[cnt++] = 'p';
+                            es = 0;
+                        }
+                        break;
+                    case KNIGHT:
+                        if (es != 0)
+                        {
+                            str[cnt++] = num[es];
+                            es = -1;
+                        }
+                        if (c == LIGHT)
+                        {
+                            str[cnt++] = 'N';
+                            es = 0;
+                        }
+                        else
+                        {
+                            str[cnt++] = 'n';
+                            es = 0;
+                        }
+                        break;
+                    case BISHOP:
+                        if (es != 0)
+                        {
+                            str[cnt++] = num[es];
+                            es = 0;
+                        }
+                        if (c == LIGHT)
+                        {
+                            str[cnt++] = 'B';
+                            es = 0;
+                        }
+                        else
+                        {
+                            str[cnt++] = 'b';
+                            es = 0;
+                        }
+                        break;
+                    case ROOK:
+                        if (es != 0)
+                        {
+                            str[cnt++] = num[es];
+                            es = 0;
+                        }
+                        if (c == LIGHT)
+                        {
+                            str[cnt++] = 'R';
+                            es = 0;
+                        }
+                        else
+                        {
+                            str[cnt++] = 'r';
+                            es = 0;
+                        }
+                        break;
+                    case QUEEN:
+                        if (es != 0)
+                        {
+                            str[cnt++] = num[es];
+                            es = 0;
+                        }
+                        if (c == LIGHT)
+                        {
+                            str[cnt++] = 'Q';
+                            es = 0;
+                        }
+                        else
+                        {
+                            str[cnt++] = 'q';
+                            es = 0;
+                        }
+                        break;
+                    case KING:
+                        if (es != 0)
+                        {
+                            str[cnt++] = num[es];
+                            es = 0;
+                        }
+                        if (c == LIGHT)
+                        {
+                            str[cnt++] = 'K';
+                            es = 0;
+                        }
+                        else
+                        {
+                            str[cnt++] = 'k';
+                            es = 0;
+                        }
+                        break;
+                    default:
+                        es++;
+                        if (es > 8)
+                        {
+                            es = 0;
+                        }
+                        break;
+                }
+            }
+
             if (es != 0)
+                str[cnt++] = num[es];
+
+            str[cnt++] = ' ';
+
+            if (side == LIGHT)
+                str[cnt++] = 'w';
+            else
+                str[cnt++] = 'b';
+
+            str[cnt++] = ' ';
+
+            if ((castle & 1) != 0)
+                str[cnt++] = 'K';
+
+            if ((castle & 2) != 0)
+                str[cnt++] = 'Q';
+
+            if ((castle & 4) != 0)
+                str[cnt++] = 'k';
+
+            if ((castle & 8) != 0)
+                str[cnt++] = 'q';
+
+            if (castle != 0)
+                str[cnt++] = '-';
+
+            str[cnt++] = ' ';
+
+            if (ep == -1)
             {
-				str[cnt++] = num[es];
-				es = 0;
-			}
-			if (c == LIGHT) {
-				str[cnt++] = 'Q';
-				es = 0;
-			} else {
-				str[cnt++] = 'q';
-				es = 0;
-			}
-			break;
-		case KING:
-            if (es != 0)
+                str[cnt++] = '-';
+            }
+            else
             {
-				str[cnt++] = num[es];
-				es = 0;
-			}
-			if (c == LIGHT) {
-				str[cnt++] = 'K';
-				es = 0;
-			} else {
-				str[cnt++] = 'k';
-				es = 0;
-			}
-			break;
-		default:
-			es++;
-			if (es > 8) {
-				es = 0;
-			}
-			break;
-		}
-	}
+                str[cnt++] = square_name[ep][0];
+                str[cnt++] = square_name[ep][1];
+            }
 
-    if (es != 0)
-    {
-		str[cnt++] = num[es];
-	}
+            str[cnt++] = ' ';
 
-	str[cnt++] = ' ';
+            if (fifty < 10)
+            {
+                str[cnt++] = num[(int)fifty];
+            }
+            else
+            {
+                long x = (fifty / 10);
+                str[cnt++] = num[(int)x];
+                x = (fifty % 10);
+                str[cnt++] = num[(int)x];
+            }
 
-	if (side == LIGHT) {
-		str[cnt++] = 'w';
-	} else {
-		str[cnt++] = 'b';
-	}
+            str[cnt++] = ' ';
 
-	str[cnt++] = ' ';
+            halfmove = (hply / 2) + 1;
 
-	if ((castle & 1)!=0) {
-		str[cnt++] = 'K';
-	}
-	if ((castle & 2)!=0) {
-		str[cnt++] = 'Q';
-	}
-	if ((castle & 4)!=0) {
-		str[cnt++] = 'k';
-	}
-	if ((castle & 8)!=0) {
-		str[cnt++] = 'q';
-	}
+            if (halfmove < 10)
+            {
+                str[cnt++] = num[(int)halfmove];
+            }
+            else if (halfmove < 100)
+            {
+                long x = (halfmove / 10);
+                str[cnt++] = num[(int)x];
+                x = (halfmove % 10);
+                str[cnt++] = num[(int)x];
+            }
+            else if (halfmove < 1000)
+            {
+                long x = (halfmove / 100);
+                str[cnt++] = num[(int)x];
+                halfmove = halfmove % 100;
+                x = (halfmove / 10);
+                str[cnt++] = num[(int)x];
+                x = (halfmove % 10);
+                str[cnt++] = num[(int)x];
+            }
 
-	if (castle !=0) {
-		str[cnt++] = '-';
-	}
+            str[cnt] = '\0';
 
-	str[cnt++] = ' ';
-
-	if (ep == -1) {
-		str[cnt++] = '-';
-	} else {
-		str[cnt++] = square_name[ep][0];
-		str[cnt++] = square_name[ep][1];
-	}
-
-	str[cnt++] = ' ';
-
-	if (fifty < 10) {
-		str[cnt++] = num[(int)fifty];
-	} else {
-		long x = (fifty/10);
-        str[cnt++] = num[(int)x];
-		x = (fifty%10);
-        str[cnt++] = num[(int)x];
-	}
-
-	str[cnt++] = ' ';
-
-	halfmove = (hply/2) + 1;
-
-	if (halfmove < 10) {
-        str[cnt++] = num[(int)halfmove];
-	} else if (halfmove < 100) {
-		long x = (halfmove/10);
-        str[cnt++] = num[(int)x];
-		x = (halfmove%10);
-        str[cnt++] = num[(int)x];
-	} else if (halfmove < 1000) {
-		long x = (halfmove/100);
-        str[cnt++] = num[(int)x];
-		halfmove = halfmove % 100;
-		x = (halfmove/10);
-        str[cnt++] = num[(int)x];
-		x = (halfmove%10);
-        str[cnt++] = num[(int)x];
-	}
-
-
-	str[cnt] = '\0';
-
-    Console.WriteLine(str);
-}
+            Console.WriteLine(str);
+        }
     }
 
 
