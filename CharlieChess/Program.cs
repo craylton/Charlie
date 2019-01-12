@@ -1,12 +1,28 @@
-﻿using System;
+﻿/*
+ *	MAIN.C
+ *	Tom Kerrigan's Simple Chess Program (TSCP)
+ *
+ *	Copyright 1997 Tom Kerrigan
+ */
 
-namespace CharlieChess
+/* with fen and null move capabilities - N.Blais 3/5/05 */
+using System;
+
+namespace TSCP_Sharp_unsafe
 {
-    class Program
+    public class Program
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            try
+            {
+              using (TSCP tscp = new TSCP());
+            }
+            catch (Exception ex)
+            {
+
+                Console.WriteLine(ex.Message);
+            }    
         }
     }
 }
