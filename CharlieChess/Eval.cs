@@ -12,9 +12,9 @@ namespace CharlieChess
     unsafe public partial class Tscp
     {
         private const long DOUBLED_PAWN_PENALTY = 10;
-        private const long ISOLATED_PAWN_PENALTY = 20;
+        private const long ISOLATED_PAWN_PENALTY = 35;
         private const long BACKWARDS_PAWN_PENALTY = 8;
-        private const long PASSED_PAWN_BONUS = 20;
+        private const long PASSED_PAWN_BONUS = 30;
         private const long ROOK_SEMI_OPEN_FILE_BONUS = 10;
         private const long ROOK_OPEN_FILE_BONUS = 15;
         private const long ROOK_ON_SEVENTH_BONUS = 20;
@@ -22,7 +22,7 @@ namespace CharlieChess
         private const long ID = DARK * 10;
 
         /* the values of the pieces */
-        private long[] piece_value = new long[6] { 100, 300, 300, 500, 900, 0 };
+        private long[] piece_value = new long[6] { 100, 300, 310, 500, 900, 0 };
 
         // The "pcsq" arrays are ptr/square tables. They're values
         // added to the material value of the ptr based on the
@@ -31,12 +31,12 @@ namespace CharlieChess
         private long[] pawn_pcsq = new long[64]
         {
             0,   0,   0,   0,   0,   0,   0,   0,
-            5,  10,  15,  20,  20,  15,  10,   5,
-            4,   8,  12,  16,  16,  12,   8,   4,
-            3,   6,   9,  12,  12,   9,   6,   3,
-            2,   4,   6,   8,   8,   6,   4,   2,
-            1,   2,   3, -10, -10,   3,   2,   1,
-            0,   0,   0, -40, -40,   0,   0,   0,
+            10, 13,  18,  25,  25,  18,  14,   12,
+            7,  10,  14,  20,  20,  14,  11,   8,
+            5,   8,  10,  14,  14,  10,   8,   5,
+            3,   5,   7,   8,   8,   7,   5,   3,
+            1,   3,   4,  -5,  -5,   4,   3,   1,
+            0,   0,   0, -30, -30,   0,   0,   0,
             0,   0,   0,   0,   0,   0,   0,   0
         };
 
@@ -49,19 +49,19 @@ namespace CharlieChess
             -10,   0,   5,  10,  10,   5,   0, -10,
             -10,   0,   5,   5,   5,   5,   0, -10,
             -10,   0,   0,   0,   0,   0,   0, -10,
-            -10, -30, -10, -10, -10, -10, -30, -10
+            -10, -20, -10, -10, -10, -10, -20, -10
         };
 
         private long[] bishop_pcsq = new long[64]
         {
-            -10, -10, -10, -10, -10, -10, -10, -10,
-            -10,   0,   0,   0,   0,   0,   0, -10,
-            -10,   0,   5,   5,   5,   5,   0, -10,
-            -10,   0,   5,  10,  10,   5,   0, -10,
-            -10,   0,   5,  10,  10,   5,   0, -10,
-            -10,   0,   5,   5,   5,   5,   0, -10,
-            -10,   0,   0,   0,   0,   0,   0, -10,
-            -10, -10, -20, -10, -10, -20, -10, -10
+            -5,  -10, -20, -25, -25, -20, -10,  -5,
+            -10,   5,   0,   0,   0,   0,   5, -10,
+            -20,   0,   8,   5,   5,   8,   0, -20,
+            -25,   0,   5,  10,  10,   5,   0, -25,
+            -25,   0,   5,  10,  10,   5,   0, -25,
+            -20,   0,   8,   5,   5,   8,   0, -20,
+            -10,   5,   0,   0,   0,   0,   5, -10,
+            -5,  -10, -20, -25, -25, -20, -10,  -5
         };
 
         private long[] king_pcsq = new long[64]
@@ -256,14 +256,14 @@ namespace CharlieChess
                 r -= ISOLATED_PAWN_PENALTY;
 
             /* if it's not isolated, it might be backwards */
-            else if ((pr[IL + (f - 1)] < row) &&
+            else if ((pr[IL + (f - 1)] < row) && 
                     (pr[IL + (f + 1)] < row))
                 r -= BACKWARDS_PAWN_PENALTY;
 
             /* add a bonus if the pawn is passed */
             if ((pr[ID + (f - 1)] >= row) &&
-                    (pr[ID + f] >= row) &&
-                    (pr[ID + (f + 1)] >= row))
+                (pr[ID + f] >= row) &&
+                (pr[ID + (f + 1)] >= row))
                 r += (7 - row) * PASSED_PAWN_BONUS;
 
             return r;

@@ -41,73 +41,40 @@ namespace CharlieChess
         private void InitPointers()
         {
             fixed (long* colorptr = &color[0])
+            fixed (long* pieceptr = &piece[0])
+            fixed (long* mbptr = &mailbox[0])
+            fixed (long* mb64ptr = &mailbox64[0])
+            fixed (long* ofsptr = &offset[0])
+            fixed (long* ofssptr = &offsets[0])
+            fixed (bool* slideptr = &slide[0])
+            fixed (long* firstmoveptr = &first_move[0])
+            fixed (long* hashpieceptr = &hash_piece[0])
+            fixed (long* histoptr = &history[0])
+            fixed (HistT* histdatptr = &hist_dat[0])
+            fixed (Move* pv_ptr = &pv[0])
+            fixed (long* pvlptr = &pv_length[0])
+            fixed (long* pawnrptr = &pawn_rank[0])
+            fixed (long* piecemptr = &piece_mat[0])
+            fixed (long* pawnmptr = &pawn_mat[0])
+            fixed (long* scoreptr = &score[0])
             {
-                fixed (long* pieceptr = &piece[0])
-                {
-                    fixed (long* mbptr = &mailbox[0])
-                    {
-                        fixed (long* mb64ptr = &mailbox64[0])
-                        {
-                            fixed (long* ofsptr = &offset[0])
-                            {
-                                fixed (long* ofssptr = &offsets[0])
-                                {
-                                    fixed (bool* slideptr = &slide[0])
-                                    {
-                                        fixed (long* firstmoveptr = &first_move[0])
-                                        {
-                                            fixed (long* hashpieceptr = &hash_piece[0])
-                                            {
-                                                fixed (long* histoptr = &history[0])
-                                                {
-                                                    fixed (HistT* histdatptr = &hist_dat[0])
-                                                    {
-                                                        fixed (Move* pv_ptr = &pv[0])
-                                                        {
-                                                            fixed (long* pvlptr = &pv_length[0])
-                                                            {
-                                                                fixed (long* pawnrptr = &pawn_rank[0])
-                                                                {
-                                                                    fixed (long* piecemptr = &piece_mat[0])
-                                                                    {
-                                                                        fixed (long* pawnmptr = &pawn_mat[0])
-                                                                        {
-                                                                            fixed (long* scoreptr = &score[0])
-                                                                            {
-
-                                                                                pm = piecemptr;
-                                                                                pam = pawnmptr;
-                                                                                scr = scoreptr;
-                                                                                pr = pawnrptr;
-                                                                                pvl = pvlptr;
-                                                                                pvptr = pv_ptr;
-                                                                                mb64 = mb64ptr;
-                                                                                mb = mbptr;
-                                                                                ptr = pieceptr;
-                                                                                col = colorptr;
-                                                                                ofs = ofsptr;
-                                                                                ofss = ofssptr;
-                                                                                sl = slideptr;
-                                                                                fm = firstmoveptr;
-                                                                                hp = hashpieceptr;
-                                                                                histo = histoptr;
-                                                                                histdat = histdatptr;
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+                pm = piecemptr;
+                pam = pawnmptr;
+                scr = scoreptr;
+                pr = pawnrptr;
+                pvl = pvlptr;
+                pvptr = pv_ptr;
+                mb64 = mb64ptr;
+                mb = mbptr;
+                ptr = pieceptr;
+                col = colorptr;
+                ofs = ofsptr;
+                ofss = ofssptr;
+                sl = slideptr;
+                fm = firstmoveptr;
+                hp = hashpieceptr;
+                histo = histoptr;
+                histdat = histdatptr;
             }
         }
 
@@ -125,9 +92,8 @@ namespace CharlieChess
             long m = 0;
 
             Console.WriteLine();
-            Console.WriteLine("\t-----\t");
             Console.WriteLine("Charlie Chess");
-            Console.WriteLine("\t-----\t");
+            Console.WriteLine("-------------");
             Console.WriteLine("(Derived from Tom Kerrigan's Simple Chess Program (TSCP))");
             Console.WriteLine();
             Console.WriteLine("\"help\" displays a list of commands.");
@@ -487,7 +453,7 @@ namespace CharlieChess
                     case "time":
                         {
                             max_time = arg * 10;
-                            max_time /= 30;
+                            max_time /= 20;
                             max_depth = 32;
                             continue;
                         }
