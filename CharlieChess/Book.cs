@@ -29,7 +29,9 @@ namespace CharlieChess
 
         }
 
-        /* close_book() closes the book file. This is called when the program exits. */
+        /// <summary>
+        /// Closes the book file. This is called when the program exits.
+        /// </summary>
         private void CloseBook()
         {
             if (book_file != null)
@@ -39,8 +41,10 @@ namespace CharlieChess
             }
         }
 
-        /* BookMove() returns a book move (in integer format) or -1 if there is no
-        book move. */
+        /// <summary>
+        /// returns a book move (in integer format) or -1 if there is no book 
+        /// move.
+        /// </summary>
         private long BookMove()
         {
             string book_line = string.Empty;
@@ -115,7 +119,9 @@ namespace CharlieChess
             return -1;  /* shouldn't get here */
         }
 
-        /* book_match() returns TRUE if the first part of s2 matches s1. */
+        /// <summary>
+        /// Returns TRUE if the first part of s2 matches s1.
+        /// </summary>
         private bool BookMatch(string s1, string s2)
         {
             for (int i = 0; i < s1.Length; ++i)

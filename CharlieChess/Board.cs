@@ -11,7 +11,7 @@ using System;
 
 namespace CharlieChess
 {
-    unsafe public partial class Tscp
+    public unsafe partial class Tscp
     {
         Random rand;
 
@@ -40,9 +40,11 @@ namespace CharlieChess
                 hash_ep[i] = HashRand();
         }
 
-        /* HashRand() XORs some shifted random numbers together to make sure
-        we have good coverage of all 32 bits. (rand() returns 16-bit numbers
-        on some systems.) */
+        /// <summary>
+        /// XORs some shifted random numbers together to make sure we have good 
+        /// coverage of all 32 bits. (rand() returns 16-bit numbers on some 
+        /// systems.)
+        /// </summary>
         private long HashRand()
         {
             long r = 0;
@@ -53,17 +55,20 @@ namespace CharlieChess
             return r;
         }
 
-        /* SetHash() uses the Zobrist method of generating a unique number (hash)
-        for the current chess position. Of course, there are many more chess
-        positions than there are 32 bit numbers, so the numbers generated are
-        not really unique, but they're unique enough for our purposes (to detect
-        repetitions of the position). 
-        The way it works is to XOR random numbers that correspond to features of
-        the position, e.g., if there's a black knight on B8, hash is XORed with
-        hash_piece[BLACK][KNIGHT][B8]. All of the pieces are XORed together,
-        hash_side is XORed if it's black's move, and the en passant square is
-        XORed if there is one. (A chess technicality is that one position can't
-        be a repetition of another if the en passant state is different.) */
+        /// <summary>
+        /// Uses the Zobrist method of generating a unique number (hash) for the
+        /// current chess position.Of course, there are many more chess 
+        /// positions than there are 32 bit numbers, so the numbers generated 
+        /// are not really unique, but they're unique enough for our purposes 
+        /// (to detect repetitions of the position). 
+        /// The way it works is to XOR random numbers that correspond to 
+        /// features of the position, e.g., if there's a black knight on B8, 
+        /// hash is XORed with hash_piece[BLACK][KNIGHT][B8]. All of the pieces 
+        /// are XORed together, hash_side is XORed if it's black's move, and the
+        /// en passant square is XORed if there is one. (A chess technicality is
+        /// that one position can't be a repetition of another if the en passant
+        /// state is different.)
+        /// </summary>
         private void SetHash()
         {
             hash = 0;
@@ -78,9 +83,11 @@ namespace CharlieChess
                 hash ^= hash_ep[ep];
         }
 
-        /* in_check() returns TRUE if side s is in check and FALSE
-           otherwise. It just scans the board to find side s's king
-           and calls attack() to see if it's being attacked. */
+        /// <summary>
+        /// Returns TRUE if side s is in check and FALSE otherwise. It just 
+        /// scans the board to find side s's king and calls attack() to see if 
+        /// it's being attacked.
+        /// </summary>
         private bool InCheck(long s)
         {
             for (int i = 0; i < 64; ++i)
@@ -90,8 +97,10 @@ namespace CharlieChess
             return true;  /* shouldn't get here */
         }
 
-        /* Attack() returns TRUE if square sq is being attacked by side
-        s and FALSE otherwise. */
+        /// <summary>
+        /// Attack() returns TRUE if square sq is being attacked by side s and 
+        /// FALSE otherwise.
+        /// </summary>
         private unsafe bool Attack(long sq, long s)
         {
             for (int i = 0; i < 64; ++i)
@@ -140,11 +149,12 @@ namespace CharlieChess
             return false;
         }
 
-        /* gen() generates pseudo-legal moves for the current position.
-        It scans the board to find friendly pieces and then determines
-        what squares they attack. When it finds a ptr/square
-        combination, it calls gen_push to put the move on the "move
-        stack." */
+        /// <summary>
+        /// Generates pseudo-legal moves for the current position. It scans the 
+        /// board to find friendly pieces and then determines what squares they 
+        /// attack. When it finds a ptr/square combination, it calls gen_push to 
+        /// put the move on the "move stack."
+        /// </summary>
         private void Gen()
         {
             /* so far, we have no moves for the current ply */
@@ -246,9 +256,10 @@ namespace CharlieChess
             }
         }
 
-        /* GenCaps() is basically a copy of gen() that's modified to
-        only generate capture and promote moves. It's used by the
-        quiescence search. */
+        /// <summary>
+        /// Basically a copy of gen() that's modified to only generate capture 
+        /// and promote moves.It's used by the quiescence search.
+        /// </summary>
         private void GenCaps()
         {
             fm[ply + 1] = fm[ply];
@@ -322,14 +333,15 @@ namespace CharlieChess
             }
         }
 
-        /* GenPush() puts a move on the move stack, unless it's a
-        pawn promotion that needs to be handled by gen_promote().
-        It also assigns a score to the move for alpha-beta move
-        ordering. If the move is a capture, it uses MVV/LVA
-        (Most Valuable Victim/Least Valuable Attacker). Otherwise,
-        it uses the move's history heuristic value. Note that
-        1,000,000 is added to a capture move's score, so it
-        always gets ordered above a "normal" move. */
+        /// <summary>
+        /// Puts a move on the move stack, unless it's a pawn promotion that 
+        /// needs to be handled by gen_promote(). It also assigns a score to the 
+        /// move for alpha-beta move ordering.If the move is a capture, it uses 
+        /// MVV/LVA (Most Valuable Victim/Least Valuable Attacker). Otherwise,
+        /// it uses the move's history heuristic value. Note that 1,000,000 is 
+        /// added to a capture move's score, so it always gets ordered above a 
+        /// "normal" move.
+        /// </summary>
         private void GenPush(long from, long to, long bits)
         {
             GenT g;
@@ -363,8 +375,10 @@ namespace CharlieChess
                 g.score = histo[from * 64 + to];
         }
 
-        /* GenPromote() is just like gen_push(), only it puts 4 moves
-        n the move stack, one for each possible promotion ptr */
+        /// <summary>
+        /// Just like gen_push(), only it puts 4 moves n the move stack, one for 
+        /// each possible promotion ptr
+        /// </summary>
         private void GenPromote(long from, long to, long bits)
         {
             GenT g;
@@ -380,9 +394,10 @@ namespace CharlieChess
             }
         }
 
-        /* MakeMove() makes a move. If the move is illegal, it
-        undoes whatever it did and returns FALSE. Otherwise, it
-        returns TRUE. */
+        /// <summary>
+        /// Makes a move. If the move is illegal, it undoes whatever it did and 
+        /// returns FALSE.Otherwise, it returns TRUE.
+        /// </summary>
         private bool MakeMove(ref MoveBytes m)
         {
             // test to see if a castle move is legal and move the rook
@@ -502,8 +517,9 @@ namespace CharlieChess
             return true;
         }
 
-        /* Takeback() is very similar to makemove(), only backwards :)  */
-
+        /// <summary>
+        /// Takeback() is very similar to makemove(), only backwards :)
+        /// </summary>
         private void Takeback()
         {
             MoveBytes m;

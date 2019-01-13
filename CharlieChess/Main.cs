@@ -5,11 +5,12 @@
  *	Copyright 1997 Tom Kerrigan
  */
 /* with fen and null move capabilities - N.Blais 3/5/05 */
+
 using System;
 
 namespace CharlieChess
 {
-    unsafe public partial class Tscp : IDisposable
+    public sealed unsafe partial class Tscp : IDisposable
     {
         long* ptr;
         long* col;
@@ -80,9 +81,11 @@ namespace CharlieChess
 
         public void Dispose() => CloseBook();
 
-        /* Main() is basically an infinite loop that either calls
-        think() when it's the computer's turn to move or prompts
-        the user for a command (and deciphers it). */
+        /// <summary>
+        /// Main() is basically an infinite loop that either calls Think() when 
+        /// it's the computer's turn to move or prompts the user for a command
+        /// (and deciphers it). 
+        /// </summary>
         private void Main()
         {
             long computer_side = 0;
@@ -245,8 +248,10 @@ namespace CharlieChess
 
         }
 
-        /* parse the move s (in coordinate notation) and return the move's
-        index in gen_dat, or -1 if the move is illegal */
+        /// <summary>
+        /// Parse the move s (in coordinate notation) and return the move's 
+        /// index in gen_dat, or -1 if the move is illegal
+        /// </summary>
         private long ParseMove(string s)
         {
             long from, to, i;
@@ -295,7 +300,9 @@ namespace CharlieChess
             return -1;
         }
 
-        /* move_str returns a string with move m in coordinate notation */
+        /// <summary>
+        /// move_str returns a string with move m in coordinate notation
+        /// </summary>
         private string MoveStr(MoveBytes m)
         {
             string str;
@@ -338,7 +345,9 @@ namespace CharlieChess
             return str;
         }
 
-        /* PrintBoard() prints the board */
+        /// <summary>
+        /// Prints the board
+        /// </summary>
         private void PrintBoard()
         {
             Console.Write("\n8 ");
@@ -515,8 +524,9 @@ namespace CharlieChess
             }
         }
 
-        /* PrintResult() checks to see if the game is over, and if so,
-        prints the result. */
+        /// <summary>
+        /// Checks to see if the game is over, and if so, prints the result.
+        /// </summary>
         private void PrintResult()
         {
             long i;
@@ -549,12 +559,14 @@ namespace CharlieChess
                 Console.WriteLine("1/2-1/2 {Draw by fifty move rule}");
         }
 
-        /* bench: This is a little benchmark code that calculates how many
-           nodes per second TSCP searches.
-           It sets the position to move 17 of Bobby Fischer vs. J. Sherwin,
-           New Jersey State Open Championship, 9/2/1957.
-           Then it searches five ply three times. It calculates nodes per
-           second from the best time. */
+        /// <summary>
+        /// This is a little benchmark code that calculates how many nodes per 
+        /// second TSCP searches.
+        /// It sets the position to move 17 of Bobby Fischer vs.J.Sherwin,
+        /// New Jersey State Open Championship, 9/2/1957.
+        /// Then it searches five ply three times.It calculates nodes per
+        /// second from the best time.
+        /// </summary>
         long[] bench_color = new long[64]
         {
             6, 1, 1, 6, 6, 1, 1, 6,

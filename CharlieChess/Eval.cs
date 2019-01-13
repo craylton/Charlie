@@ -9,7 +9,7 @@
 
 namespace CharlieChess
 {
-    unsafe public partial class Tscp
+    public unsafe partial class Tscp
     {
         private const long DOUBLED_PAWN_PENALTY = 10;
         private const long ISOLATED_PAWN_PENALTY = 35;

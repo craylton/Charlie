@@ -139,7 +139,6 @@ namespace CharlieChess
         where the rook on h1 gets captured. We AND castle with
         castle_mask[63], so we have 1&14, and castle becomes 0 and
         white can't castle kingside anymore. */
-
         private long[] castle_mask = new long[64]
         {
              7, 15, 15, 15,  3, 15, 15, 11,

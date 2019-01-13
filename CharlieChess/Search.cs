@@ -6,20 +6,23 @@
  */
 
 /* with fen and null move capabilities - N.Blais 3/5/05 */
+
 using System;
 
 namespace CharlieChess
 {
-    unsafe public partial class Tscp
+    public unsafe partial class Tscp
     {
         const bool GONULL = true;
         bool stop_search;
 
-        /* Think() calls Search() iteratively. Search statistics
-        are printed depending on the value of output:
-        0 = no output
-        1 = normal output
-        2 = xboard format output */
+        /// <summary>
+        /// Think() calls Search() iteratively. Search statistics are printed 
+        /// depending on the value of output:
+        /// 0 = no output
+        /// 1 = normal output
+        /// 2 = xboard format output
+        /// </summary>
         private void Think(long output)
         {
             long i, j, x;
@@ -44,6 +47,7 @@ namespace CharlieChess
 
             if (output == 1)
                 Console.WriteLine("ply      nodes  score  pvptr");
+
             for (i = 1; i <= max_depth; ++i)
             {
                 follow_pv = true;
@@ -68,7 +72,9 @@ namespace CharlieChess
             }
         }
 
-        /* Search() does just that, in negamax fashion */
+        /// <summary>
+        /// Search() does just that, in negamax fashion
+        /// </summary>
         private long Search(long alpha, long beta, long depth, bool null_move)
         {
             long i, j, x;
@@ -202,12 +208,13 @@ namespace CharlieChess
             return alpha;
         }
 
-        /* Quiesce() is a recursive minimax search function with
-        alpha-beta cutoffs. In other words, negamax. It basically
-        only searches capture sequences and allows the evaluation
-        function to cut the search off (and set alpha). The idea
-        is to find a position where there isn't a lot going on
-        so the static evaluation function will work. */
+        /// <summary>
+        /// Quiesce() is a recursive minimax search function with alpha-beta 
+        /// cutoffs.In other words, negamax.It basically only searches capture 
+        /// sequences and allows the evaluation function to cut the search off 
+        /// (and set alpha). The idea is to find a position where there isn't a 
+        /// lot going on so the static evaluation function will work.
+        /// </summary>
         private long Quiesce(long alpha, long beta)
         {
             long i, j, x;
@@ -268,10 +275,10 @@ namespace CharlieChess
             return alpha;
         }
 
-
-        /* Reps() returns the number of times the current position
-        has been repeated. It compares the current value of hash
-        to previous values. */
+        /// <summary>
+        /// Returns the number of times the current position has been repeated.
+        /// It compares the current value of hash to previous values.
+        /// </summary>
         private long Reps()
         {
             long i;
@@ -283,12 +290,13 @@ namespace CharlieChess
             return r;
         }
 
-        /* SortPV() is called when the search function is following
-        the pvptr (Principal Variation). It looks through the current
-        ply's move list to see if the pvptr move is there. If so,
-        it adds 10,000,000 to the move's score so it's played first
-        by the search function. If not, follow_pv remains FALSE and
-        Search() stops calling SortPV(). */
+        /// <summary>
+        /// SortPV() is called when the search function is following the 
+        /// pvptr(Principal Variation). It looks through the current ply's move 
+        /// list to see if the pvptr move is there. If so, it adds 10,000,000 to 
+        /// the move's score so it's played first by the search function.If not, 
+        /// follow_pv remains FALSE and Search() stops calling SortPV().
+        /// </summary>
         private void SortPV()
         {
             long i;
@@ -303,11 +311,12 @@ namespace CharlieChess
                 }
         }
 
-        /* Sort() searches the current ply's move list from 'from'
-        to the end to find the move with the highest score. Then it
-        swaps that move and the 'from' move so the move with the
-        highest score gets searched next, and hopefully produces
-        a cutoff. */
+        /// <summary>
+        /// Searches the current ply's move list from 'from' to the end to find 
+        /// the move with the highest score. Then it swaps that move and the 
+        /// 'from' move so the move with the highest score gets searched next, 
+        /// and hopefully produces a cutoff.
+        /// </summary>
         private void Sort(long from)
         {
             long i;
@@ -328,7 +337,9 @@ namespace CharlieChess
             gen_dat[bi] = g;
         }
 
-        /* Checkup() is called once in a while during the search. */
+        /// <summary>
+        /// Called once in a while during the search.
+        /// </summary>
         private void Checkup()
         {
             //is the engine's time up? if so, longjmp back to the
@@ -336,6 +347,5 @@ namespace CharlieChess
             if (Environment.TickCount >= stop_time)
                 stop_search = true;
         }
-
     }
 }
