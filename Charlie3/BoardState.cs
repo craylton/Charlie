@@ -63,11 +63,11 @@ namespace Charlie3
             ulong whiteEP = 0, blackEP = 0;
             if (move.IsDoublePush)
             {
-                // if black pushed
+                // if white pushed
                 if (move.FromCell > move.ToCell)
-                    whiteEP = move.ToCell >> 8;
-                else
                     blackEP = move.ToCell << 8;
+                else
+                    whiteEP = move.ToCell >> 8;
             }
 
             PieceColour nextToMove = ToMove == PieceColour.White ? PieceColour.Black : PieceColour.White;

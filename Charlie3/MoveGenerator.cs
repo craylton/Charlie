@@ -72,7 +72,7 @@ namespace Charlie3
                             // if the pawn can move a second space
                             if (((pawn >> 16) & 0x00_00_00_FF_00_00_00_00 & ~board.BitBoard.Occupied) != 0)
                             {
-                                moves.Add(new Move(pawn, pawn >> 16));
+                                moves.Add(new Move(pawn, pawn >> 16, false, false, true, PromotionType.None));
                             }
                         }
                     }
@@ -112,13 +112,13 @@ namespace Charlie3
                     }
 
                     // if can take en passant to the left
-                    if (((pawn >> 7) & board.WhiteEnPassant) != 0)
+                    if (((pawn >> 7) & board.WhiteEnPassant & ~0x01_01_01_01_01_01_01_01ul) != 0)
                     {
                         moves.Add(new Move(pawn, pawn >> 7, true, false, false, PromotionType.None));
                     }
 
                     // if can take en passant to the right
-                    if (((pawn >> 9) & board.WhiteEnPassant) != 0)
+                    if (((pawn >> 9) & board.WhiteEnPassant & ~0x80_80_80_80_80_80_80_80ul) != 0)
                     {
                         moves.Add(new Move(pawn, pawn >> 9, true, false, false, PromotionType.None));
                     }
@@ -143,7 +143,7 @@ namespace Charlie3
                             // if the pawn can move a second space
                             if (((pawn << 16) & 0x00_00_00_00_FF_00_00_00 & ~board.BitBoard.Occupied) != 0)
                             {
-                                moves.Add(new Move(pawn, pawn << 16));
+                                moves.Add(new Move(pawn, pawn << 16, false, false, true, PromotionType.None));
                             }
                         }
                     }
@@ -166,7 +166,7 @@ namespace Charlie3
                     }
 
                     // if the pawn can take to the right
-                    if (((pawn >> 7) & board.BitBoard.WhitePieces & ~0x80_80_80_80_80_80_80_80ul) != 0)
+                    if (((pawn << 7) & board.BitBoard.WhitePieces & ~0x80_80_80_80_80_80_80_80ul) != 0)
                     {
                         // if moving forward will make it promote
                         if ((pawn & 0x00_FF_00_00_00_00_00_00) != 0)
@@ -183,13 +183,13 @@ namespace Charlie3
                     }
 
                     // if can take en passant to the left
-                    if (((pawn << 9) & board.BlackEnPassant) != 0)
+                    if (((pawn << 9) & board.BlackEnPassant & ~0x01_01_01_01_01_01_01_01ul) != 0)
                     {
                         moves.Add(new Move(pawn, pawn << 9, true, false, false, PromotionType.None));
                     }
 
                     // if can take en passant to the right
-                    if (((pawn << 7) & board.BlackEnPassant) != 0)
+                    if (((pawn << 7) & board.BlackEnPassant & ~0x80_80_80_80_80_80_80_80ul) != 0)
                     {
                         moves.Add(new Move(pawn, pawn << 7, true, false, false, PromotionType.None));
                     }
