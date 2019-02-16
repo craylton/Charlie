@@ -8,10 +8,10 @@ namespace Charlie3
         {
             var moves = new List<Move>();
 
-            moves.AddRange(GeneratePawnMoves(board.BitBoard.WhitePawn, board));
 
             if (board.ToMove == PieceColour.White)
             {
+            moves.AddRange(GeneratePawnMoves(board.BitBoard.WhitePawn, board));
                 // Generate knight moves
 
                 // Generate bishop moves
@@ -26,6 +26,7 @@ namespace Charlie3
             }
             else
             {
+                moves.AddRange(GeneratePawnMoves(board.BitBoard.BlackPawn, board));
                 // Generate knight moves
 
                 // Generate bishop moves
@@ -59,19 +60,19 @@ namespace Charlie3
                         // if moving forward will make it promote
                         if ((pawn & 0x00_00_00_00_00_00_FF_00) != 0)
                         {
-                            moves.Add(new Move(pawn, pawn >> 8, false, false, PromotionType.Queen));
-                            moves.Add(new Move(pawn, pawn >> 8, false, false, PromotionType.Rook));
-                            moves.Add(new Move(pawn, pawn >> 8, false, false, PromotionType.Bishop));
-                            moves.Add(new Move(pawn, pawn >> 8, false, false, PromotionType.Knight));
+                            moves.Add(new Move(pawn, pawn >> 8, false, false, false, PromotionType.Queen));
+                            moves.Add(new Move(pawn, pawn >> 8, false, false, false, PromotionType.Rook));
+                            moves.Add(new Move(pawn, pawn >> 8, false, false, false, PromotionType.Bishop));
+                            moves.Add(new Move(pawn, pawn >> 8, false, false, false, PromotionType.Knight));
                         }
                         else
                         {
-                            moves.Add(new Move(pawn, pawn >> 8, false, false, PromotionType.None));
+                            moves.Add(new Move(pawn, pawn >> 8));
 
                             // if the pawn can move a second space
                             if (((pawn >> 16) & 0x00_00_00_FF_00_00_00_00 & ~board.BitBoard.Occupied) != 0)
                             {
-                                moves.Add(new Move(pawn, pawn >> 16, false, false, PromotionType.None));
+                                moves.Add(new Move(pawn, pawn >> 16));
                             }
                         }
                     }
@@ -82,14 +83,14 @@ namespace Charlie3
                         // if moving forward will make it promote
                         if ((pawn & 0x00_00_00_00_00_00_FF_00) != 0)
                         {
-                            moves.Add(new Move(pawn, pawn >> 7, false, false, PromotionType.Queen));
-                            moves.Add(new Move(pawn, pawn >> 7, false, false, PromotionType.Rook));
-                            moves.Add(new Move(pawn, pawn >> 7, false, false, PromotionType.Bishop));
-                            moves.Add(new Move(pawn, pawn >> 7, false, false, PromotionType.Knight));
+                            moves.Add(new Move(pawn, pawn >> 7, false, false, false, PromotionType.Queen));
+                            moves.Add(new Move(pawn, pawn >> 7, false, false, false, PromotionType.Rook));
+                            moves.Add(new Move(pawn, pawn >> 7, false, false, false, PromotionType.Bishop));
+                            moves.Add(new Move(pawn, pawn >> 7, false, false, false, PromotionType.Knight));
                         }
                         else
                         {
-                            moves.Add(new Move(pawn, pawn >> 7, false, false, PromotionType.None));
+                            moves.Add(new Move(pawn, pawn >> 7));
                         }
                     }
 
@@ -99,27 +100,27 @@ namespace Charlie3
                         // if moving forward will make it promote
                         if ((pawn & 0x00_00_00_00_00_00_FF_00) != 0)
                         {
-                            moves.Add(new Move(pawn, pawn >> 9, false, false, PromotionType.Queen));
-                            moves.Add(new Move(pawn, pawn >> 9, false, false, PromotionType.Rook));
-                            moves.Add(new Move(pawn, pawn >> 9, false, false, PromotionType.Bishop));
-                            moves.Add(new Move(pawn, pawn >> 9, false, false, PromotionType.Knight));
+                            moves.Add(new Move(pawn, pawn >> 9, false, false, false, PromotionType.Queen));
+                            moves.Add(new Move(pawn, pawn >> 9, false, false, false, PromotionType.Rook));
+                            moves.Add(new Move(pawn, pawn >> 9, false, false, false, PromotionType.Bishop));
+                            moves.Add(new Move(pawn, pawn >> 9, false, false, false, PromotionType.Knight));
                         }
                         else
                         {
-                            moves.Add(new Move(pawn, pawn >> 9, false, false, PromotionType.None));
+                            moves.Add(new Move(pawn, pawn >> 9));
                         }
                     }
 
                     // if can take en passant to the left
                     if (((pawn >> 7) & board.WhiteEnPassant) != 0)
                     {
-                        moves.Add(new Move(pawn, pawn >> 7, true, false, PromotionType.None));
+                        moves.Add(new Move(pawn, pawn >> 7, true, false, false, PromotionType.None));
                     }
 
                     // if can take en passant to the right
                     if (((pawn >> 9) & board.WhiteEnPassant) != 0)
                     {
-                        moves.Add(new Move(pawn, pawn >> 9, true, false, PromotionType.None));
+                        moves.Add(new Move(pawn, pawn >> 9, true, false, false, PromotionType.None));
                     }
                 }
                 else
@@ -130,19 +131,19 @@ namespace Charlie3
                         // if moving forward will make it promote
                         if ((pawn & 0x00_FF_00_00_00_00_00_00) != 0)
                         {
-                            moves.Add(new Move(pawn, pawn << 8, false, false, PromotionType.Queen));
-                            moves.Add(new Move(pawn, pawn << 8, false, false, PromotionType.Rook));
-                            moves.Add(new Move(pawn, pawn << 8, false, false, PromotionType.Bishop));
-                            moves.Add(new Move(pawn, pawn << 8, false, false, PromotionType.Knight));
+                            moves.Add(new Move(pawn, pawn << 8, false, false, false, PromotionType.Queen));
+                            moves.Add(new Move(pawn, pawn << 8, false, false, false, PromotionType.Rook));
+                            moves.Add(new Move(pawn, pawn << 8, false, false, false, PromotionType.Bishop));
+                            moves.Add(new Move(pawn, pawn << 8, false, false, false, PromotionType.Knight));
                         }
                         else
                         {
-                            moves.Add(new Move(pawn, pawn << 8, false, false, PromotionType.None));
+                            moves.Add(new Move(pawn, pawn << 8));
 
                             // if the pawn can move a second space
-                            if (((pawn << 16) & 0x00_00_00_FF_00_00_00_00 & ~board.BitBoard.Occupied) != 0)
+                            if (((pawn << 16) & 0x00_00_00_00_FF_00_00_00 & ~board.BitBoard.Occupied) != 0)
                             {
-                                moves.Add(new Move(pawn, pawn << 16, false, false, PromotionType.None));
+                                moves.Add(new Move(pawn, pawn << 16));
                             }
                         }
                     }
@@ -153,14 +154,14 @@ namespace Charlie3
                         // if moving forward will make it promote
                         if ((pawn & 0x00_FF_00_00_00_00_00_00) != 0)
                         {
-                            moves.Add(new Move(pawn, pawn << 9, false, false, PromotionType.Queen));
-                            moves.Add(new Move(pawn, pawn << 9, false, false, PromotionType.Rook));
-                            moves.Add(new Move(pawn, pawn << 9, false, false, PromotionType.Bishop));
-                            moves.Add(new Move(pawn, pawn << 9, false, false, PromotionType.Knight));
+                            moves.Add(new Move(pawn, pawn << 9, false, false, false, PromotionType.Queen));
+                            moves.Add(new Move(pawn, pawn << 9, false, false, false, PromotionType.Rook));
+                            moves.Add(new Move(pawn, pawn << 9, false, false, false, PromotionType.Bishop));
+                            moves.Add(new Move(pawn, pawn << 9, false, false, false, PromotionType.Knight));
                         }
                         else
                         {
-                            moves.Add(new Move(pawn, pawn << 9, false, false, PromotionType.None));
+                            moves.Add(new Move(pawn, pawn << 9));
                         }
                     }
 
@@ -170,27 +171,27 @@ namespace Charlie3
                         // if moving forward will make it promote
                         if ((pawn & 0x00_FF_00_00_00_00_00_00) != 0)
                         {
-                            moves.Add(new Move(pawn, pawn << 7, false, false, PromotionType.Queen));
-                            moves.Add(new Move(pawn, pawn << 7, false, false, PromotionType.Rook));
-                            moves.Add(new Move(pawn, pawn << 7, false, false, PromotionType.Bishop));
-                            moves.Add(new Move(pawn, pawn << 7, false, false, PromotionType.Knight));
+                            moves.Add(new Move(pawn, pawn << 7, false, false, false, PromotionType.Queen));
+                            moves.Add(new Move(pawn, pawn << 7, false, false, false, PromotionType.Rook));
+                            moves.Add(new Move(pawn, pawn << 7, false, false, false, PromotionType.Bishop));
+                            moves.Add(new Move(pawn, pawn << 7, false, false, false, PromotionType.Knight));
                         }
                         else
                         {
-                            moves.Add(new Move(pawn, pawn << 7, false, false, PromotionType.None));
+                            moves.Add(new Move(pawn, pawn << 7));
                         }
                     }
 
                     // if can take en passant to the left
                     if (((pawn << 9) & board.BlackEnPassant) != 0)
                     {
-                        moves.Add(new Move(pawn, pawn << 9, true, false, PromotionType.None));
+                        moves.Add(new Move(pawn, pawn << 9, true, false, false, PromotionType.None));
                     }
 
                     // if can take en passant to the right
                     if (((pawn << 7) & board.BlackEnPassant) != 0)
                     {
-                        moves.Add(new Move(pawn, pawn << 7, true, false, PromotionType.None));
+                        moves.Add(new Move(pawn, pawn << 7, true, false, false, PromotionType.None));
                     }
                 }
             }

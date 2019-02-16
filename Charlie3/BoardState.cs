@@ -70,8 +70,10 @@ namespace Charlie3
                     blackEP = move.ToCell << 8;
             }
 
+            PieceColour nextToMove = ToMove == PieceColour.White ? PieceColour.Black : PieceColour.White;
+
             return new BoardState(
-                previousStates, BitBoard, ToMove,
+                previousStates, BitBoard, nextToMove,
                 WhiteCastle, BlackCastle,
                 whiteEP, blackEP, move);
         }

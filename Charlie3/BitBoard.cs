@@ -150,18 +150,18 @@
             }
 
             // Find out which piece moved, and add one to the 'To' square
-            if ((oldBb.WhiteKing & ~move.FromCell) != 0) WhiteKing |= move.ToCell;
-            if ((oldBb.BlackKing & ~move.FromCell) != 0) BlackKing |= move.ToCell;
-            if ((oldBb.WhiteQueen & ~move.FromCell) != 0) WhiteQueen |= move.ToCell;
-            if ((oldBb.BlackQueen & ~move.FromCell) != 0) BlackQueen |= move.ToCell;
-            if ((oldBb.WhiteRook & ~move.FromCell) != 0) WhiteRook |= move.ToCell;
-            if ((oldBb.BlackRook & ~move.FromCell) != 0) BlackRook |= move.ToCell;
-            if ((oldBb.WhiteBishop & ~move.FromCell) != 0) WhiteBishop |= move.ToCell;
-            if ((oldBb.BlackBishop & ~move.FromCell) != 0) BlackBishop |= move.ToCell;
-            if ((oldBb.WhiteKnight & ~move.FromCell) != 0) WhiteKnight |= move.ToCell;
-            if ((oldBb.BlackKnight & ~move.FromCell) != 0) BlackKnight |= move.ToCell;
-            if ((oldBb.WhitePawn & ~move.FromCell) != 0) WhitePawn |= move.ToCell;
-            if ((oldBb.BlackPawn & ~move.FromCell) != 0) BlackPawn |= move.ToCell;
+            if ((oldBb.WhiteKing & ~move.FromCell) != oldBb.WhiteKing) WhiteKing |= move.ToCell;
+            if ((oldBb.BlackKing & ~move.FromCell) != oldBb.BlackKing) BlackKing |= move.ToCell;
+            if ((oldBb.WhiteQueen & ~move.FromCell) != oldBb.WhiteQueen) WhiteQueen |= move.ToCell;
+            if ((oldBb.BlackQueen & ~move.FromCell) != oldBb.BlackQueen) BlackQueen |= move.ToCell;
+            if ((oldBb.WhiteRook & ~move.FromCell) != oldBb.WhiteRook) WhiteRook |= move.ToCell;
+            if ((oldBb.BlackRook & ~move.FromCell) != oldBb.BlackRook) BlackRook |= move.ToCell;
+            if ((oldBb.WhiteBishop & ~move.FromCell) != oldBb.WhiteBishop) WhiteBishop |= move.ToCell;
+            if ((oldBb.BlackBishop & ~move.FromCell) != oldBb.BlackBishop) BlackBishop |= move.ToCell;
+            if ((oldBb.WhiteKnight & ~move.FromCell) != oldBb.WhiteKnight) WhiteKnight |= move.ToCell;
+            if ((oldBb.BlackKnight & ~move.FromCell) != oldBb.BlackKnight) BlackKnight |= move.ToCell;
+            if ((oldBb.WhitePawn & ~move.FromCell) != oldBb.WhitePawn) WhitePawn |= move.ToCell;
+            if ((oldBb.BlackPawn & ~move.FromCell) != oldBb.BlackPawn) BlackPawn |= move.ToCell;
         }
 
         public static BitBoard GetDefault() => new BitBoard(

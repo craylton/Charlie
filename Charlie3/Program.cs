@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 
 namespace Charlie3
 {
@@ -6,13 +7,19 @@ namespace Charlie3
     {
         static void Main(string[] args)
         {
+            var r = new Random();
             var board = new BoardState();
-
             var gen = new MoveGenerator();
-            var moves = gen.GenerateLegalMoves(board);
 
-            foreach (var move in moves)
-                Console.WriteLine(move.ToString());
+            for (int i = 0; i < 30; i++)
+            {
+                var moves = gen.GenerateLegalMoves(board).ToList();
+                var selectedMove = moves[r.Next(moves.Count)];
+
+                Console.WriteLine(selectedMove.ToString());
+
+                board = board.MakeMove(selectedMove);
+            }
 
             Console.WriteLine("done");
 
