@@ -29,7 +29,12 @@
             var from = Utils.CellNames[Utils.CountLeadingZeros(FromCell)];
             var to = Utils.CellNames[Utils.CountLeadingZeros(ToCell)];
 
-            return $"{from}-{to}";
+            var promotion = string.Empty;
+
+            if (PromotionType != PromotionType.None)
+                promotion = "=" + PromotionType.ToString()[0].ToString();
+
+            return $"{from}-{to}{promotion}";
         }
     }
 }
