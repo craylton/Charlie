@@ -36,8 +36,8 @@ namespace Charlie3
         {
             List<Move> moves = new List<Move>();
 
-            bool up = (king & 0x00_00_00_00_00_00_00_FF) != 0,
-            down = (king & ~0xFF_00_00_00_00_00_00_00) != 0,
+            bool up = (king & ~0x00_00_00_00_00_00_00_FFul) != 0,
+            down = (king & ~0xFF_00_00_00_00_00_00_00ul) != 0,
             right = (king & ~0x01_01_01_01_01_01_01_01ul) != 0,
             left = (king & ~0x80_80_80_80_80_80_80_80ul) != 0;
 
@@ -58,20 +58,20 @@ namespace Charlie3
                 moves.Add(new Move(king, king << 1));
 
             // up right
-            if (up && right && ((king >> 7) & ~friendlyPieces) != 0)
-                moves.Add(new Move(king, king >> 7));
-
-            // up left
-            if (up && left && ((king >> 9) & ~friendlyPieces) != 0)
+            if (up && right && ((king >> 9) & ~friendlyPieces) != 0)
                 moves.Add(new Move(king, king >> 9));
 
+            // up left
+            if (up && left && ((king >> 7) & ~friendlyPieces) != 0)
+                moves.Add(new Move(king, king >> 7));
+
             // down right
-            if (down && right && ((king << 9) & ~friendlyPieces) != 0)
-                moves.Add(new Move(king, king << 9));
+            if (down && right && ((king << 7) & ~friendlyPieces) != 0)
+                moves.Add(new Move(king, king << 7));
 
             // down left
-            if (down && left && ((king << 7) & ~friendlyPieces) != 0)
-                moves.Add(new Move(king, king << 7));
+            if (down && left && ((king << 9) & ~friendlyPieces) != 0)
+                moves.Add(new Move(king, king << 9));
 
             return moves;
         }
