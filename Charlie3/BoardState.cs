@@ -78,10 +78,149 @@ namespace Charlie3
                 whiteEP, blackEP, move);
         }
 
+        internal bool IsInCheck(PieceColour toMove)
+        {
+            if (toMove == PieceColour.White)
+            {
+                if (IsInImmediateCheck(BitBoard.WhiteKing, BitBoard.BlackKing, toMove)) return true;
+                if (IsInRayCheck(BitBoard.WhiteKing, BitBoard.BlackQueen, BitBoard.BlackRook, BitBoard.BlackBishop)) return false;
+                if (IsInKnightCheck(BitBoard.WhiteKing, BitBoard.BlackKnight)) return true;
+            }
+            else
+            {
+                if (IsInImmediateCheck(BitBoard.BlackKing, BitBoard.WhiteKing, toMove)) return true;
+                if (IsInRayCheck(BitBoard.BlackKing, BitBoard.WhiteQueen, BitBoard.WhiteRook, BitBoard.WhiteBishop)) return false;
+                if (IsInKnightCheck(BitBoard.BlackKing, BitBoard.WhiteKnight)) return true;
+            }
+
+            return false;
+        }
+
+        private bool IsInImmediateCheck(ulong king, ulong theirKing, PieceColour toMove)
+        {
+            bool up = (king & ~0x00_00_00_00_00_00_00_FFul) != 0,
+            down = (king & ~0xFF_00_00_00_00_00_00_00ul) != 0,
+            right = (king & ~0x01_01_01_01_01_01_01_01ul) != 0,
+            left = (king & ~0x80_80_80_80_80_80_80_80ul) != 0;
+
+            if (up && ((king >> 8) & theirKing) != 0) return true;
+            if (down && ((king << 8) & theirKing) != 0) return true;
+            if (right && ((king >> 1) & theirKing) != 0) return true;
+            if (left && ((king << 1) & theirKing) != 0) return true;
+            if (up && right && ((king >> 9) & theirKing) != 0) return true;
+            if (up && left && ((king >> 7) & theirKing) != 0) return true;
+            if (down && right && ((king << 7) & theirKing) != 0) return true;
+            if (down && left && ((king << 9) & theirKing) != 0) return true;
+
+            if (toMove == PieceColour.White)
+            {
+                if (up && right && ((king >> 9) & BitBoard.BlackPawn) != 0) return true;
+                if (up && left && ((king >> 7) & BitBoard.BlackPawn) != 0) return true;
+            }
+            else
+            {
+                if (down && right && ((king << 7) & BitBoard.WhitePawn) != 0) return true;
+                if (down && left && ((king << 9) & BitBoard.WhitePawn) != 0) return true;
+            }
+
+            return false;
+        }
+
+        private bool IsInRayCheck(ulong king, ulong theirQueen, ulong theirRook, ulong theirBishop)
+        {
+            // scan up
+            int distance = 0;
+            while (((king >> distance) & ~0x00_00_00_00_00_00_00_FFul) != 0)
+            {
+                distance += 8;
+                if (((king >> distance) & (theirRook | theirQueen)) != 0) return true;
+            }
+
+            // scan down
+            distance = 0;
+            while (((king << distance) & ~0xFF_00_00_00_00_00_00_00ul) != 0)
+            {
+                distance += 8;
+                if (((king << distance) & (theirRook | theirQueen)) != 0) return true;
+            }
+
+            // scan right
+            distance = 0;
+            while (((king >> distance) & ~0x01_01_01_01_01_01_01_01ul) != 0)
+            {
+                distance++;
+                if (((king >> distance) & (theirRook | theirQueen)) != 0) return true;
+            }
+
+            // scan left
+            distance = 0;
+            while (((king << distance) & ~0x80_80_80_80_80_80_80_80ul) != 0)
+            {
+                distance++;
+                if (((king << distance) & (theirRook | theirQueen)) != 0) return true;
+            }
+
+            // scan up right
+            distance = 0;
+            while (((king >> distance) & ~0x00_00_00_00_00_00_00_FFul & ~0x01_01_01_01_01_01_01_01ul) != 0)
+            {
+                distance += 9;
+                if (((king >> distance) & (theirBishop | theirQueen)) != 0) return true;
+            }
+
+            // scan up left
+            distance = 0;
+            while (((king >> distance) & ~0x00_00_00_00_00_00_00_FFul & ~0x80_80_80_80_80_80_80_80ul) != 0)
+            {
+                distance += 7;
+                if (((king >> distance) & (theirBishop | theirQueen)) != 0) return true;
+            }
+
+            // scan down right
+            distance = 0;
+            while (((king << distance) & ~0xFF_00_00_00_00_00_00_00ul & ~0x01_01_01_01_01_01_01_01ul) != 0)
+            {
+                distance += 7;
+                if (((king << distance) & (theirBishop | theirQueen)) != 0) return true;
+            }
+
+            // scan down left
+            distance = 0;
+            while (((king << distance) & ~0xFF_00_00_00_00_00_00_00ul & ~0x80_80_80_80_80_80_80_80ul) != 0)
+            {
+                distance += 9;
+                if (((king << distance) & (theirBishop | theirQueen)) != 0) return true;
+            }
+
+            return false;
+        }
+
+        private bool IsInKnightCheck(ulong king, ulong theirKnight)
+        {
+            bool up = (king & ~0x00_00_00_00_00_00_00_FFul) != 0,
+            up2 = (king & ~0x00_00_00_00_00_00_FF_FFul) != 0,
+            down = (king & ~0xFF_00_00_00_00_00_00_00ul) != 0,
+            down2 = (king & ~0xFF_FF_00_00_00_00_00_00ul) != 0,
+            right = (king & ~0x01_01_01_01_01_01_01_01ul) != 0,
+            right2 = (king & ~0x03_03_03_03_03_03_03_03ul) != 0,
+            left = (king & ~0x80_80_80_80_80_80_80_80ul) != 0,
+            left2 = (king & ~0xC0_C0_C0_C0_C0_C0_C0_C0ul) != 0;
+
+            if (up2 && right && ((king >> 17) & theirKnight) != 0) return true;
+            if (up && right2 && ((king >> 10) & theirKnight) != 0) return true;
+            if (down && right2 && ((king << 6) & theirKnight) != 0) return true;
+            if (down2 && right && ((king << 15) & theirKnight) != 0) return true;
+            if (down2 && left && ((king << 17) & theirKnight) != 0) return true;
+            if (down && left2 && ((king << 10) & theirKnight) != 0) return true;
+            if (up && left2 && ((king >> 6) & theirKnight) != 0) return true;
+            if (up2 && left && ((king >> 15) & theirKnight) != 0) return true;
+
+            return false;
+        }
+
         public object Clone() => new BoardState(
             previousStates, BitBoard, ToMove,
             WhiteCastle, BlackCastle,
             WhiteEnPassant, BlackEnPassant);
-
     }
 }

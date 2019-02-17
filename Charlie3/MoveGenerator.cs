@@ -16,7 +16,6 @@ namespace Charlie3
                 // Generate rook moves
                 // Generate queen moves
                 moves.AddRange(GenerateKingMoves(board.BitBoard.WhiteKing, board.BitBoard.WhitePieces, board));
-                // Filter out moves that leave us in check
             }
             else
             {
@@ -26,8 +25,10 @@ namespace Charlie3
                 // Generate rook moves
                 // Generate queen moves
                 moves.AddRange(GenerateKingMoves(board.BitBoard.BlackKing, board.BitBoard.BlackPieces, board));
-                // Filter out moves that leave us in check
             }
+
+            // Remove any moves that leave the king in check
+            moves.RemoveAll(m => board.MakeMove(m).IsInCheck(board.ToMove));
 
             return moves;
         }
