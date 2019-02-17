@@ -8,37 +8,70 @@ namespace Charlie3
         {
             var moves = new List<Move>();
 
-
             if (board.ToMove == PieceColour.White)
             {
-            moves.AddRange(GeneratePawnMoves(board.BitBoard.WhitePawn, board));
+                moves.AddRange(GeneratePawnMoves(board.BitBoard.WhitePawn, board));
                 // Generate knight moves
-
                 // Generate bishop moves
-
                 // Generate rook moves
-
                 // Generate queen moves
-
-                // Generate king moves
-
+                moves.AddRange(GenerateKingMoves(board.BitBoard.WhiteKing, board.BitBoard.WhitePieces, board));
                 // Filter out moves that leave us in check
             }
             else
             {
                 moves.AddRange(GeneratePawnMoves(board.BitBoard.BlackPawn, board));
                 // Generate knight moves
-
                 // Generate bishop moves
-
                 // Generate rook moves
-
                 // Generate queen moves
-
-                // Generate king moves
-
+                moves.AddRange(GenerateKingMoves(board.BitBoard.BlackKing, board.BitBoard.BlackPieces, board));
                 // Filter out moves that leave us in check
             }
+
+            return moves;
+        }
+
+        private IEnumerable<Move> GenerateKingMoves(ulong king, ulong friendlyPieces, BoardState board)
+        {
+            List<Move> moves = new List<Move>();
+
+            bool up = (king & 0x00_00_00_00_00_00_00_FF) != 0,
+            down = (king & ~0xFF_00_00_00_00_00_00_00) != 0,
+            right = (king & ~0x01_01_01_01_01_01_01_01ul) != 0,
+            left = (king & ~0x80_80_80_80_80_80_80_80ul) != 0;
+
+            // if can move up
+            if (up && ((king >> 8) & ~friendlyPieces) != 0)
+                moves.Add(new Move(king, king >> 8));
+
+            // if can move down
+            if (down && ((king << 8) & ~friendlyPieces) != 0)
+                moves.Add(new Move(king, king << 8));
+
+            // if can move right
+            if (right && ((king >> 1) & ~friendlyPieces) != 0)
+                moves.Add(new Move(king, king >> 1));
+
+            // if can move left
+            if (left && ((king << 1) & ~friendlyPieces) != 0)
+                moves.Add(new Move(king, king << 1));
+
+            // up right
+            if (up && right && ((king >> 7) & ~friendlyPieces) != 0)
+                moves.Add(new Move(king, king >> 7));
+
+            // up left
+            if (up && left && ((king >> 9) & ~friendlyPieces) != 0)
+                moves.Add(new Move(king, king >> 9));
+
+            // down right
+            if (down && right && ((king << 9) & ~friendlyPieces) != 0)
+                moves.Add(new Move(king, king << 9));
+
+            // down left
+            if (down && left && ((king << 7) & ~friendlyPieces) != 0)
+                moves.Add(new Move(king, king << 7));
 
             return moves;
         }
