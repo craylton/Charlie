@@ -102,13 +102,13 @@
                 if ((oldBb.WhitePawn & move.FromCell) != 0)
                 {
                     WhitePawn |= move.ToCell;
-                    BlackPawn &= ~(move.ToCell >> 8);
+                    BlackPawn &= ~(move.ToCell << 8);
                 }
                 // If black captured en passant
                 else
                 {
                     BlackPawn |= move.ToCell;
-                    WhitePawn &= ~(move.ToCell << 8);
+                    WhitePawn &= ~(move.ToCell >> 8);
                 }
 
                 return;

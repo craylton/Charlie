@@ -16,6 +16,9 @@ namespace Charlie3
                 var moves = gen.GenerateLegalMoves(board).ToList();
                 var selectedMove = moves[r.Next(moves.Count)];
 
+                if (moves.Any(m => m.IsEnPassant))
+                    selectedMove = moves.First(m => m.IsEnPassant);
+
                 Console.WriteLine(selectedMove.ToString());
 
                 board = board.MakeMove(selectedMove);
