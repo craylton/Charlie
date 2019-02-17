@@ -4,7 +4,7 @@
     {
         private const ulong DefaultWhiteKing = 0x_08_00_00_00_00_00_00_00;
         private const ulong DefaultBlackKing = 0x_00_00_00_00_00_00_00_08;
-        private const ulong DefaultWhiteQueen = 0x_01_00_00_00_00_00_00_00;
+        private const ulong DefaultWhiteQueen = 0x_10_00_00_00_00_00_00_00;
         private const ulong DefaultBlackQueen = 0x_00_00_00_00_00_00_00_10;
         private const ulong DefaultWhiteRook = 0x_81_00_00_00_00_00_00_00;
         private const ulong DefaultBlackRook = 0x_00_00_00_00_00_00_00_81;
