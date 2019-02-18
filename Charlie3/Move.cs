@@ -32,7 +32,7 @@
             var promotion = string.Empty;
 
             if (PromotionType != PromotionType.None)
-                promotion = "=" + PromotionType.ToString()[0].ToString();
+                promotion = "=" + Utils.PromotionSuffixes[(int)PromotionType];
 
             return $"{from}-{to}{promotion}";
         }

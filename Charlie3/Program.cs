@@ -8,7 +8,7 @@ namespace Charlie3
     {
         static void Main(string[] args)
         {
-            MakeRandomMoves(40);
+            MakeRandomMoves(50);
             //MakeMoves(new List<int> { 6,1,10,12,7,5,13,13,10,1,11,0,9,4,6,10,2,9,0,11,4,13,7,0,});
             Console.WriteLine("done");
             Console.Read();
@@ -22,6 +22,8 @@ namespace Charlie3
 
             var moveSeq = new List<int>();
 
+            string pgn = string.Empty;
+
             for (int i = 0; i < numMoves; i++)
             {
                 var moves = gen.GenerateLegalMoves(board).ToList();
@@ -33,9 +35,14 @@ namespace Charlie3
                     selectedMove = moves.First(m => m.IsEnPassant);
 
                 Console.WriteLine($"{moveIndex}: {selectedMove.ToString()}");
+                pgn += selectedMove.ToString();
+                pgn += " ";
 
                 board = board.MakeMove(selectedMove);
             }
+
+            Console.WriteLine("PGN:");
+            Console.WriteLine(pgn);
         }
 
         private static void MakeMoves(List<int> moveIndices)

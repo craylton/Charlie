@@ -35,5 +35,7 @@
             for (r = 0; (v >>= 1) != 0; r++) ;
             return r;
         }
+
+        public static char[] PromotionSuffixes { get; } = new[] { '?', 'N', 'B', 'R', 'Q' };
     }
 }
