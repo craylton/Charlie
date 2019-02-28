@@ -13,7 +13,7 @@ namespace Charlie3
                 moves.AddRange(GeneratePawnMoves(board.BitBoard.WhitePawn, board));
                 // Generate knight moves
                 // Generate bishop moves
-                // Generate rook moves
+                moves.AddRange(GenerateRookMoves(board.BitBoard.WhiteRook, board.BitBoard.WhitePieces, board));
                 // Generate queen moves
                 moves.AddRange(GenerateKingMoves(board.BitBoard.WhiteKing, board.BitBoard.WhitePieces, board));
             }
@@ -22,7 +22,7 @@ namespace Charlie3
                 moves.AddRange(GeneratePawnMoves(board.BitBoard.BlackPawn, board));
                 // Generate knight moves
                 // Generate bishop moves
-                // Generate rook moves
+                moves.AddRange(GenerateRookMoves(board.BitBoard.BlackRook, board.BitBoard.BlackPieces, board));
                 // Generate queen moves
                 moves.AddRange(GenerateKingMoves(board.BitBoard.BlackKing, board.BitBoard.BlackPieces, board));
             }
@@ -33,9 +33,62 @@ namespace Charlie3
             return moves;
         }
 
+        private IEnumerable<Move> GenerateRookMoves(ulong rooks, ulong friendlyPieces, BoardState board)
+        {
+            var moves = new List<Move>();
+
+            for (int i = 0; i < 64; i++)
+            {
+                var rook = rooks & (1ul << i);
+                if (rook == 0) continue;
+
+                // scan up
+                int distance = 0;
+                while (((rook >> distance) & ~0x00_00_00_00_00_00_00_FFul) != 0)
+                {
+                    distance += 8;
+                    var newSq = rook >> distance;
+                    if ((newSq & ~friendlyPieces) != 0) moves.Add(new Move(rook, newSq));
+                    if ((newSq & board.BitBoard.Occupied) != 0) break;
+                }
+
+                // scan down
+                distance = 0;
+                while (((rook << distance) & ~0xFF_00_00_00_00_00_00_00ul) != 0)
+                {
+                    distance += 8;
+                    var newSq = rook << distance;
+                    if ((newSq & ~friendlyPieces) != 0) moves.Add(new Move(rook, newSq));
+                    if ((newSq & board.BitBoard.Occupied) != 0) break;
+                }
+
+                // scan right
+                distance = 0;
+                while (((rook >> distance) & ~0x01_01_01_01_01_01_01_01ul) != 0)
+                {
+                    distance++;
+                    var newSq = rook >> distance;
+                    if ((newSq & ~friendlyPieces) != 0) moves.Add(new Move(rook, newSq));
+                    if ((newSq & board.BitBoard.Occupied) != 0) break;
+                }
+
+                // scan left
+                distance = 0;
+                while (((rook << distance) & ~0x80_80_80_80_80_80_80_80ul) != 0)
+                {
+                    distance++;
+                    var newSq = rook << distance;
+                    if ((newSq & ~friendlyPieces) != 0) moves.Add(new Move(rook, newSq));
+                    if ((newSq & board.BitBoard.Occupied) != 0) break;
+                }
+            }
+
+            return moves;
+        }
+
         private IEnumerable<Move> GenerateKingMoves(ulong king, ulong friendlyPieces, BoardState board)
         {
-            List<Move> moves = new List<Move>();
+            var moves = new List<Move>();
 
             bool up = (king & ~0x00_00_00_00_00_00_00_FFul) != 0,
             down = (king & ~0xFF_00_00_00_00_00_00_00ul) != 0,
@@ -101,7 +154,7 @@ namespace Charlie3
 
         private IEnumerable<Move> GeneratePawnMoves(ulong pawns, BoardState board)
         {
-            List<Move> moves = new List<Move>();
+            var moves = new List<Move>();
 
             for (int i = 0; i < 64; i++)
             {
