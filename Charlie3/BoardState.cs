@@ -10,8 +10,8 @@ namespace Charlie3
         public BitBoard BitBoard { get; }
 
         // For castle, 01 means short castle, 10 means long
-        public byte WhiteCastle { get; }
-        public byte BlackCastle { get; }
+        public int WhiteCastle { get; }
+        public int BlackCastle { get; }
 
         // For en-passants, the set bit is where the capturing pawn will end up. White = white can capture
         public ulong WhiteEnPassant { get; }
@@ -30,7 +30,7 @@ namespace Charlie3
         private BoardState(
             IEnumerable<BoardState> previousStates,
             BitBoard bitBoard, PieceColour toMove,
-            byte whiteCastle, byte blackCastle,
+            int whiteCastle, int blackCastle,
             ulong whiteEnPassant, ulong blackEnPassant)
         {
             this.previousStates = previousStates;
@@ -49,7 +49,7 @@ namespace Charlie3
         private BoardState(
             IEnumerable<BoardState> previousStates,
             BitBoard bitBoard, PieceColour toMove,
-            byte whiteCastle, byte blackCastle,
+            int whiteCastle, int blackCastle,
             ulong whiteEnPassant, ulong blackEnPassant,
             Move move) :
             this(previousStates, new BitBoard(bitBoard, move), toMove,
@@ -60,6 +60,7 @@ namespace Charlie3
 
         public BoardState MakeMove(Move move)
         {
+            // Check if en passant will be possible next move
             ulong whiteEP = 0, blackEP = 0;
             if (move.IsDoublePush)
             {
@@ -70,11 +71,29 @@ namespace Charlie3
                     whiteEP = move.ToCell >> 8;
             }
 
+            // Check if castling rules have changed
+            int whiteCastle = WhiteCastle, blackCastle = BlackCastle;
+            if ((BitBoard.WhiteRook & move.FromCell & 0x01_00_00_00_00_00_00_00) != 0)
+                whiteCastle &= ~0b_00000001;
+
+            if ((BitBoard.WhiteRook & move.FromCell & 0x80_00_00_00_00_00_00_00) != 0)
+                whiteCastle &= ~0b_00000010;
+
+            if ((BitBoard.WhiteKing & move.FromCell) != 0) whiteCastle = 0;
+
+            if ((BitBoard.BlackRook & move.FromCell & 0x00_00_00_00_00_00_00_01) != 0)
+                blackCastle &= ~0b_00000001;
+
+            if ((BitBoard.BlackRook & move.FromCell & 0x00_00_00_00_00_00_00_80) != 0)
+                blackCastle &= ~0b_00000010;
+
+            if ((BitBoard.BlackKing & move.FromCell) != 0) blackCastle = 0;
+
             PieceColour nextToMove = ToMove == PieceColour.White ? PieceColour.Black : PieceColour.White;
 
             return new BoardState(
                 previousStates, BitBoard, nextToMove,
-                WhiteCastle, BlackCastle,
+                whiteCastle, blackCastle,
                 whiteEP, blackEP, move);
         }
 
