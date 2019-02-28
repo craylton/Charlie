@@ -1,10 +1,10 @@
 ﻿namespace Charlie3
 {
     public static class Extensions
-    {    
+    {
         /// <summary>
-         /// Count the number of bits set to 1 in a ulong
-         /// </summary>
+        /// Count the number of bits set to 1 in a ulong
+        /// </summary>
         public static byte BitCount(this ulong value)
         {
             ulong result = value - ((value >> 1) & 0x5555555555555555UL);

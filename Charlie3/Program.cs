@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace Charlie3
 {
@@ -22,7 +23,7 @@ namespace Charlie3
 
             var moveSeq = new List<int>();
 
-            string pgn = string.Empty;
+            var pgn = new StringBuilder();
 
             for (int i = 0; i < numMoves; i++)
             {
@@ -35,14 +36,14 @@ namespace Charlie3
                     selectedMove = moves.First(m => m.IsEnPassant);
 
                 Console.WriteLine($"{moveIndex}: {selectedMove.ToString()}");
-                pgn += selectedMove.ToString();
-                pgn += " ";
+                pgn.Append(selectedMove.ToString());
+                pgn.Append(" ");
 
                 board = board.MakeMove(selectedMove);
             }
 
             Console.WriteLine("PGN:");
-            Console.WriteLine(pgn);
+            Console.WriteLine(pgn.ToString());
         }
 
         private static void MakeMoves(List<int> moveIndices)

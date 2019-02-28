@@ -29,6 +29,9 @@
             "a8","b8","c8","d8","e8","f8","g8","h8",
         };
 
+        /// <summary>
+        /// Gets the number of zeroes after the last set one.
+        /// </summary>
         public static int LSB(ulong v)
         {
             int r;

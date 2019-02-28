@@ -14,12 +14,12 @@
 
         public PromotionType PromotionType { get; }
 
-        public Move(ulong fromCell, ulong toCell, 
+        public Move(ulong fromCell, ulong toCell,
             bool isEnPassant, bool isCastle, bool isDoublePush, PromotionType promotionType) =>
-            (FromCell, ToCell, IsEnPassant, IsCastle, IsDoublePush, PromotionType) = 
+            (FromCell, ToCell, IsEnPassant, IsCastle, IsDoublePush, PromotionType) =
             (fromCell, toCell, isEnPassant, isCastle, isDoublePush, promotionType);
 
-        public Move(ulong fromCell, ulong toCell) : 
+        public Move(ulong fromCell, ulong toCell) :
             this(fromCell, toCell, false, false, false, PromotionType.None)
         {
         }

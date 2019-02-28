@@ -1,8 +1,8 @@
 ﻿namespace Charlie3
 {
-    public enum  PromotionType
+    public enum PromotionType
     {
-        None, 
+        None,
         Knight,
         Bishop,
         Rook,
