@@ -11,7 +11,7 @@ namespace Charlie3
             if (board.ToMove == PieceColour.White)
             {
                 moves.AddRange(GeneratePawnMoves(board.BitBoard.WhitePawn, board));
-                // Generate knight moves
+                moves.AddRange(GenerateKnightMoves(board.BitBoard.WhiteKnight, board.BitBoard.WhitePieces, board));
                 moves.AddRange(GenerateBishopMoves(board.BitBoard.WhiteBishop, board.BitBoard.WhitePieces, board));
                 moves.AddRange(GenerateRookMoves(board.BitBoard.WhiteRook, board.BitBoard.WhitePieces, board));
                 moves.AddRange(GenerateQueenMoves(board.BitBoard.WhiteQueen, board.BitBoard.WhitePieces, board));
@@ -20,7 +20,7 @@ namespace Charlie3
             else
             {
                 moves.AddRange(GeneratePawnMoves(board.BitBoard.BlackPawn, board));
-                // Generate knight moves
+                moves.AddRange(GenerateKnightMoves(board.BitBoard.BlackKnight, board.BitBoard.BlackPieces, board));
                 moves.AddRange(GenerateBishopMoves(board.BitBoard.BlackBishop, board.BitBoard.BlackPieces, board));
                 moves.AddRange(GenerateRookMoves(board.BitBoard.BlackRook, board.BitBoard.BlackPieces, board));
                 moves.AddRange(GenerateQueenMoves(board.BitBoard.BlackQueen, board.BitBoard.BlackPieces, board));
@@ -29,6 +29,37 @@ namespace Charlie3
 
             // Remove any moves that leave the king in check
             moves.RemoveAll(m => board.MakeMove(m).IsInCheck(board.ToMove));
+
+            return moves;
+        }
+
+        private IEnumerable<Move> GenerateKnightMoves(ulong knights, ulong friendlyPieces, BoardState board)
+        {
+            var moves = new List<Move>();
+
+            for (int i = 0; i < 64; i++)
+            {
+                var knight = knights & (1ul << i);
+                if (knight == 0) continue;
+
+                bool up = (knight & ~0x00_00_00_00_00_00_00_FFul) != 0,
+                up2 = (knight & ~0x00_00_00_00_00_00_FF_FFul) != 0,
+                down = (knight & ~0xFF_00_00_00_00_00_00_00ul) != 0,
+                down2 = (knight & ~0xFF_FF_00_00_00_00_00_00ul) != 0,
+                right = (knight & ~0x01_01_01_01_01_01_01_01ul) != 0,
+                right2 = (knight & ~0x03_03_03_03_03_03_03_03ul) != 0,
+                left = (knight & ~0x80_80_80_80_80_80_80_80ul) != 0,
+                left2 = (knight & ~0xC0_C0_C0_C0_C0_C0_C0_C0ul) != 0;
+
+                if (up2 && right && ((knight >> 17) & ~friendlyPieces) != 0) moves.Add(new Move(knight, knight >> 17));
+                if (up && right2 && ((knight >> 10) & ~friendlyPieces) != 0) moves.Add(new Move(knight, knight >> 10));
+                if (down && right2 && ((knight << 6) & ~friendlyPieces) != 0) moves.Add(new Move(knight, knight << 6));
+                if (down2 && right && ((knight << 15) & ~friendlyPieces) != 0) moves.Add(new Move(knight, knight << 15));
+                if (down2 && left && ((knight << 17) & ~friendlyPieces) != 0) moves.Add(new Move(knight, knight << 17));
+                if (down && left2 && ((knight << 10) & ~friendlyPieces) != 0) moves.Add(new Move(knight, knight << 10));
+                if (up && left2 && ((knight >> 6) & ~friendlyPieces) != 0) moves.Add(new Move(knight, knight >> 6));
+                if (up2 && left && ((knight >> 15) & ~friendlyPieces) != 0) moves.Add(new Move(knight, knight >> 15));
+            }
 
             return moves;
         }
