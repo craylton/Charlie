@@ -12,7 +12,7 @@ namespace Charlie3
             {
                 moves.AddRange(GeneratePawnMoves(board.BitBoard.WhitePawn, board));
                 // Generate knight moves
-                // Generate bishop moves
+                moves.AddRange(GenerateBishopMoves(board.BitBoard.WhiteBishop, board.BitBoard.WhitePieces, board));
                 moves.AddRange(GenerateRookMoves(board.BitBoard.WhiteRook, board.BitBoard.WhitePieces, board));
                 // Generate queen moves
                 moves.AddRange(GenerateKingMoves(board.BitBoard.WhiteKing, board.BitBoard.WhitePieces, board));
@@ -21,7 +21,7 @@ namespace Charlie3
             {
                 moves.AddRange(GeneratePawnMoves(board.BitBoard.BlackPawn, board));
                 // Generate knight moves
-                // Generate bishop moves
+                moves.AddRange(GenerateBishopMoves(board.BitBoard.BlackBishop, board.BitBoard.BlackPieces, board));
                 moves.AddRange(GenerateRookMoves(board.BitBoard.BlackRook, board.BitBoard.BlackPieces, board));
                 // Generate queen moves
                 moves.AddRange(GenerateKingMoves(board.BitBoard.BlackKing, board.BitBoard.BlackPieces, board));
@@ -79,6 +79,59 @@ namespace Charlie3
                     distance++;
                     var newSq = rook << distance;
                     if ((newSq & ~friendlyPieces) != 0) moves.Add(new Move(rook, newSq));
+                    if ((newSq & board.BitBoard.Occupied) != 0) break;
+                }
+            }
+
+            return moves;
+        }
+
+        private IEnumerable<Move> GenerateBishopMoves(ulong bishops, ulong friendlyPieces, BoardState board)
+        {
+            var moves = new List<Move>();
+
+            for (int i = 0; i < 64; i++)
+            {
+                var bishop = bishops & (1ul << i);
+                if (bishop == 0) continue;
+
+                // scan up right
+                int distance = 0;
+                while (((bishop >> distance) & ~0x00_00_00_00_00_00_00_FFul & ~0x01_01_01_01_01_01_01_01ul) != 0)
+                {
+                    distance += 9;
+                    var newSq = bishop >> distance;
+                    if ((newSq & ~friendlyPieces) != 0) moves.Add(new Move(bishop, newSq));
+                    if ((newSq & board.BitBoard.Occupied) != 0) break;
+                }
+
+                // scan up left
+                distance = 0;
+                while (((bishop >> distance) & ~0x00_00_00_00_00_00_00_FFul & ~0x80_80_80_80_80_80_80_80ul) != 0)
+                {
+                    distance += 7;
+                    var newSq = bishop >> distance;
+                    if ((newSq & ~friendlyPieces) != 0) moves.Add(new Move(bishop, newSq));
+                    if ((newSq & board.BitBoard.Occupied) != 0) break;
+                }
+
+                // scan down right
+                distance = 0;
+                while (((bishop << distance) & ~0xFF_00_00_00_00_00_00_00ul & ~0x01_01_01_01_01_01_01_01ul) != 0)
+                {
+                    distance += 7;
+                    var newSq = bishop << distance;
+                    if ((newSq & ~friendlyPieces) != 0) moves.Add(new Move(bishop, newSq));
+                    if ((newSq & board.BitBoard.Occupied) != 0) break;
+                }
+
+                // scan down left
+                distance = 0;
+                while (((bishop << distance) & ~0xFF_00_00_00_00_00_00_00ul & ~0x80_80_80_80_80_80_80_80ul) != 0)
+                {
+                    distance += 9;
+                    var newSq = bishop << distance;
+                    if ((newSq & ~friendlyPieces) != 0) moves.Add(new Move(bishop, newSq));
                     if ((newSq & board.BitBoard.Occupied) != 0) break;
                 }
             }
