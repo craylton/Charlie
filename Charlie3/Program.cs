@@ -9,10 +9,33 @@ namespace Charlie3
     {
         static void Main(string[] args)
         {
-            MakeRandomMoves(100);
+            MakeEvaluatedMoves(40);
             //MakeMoves(new List<int> { 6,1,10,12,7,5,13,13,10,1,11,0,9,4,6,10,2,9,0,11,4,13,7,0,});
             Console.WriteLine("done");
             Console.Read();
+        }
+
+        private static void MakeEvaluatedMoves(int numMoves)
+        {
+            var board = new BoardState();
+            var gen = new MoveGenerator();
+            var evaluator = new Evaluator();
+
+            var pgn = new StringBuilder();
+
+            for (int i = 0; i < numMoves; i++)
+            {
+                var moves = gen.GenerateLegalMoves(board).ToList();
+                var bestMove = evaluator.FindBestMove(moves, board);
+
+                pgn.Append(bestMove.ToString());
+                pgn.Append(" ");
+
+                board = board.MakeMove(bestMove);
+            }
+
+            Console.WriteLine("PGN:");
+            Console.WriteLine(pgn.ToString());
         }
 
         private static void MakeRandomMoves(int numMoves)
@@ -22,7 +45,6 @@ namespace Charlie3
             var gen = new MoveGenerator();
 
             var moveSeq = new List<int>();
-
             var pgn = new StringBuilder();
 
             for (int i = 0; i < numMoves; i++)
