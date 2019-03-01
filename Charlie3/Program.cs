@@ -9,7 +9,7 @@ namespace Charlie3
     {
         static void Main(string[] args)
         {
-            MakeRandomMoves(70);
+            MakeRandomMoves(80);
             //MakeMoves(new List<int> { 6,1,10,12,7,5,13,13,10,1,11,0,9,4,6,10,2,9,0,11,4,13,7,0,});
             Console.WriteLine("done");
             Console.Read();

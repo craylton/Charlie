@@ -14,7 +14,7 @@ namespace Charlie3
                 // Generate knight moves
                 moves.AddRange(GenerateBishopMoves(board.BitBoard.WhiteBishop, board.BitBoard.WhitePieces, board));
                 moves.AddRange(GenerateRookMoves(board.BitBoard.WhiteRook, board.BitBoard.WhitePieces, board));
-                // Generate queen moves
+                moves.AddRange(GenerateQueenMoves(board.BitBoard.WhiteQueen, board.BitBoard.WhitePieces, board));
                 moves.AddRange(GenerateKingMoves(board.BitBoard.WhiteKing, board.BitBoard.WhitePieces, board));
             }
             else
@@ -23,12 +23,22 @@ namespace Charlie3
                 // Generate knight moves
                 moves.AddRange(GenerateBishopMoves(board.BitBoard.BlackBishop, board.BitBoard.BlackPieces, board));
                 moves.AddRange(GenerateRookMoves(board.BitBoard.BlackRook, board.BitBoard.BlackPieces, board));
-                // Generate queen moves
+                moves.AddRange(GenerateQueenMoves(board.BitBoard.BlackQueen, board.BitBoard.BlackPieces, board));
                 moves.AddRange(GenerateKingMoves(board.BitBoard.BlackKing, board.BitBoard.BlackPieces, board));
             }
 
             // Remove any moves that leave the king in check
             moves.RemoveAll(m => board.MakeMove(m).IsInCheck(board.ToMove));
+
+            return moves;
+        }
+
+        private IEnumerable<Move> GenerateQueenMoves(ulong queens, ulong friendlyPieces, BoardState board)
+        {
+            var moves = new List<Move>();
+
+            moves.AddRange(GenerateBishopMoves(queens, friendlyPieces, board));
+            moves.AddRange(GenerateRookMoves(queens, friendlyPieces, board));
 
             return moves;
         }
