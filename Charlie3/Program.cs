@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -7,12 +8,59 @@ namespace Charlie3
 {
     class Program
     {
-        static void Main(string[] args)
+        private static BoardState boardState;
+        private static MoveGenerator generator = new MoveGenerator();
+
+        private static void Main(string[] args)
         {
-            MakeEvaluatedMoves(40);
-            //MakeMoves(new List<int> { 6,1,10,12,7,5,13,13,10,1,11,0,9,4,6,10,2,9,0,11,4,13,7,0,});
-            Console.WriteLine("done");
-            Console.Read();
+            while (true)
+            {
+                var input = Console.ReadLine();
+
+                File.AppendAllLines("inputs.txt", new[] { input });
+
+                switch (input)
+                {
+                    case "uci":
+                        Console.WriteLine("id name Charlie");
+                        Console.WriteLine("id author Craylton");
+                        Console.WriteLine("uciok");
+                        break;
+                    case "isready":
+                        Console.WriteLine("readyok");
+                        break;
+                    case "quit":
+                        return;
+                }
+
+                if (input.StartsWith("position"))
+                {
+                    var @params = input.Split(' ');
+                    if (@params.Length > 1 && @params[1] == "startpos")
+                    {
+                        boardState = new BoardState();
+
+                        if (@params.Length > 3 && @params[2] == "moves")
+                        {
+                            for (int i = 3; i < @params.Length; i++)
+                            {
+                                var moves = generator.GenerateLegalMoves(boardState).ToList();
+                                boardState = boardState.MakeMove(Move.FromString(moves, @params[i]));
+                            }
+                        }
+                    }
+                }
+
+                if (input.StartsWith("go"))
+                {
+                    var evaluator = new Evaluator();
+
+                    var moves = generator.GenerateLegalMoves(boardState).ToList();
+                    var bestMove = evaluator.FindBestMove(moves, boardState);
+
+                    Console.WriteLine("bestmove " + bestMove.ToString());
+                }
+            }
         }
 
         private static void MakeEvaluatedMoves(int numMoves)
