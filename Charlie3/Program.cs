@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
+using System.Threading.Tasks;
 
 namespace Charlie3
 {
@@ -44,7 +44,7 @@ namespace Charlie3
                         {
                             for (int i = 3; i < @params.Length; i++)
                             {
-                                var moves = generator.GenerateLegalMoves(boardState).ToList();
+                                List<Move> moves = generator.GenerateLegalMoves(boardState).ToList();
                                 boardState = boardState.MakeMove(Move.FromString(moves, @params[i]));
                             }
                         }
@@ -53,84 +53,17 @@ namespace Charlie3
 
                 if (input.StartsWith("go"))
                 {
-                    var evaluator = new Evaluator();
+                    var searcher = new Search();
+                    Task.Run(async () =>
+                    {
+                        List<Move> moves = generator.GenerateLegalMoves(boardState).ToList();
+                        Move bestMove = await searcher.FindBestMove(moves, boardState);
 
-                    var moves = generator.GenerateLegalMoves(boardState).ToList();
-                    var bestMove = evaluator.FindBestMove(moves, boardState);
+                        Console.WriteLine("bestmove " + bestMove.ToString());
+                        File.AppendAllLines("inputs.txt", new[] { "[BEST MOVE]: " + bestMove.ToString() });
 
-                    Console.WriteLine("bestmove " + bestMove.ToString());
+                    });
                 }
-            }
-        }
-
-        private static void MakeEvaluatedMoves(int numMoves)
-        {
-            var board = new BoardState();
-            var gen = new MoveGenerator();
-            var evaluator = new Evaluator();
-
-            var pgn = new StringBuilder();
-
-            for (int i = 0; i < numMoves; i++)
-            {
-                var moves = gen.GenerateLegalMoves(board).ToList();
-                var bestMove = evaluator.FindBestMove(moves, board);
-
-                pgn.Append(bestMove.ToString());
-                pgn.Append(" ");
-
-                board = board.MakeMove(bestMove);
-            }
-
-            Console.WriteLine("PGN:");
-            Console.WriteLine(pgn.ToString());
-        }
-
-        private static void MakeRandomMoves(int numMoves)
-        {
-            var r = new Random();
-            var board = new BoardState();
-            var gen = new MoveGenerator();
-
-            var moveSeq = new List<int>();
-            var pgn = new StringBuilder();
-
-            for (int i = 0; i < numMoves; i++)
-            {
-                var moves = gen.GenerateLegalMoves(board).ToList();
-                var moveIndex = r.Next(moves.Count);
-                var selectedMove = moves[moveIndex];
-                moveSeq.Add(moveIndex);
-
-                if (moves.Any(m => m.IsEnPassant))
-                    selectedMove = moves.First(m => m.IsEnPassant);
-
-                Console.WriteLine($"{moveIndex}: {selectedMove.ToString()}");
-                pgn.Append(selectedMove.ToString());
-                pgn.Append(" ");
-
-                board = board.MakeMove(selectedMove);
-            }
-
-            Console.WriteLine("PGN:");
-            Console.WriteLine(pgn.ToString());
-        }
-
-        private static void MakeMoves(List<int> moveIndices)
-        {
-            var board = new BoardState();
-            var gen = new MoveGenerator();
-
-            foreach (var i in moveIndices)
-            {
-                var moves = gen.GenerateLegalMoves(board).ToList();
-                var selectedMove = moves[i];
-
-                if (moves.Any(m => m.IsEnPassant))
-                    selectedMove = moves.First(m => m.IsEnPassant);
-
-                Console.WriteLine(selectedMove.ToString());
-                board = board.MakeMove(selectedMove);
             }
         }
     }

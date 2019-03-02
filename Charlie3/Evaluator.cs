@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Charlie3
+﻿namespace Charlie3
 {
     public class Evaluator
     {
@@ -25,26 +23,6 @@ namespace Charlie3
             blackScore += board.BitBoard.BlackKing.BitCount() * king;
 
             return whiteScore - blackScore;
-        }
-
-        public Move FindBestMove(List<Move> moves, BoardState currentBoard)
-        {
-            int bestEval = int.MinValue, bestIndex = -1;
-
-            for (int m = 0; m < moves.Count; m++)
-            {
-                var eval = Evaluate(currentBoard.MakeMove(moves[m]));
-
-                if (currentBoard.ToMove == PieceColour.Black) eval *= -1;
-
-                if (eval > bestEval)
-                {
-                    bestEval = eval;
-                    bestIndex = m;
-                }
-            }
-
-            return moves[bestIndex];
         }
     }
 }
