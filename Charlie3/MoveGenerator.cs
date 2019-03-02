@@ -225,21 +225,21 @@ namespace Charlie3
             if (board.ToMove == PieceColour.White)
             {
                 // If can short castle
-                if ((board.WhiteCastle & 0x01) != 0 && (board.BitBoard.Occupied & 0x06_00_00_00_00_00_00_00) == 0)
+                if ((board.WhiteCastle & 0b01) != 0 && (board.BitBoard.Occupied & 0x06_00_00_00_00_00_00_00) == 0)
                     moves.Add(new Move(king, 0x02_00_00_00_00_00_00_00, false, true, false, PromotionType.None));
 
                 // If can long castle
-                if ((board.WhiteCastle & 0x10) != 0 && (board.BitBoard.Occupied & 0x70_00_00_00_00_00_00_00) == 0)
+                if ((board.WhiteCastle & 0b10) != 0 && (board.BitBoard.Occupied & 0x70_00_00_00_00_00_00_00) == 0)
                     moves.Add(new Move(king, 0x20_00_00_00_00_00_00_00, false, true, false, PromotionType.None));
             }
             else
             {
                 // If can short castle
-                if ((board.BlackCastle & 0x01) != 0 && (board.BitBoard.Occupied & 0x00_00_00_00_00_00_00_06) == 0)
+                if ((board.BlackCastle & 0b01) != 0 && (board.BitBoard.Occupied & 0x00_00_00_00_00_00_00_06) == 0)
                     moves.Add(new Move(king, 0x00_00_00_00_00_00_00_02, false, true, false, PromotionType.None));
 
                 // If can long castle
-                if ((board.BlackCastle & 0x10) != 0 && (board.BitBoard.Occupied & 0x00_00_00_00_00_00_00_70) == 0)
+                if ((board.BlackCastle & 0b10) != 0 && (board.BitBoard.Occupied & 0x00_00_00_00_00_00_00_70) == 0)
                     moves.Add(new Move(king, 0x00_00_00_00_00_00_00_20, false, true, false, PromotionType.None));
             }
 
