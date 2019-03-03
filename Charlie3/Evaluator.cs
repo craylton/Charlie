@@ -2,7 +2,19 @@
 {
     public class Evaluator
     {
-        private const int pawn = 1, knight = 3, bishop = 3, rook = 5, queen = 9, king = 100000;
+        private const int pawn = 100, knight = 300, bishop = 310, rook = 500, queen = 900, king = 100000;
+
+        private readonly int[] cellValues = new[]
+        {
+            -2,-1,0,0,0,0,-1,-2,
+            -1,0, 1,1,1,1, 0,-1,
+            0, 1, 2,2,2,2, 1, 0,
+            1, 2, 3,3,3,3, 2, 1,
+            1, 2, 3,3,3,3, 2, 1,
+            0, 1, 2,2,2,2, 1, 0,
+            -1,0, 1,1,1,1, 0,-1,
+            -2,-1,0,0,0,0,-1,-2,
+        };
 
         public int Evaluate(BoardState board)
         {
@@ -21,6 +33,15 @@
             blackScore += board.BitBoard.BlackRook.BitCount() * rook;
             blackScore += board.BitBoard.BlackQueen.BitCount() * queen;
             blackScore += board.BitBoard.BlackKing.BitCount() * king;
+
+            for (int i = 0; i < 64; i++)
+            {
+                if ((board.BitBoard.WhitePieces & (1ul << i)) != 0)
+                    whiteScore += cellValues[i];
+
+                if ((board.BitBoard.BlackPieces & (1ul << i)) != 0)
+                    blackScore += cellValues[i];
+            }
 
             return whiteScore - blackScore;
         }
