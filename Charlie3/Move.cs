@@ -43,7 +43,7 @@ namespace Charlie3
         public static Move FromString(IEnumerable<Move> possibleMoves, string move)
         {
             var from = new string(move.Take(2).ToArray());
-            var to = new string(move.TakeLast(2).ToArray());
+            var to = new string(new string(move.Take(4).ToArray()).TakeLast(2).ToArray());
 
             ulong fromCell = 0, toCell = 0;
             for (int i = 0; i < Utils.CellNames.Length; i++)
@@ -61,7 +61,7 @@ namespace Charlie3
             if (matches.Count() > 1 && move.Length == 5)
             {
                 var promotion = move[4].ToString().ToUpper();
-                return matches.FirstOrDefault(m => Utils.PromotionSuffixes[(int)m.PromotionType].ToString().ToUpper()== promotion);
+                return matches.FirstOrDefault(m => Utils.PromotionSuffixes[(int)m.PromotionType].ToString().ToUpper() == promotion);
             }
 
             return matches.FirstOrDefault();
