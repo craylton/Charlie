@@ -7,12 +7,14 @@ namespace Charlie3
     {
         private async Task<(Move Move, int Eval)> MiniMax(BoardState boardState, int depth)
         {
-            var evaluator = new Evaluator();
+            if (depth == 0)
+            {
+                var evaluator = new Evaluator();
+                return (default, evaluator.Evaluate(boardState));
+            }
+
             var generator = new MoveGenerator();
-
             var moves = generator.GenerateLegalMoves(boardState).ToList();
-
-            if (depth == 0) return (default, evaluator.Evaluate(boardState));
 
             bool isWhite = boardState.ToMove == PieceColour.White;
             Move bestMove = default;
@@ -68,7 +70,7 @@ namespace Charlie3
 
         public async Task<Move> FindBestMove(BoardState currentBoard)
         {
-            var moveInfo = await MiniMax(currentBoard, 3);
+            var moveInfo = await MiniMax(currentBoard, 4);
             //var moveInfo = await AlphaBeta(currentBoard, int.MinValue, int.MaxValue, 4);
             return moveInfo.Move;
         }
