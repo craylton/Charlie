@@ -56,12 +56,10 @@ namespace Charlie3
                     var searcher = new Search();
                     Task.Run(async () =>
                     {
-                        List<Move> moves = generator.GenerateLegalMoves(boardState).ToList();
-                        Move bestMove = await searcher.FindBestMove(moves, boardState);
+                        Move bestMove = await searcher.FindBestMove(boardState);
 
                         Console.WriteLine("bestmove " + bestMove.ToString());
                         File.AppendAllLines("inputs.txt", new[] { "[BEST MOVE]: " + bestMove.ToString() });
-
                     });
                 }
             }

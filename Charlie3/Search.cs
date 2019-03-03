@@ -23,7 +23,7 @@ namespace Charlie3
             {
                 var (_, eval) = await AlphaBeta(boardState.MakeMove(move), depth - 1);
 
-                if ((isWhite && eval > bestEval) || (!isWhite && eval < bestEval))
+                if ((isWhite && eval >= bestEval) || (!isWhite && eval <= bestEval))
                 {
                     bestEval = eval;
                     bestMove = move;
@@ -33,7 +33,7 @@ namespace Charlie3
             return (bestMove, bestEval);
         }
 
-        public async Task<Move> FindBestMove(List<Move> moves, BoardState currentBoard)
+        public async Task<Move> FindBestMove(BoardState currentBoard)
         {
             var moveInfo = await AlphaBeta(currentBoard, 3);
             return moveInfo.Move;
