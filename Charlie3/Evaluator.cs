@@ -34,12 +34,15 @@
             blackScore += board.BitBoard.BlackQueen.BitCount() * queen;
             blackScore += board.BitBoard.BlackKing.BitCount() * king;
 
+            var whitePiecesBb = board.BitBoard.WhitePieces;
+            var blackPiecesBb = board.BitBoard.BlackPieces;
+
             for (int i = 0; i < 64; i++)
             {
-                if ((board.BitBoard.WhitePieces & (1ul << i)) != 0)
+                if ((whitePiecesBb & (1ul << i)) != 0)
                     whiteScore += cellValues[i];
 
-                if ((board.BitBoard.BlackPieces & (1ul << i)) != 0)
+                if ((blackPiecesBb & (1ul << i)) != 0)
                     blackScore += cellValues[i];
             }
 

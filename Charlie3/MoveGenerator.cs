@@ -258,6 +258,10 @@ namespace Charlie3
         {
             var moves = new List<Move>();
 
+            var occupiedBb = board.BitBoard.Occupied;
+            var blackPiecesBb = board.BitBoard.BlackPieces;
+            var whitePiecesBb = board.BitBoard.WhitePieces;
+
             for (int i = 0; i < 64; i++)
             {
                 ulong b = (ulong)1 << i;
@@ -266,7 +270,7 @@ namespace Charlie3
                 if (board.ToMove == PieceColour.White)
                 {
                     // if the pawn can move forward
-                    if (((pawn >> 8) & ~board.BitBoard.Occupied) != 0)
+                    if (((pawn >> 8) & ~occupiedBb) != 0)
                     {
                         // if moving forward will make it promote
                         if ((pawn & 0x00_00_00_00_00_00_FF_00) != 0)
@@ -281,7 +285,7 @@ namespace Charlie3
                             moves.Add(new Move(pawn, pawn >> 8));
 
                             // if the pawn can move a second space
-                            if (((pawn >> 16) & 0x00_00_00_FF_00_00_00_00 & ~board.BitBoard.Occupied) != 0)
+                            if (((pawn >> 16) & 0x00_00_00_FF_00_00_00_00 & ~occupiedBb) != 0)
                             {
                                 moves.Add(new Move(pawn, pawn >> 16, false, false, true, PromotionType.None));
                             }
@@ -289,7 +293,7 @@ namespace Charlie3
                     }
 
                     // if the pawn can take to the left
-                    if (((pawn >> 7) & board.BitBoard.BlackPieces & ~0x01_01_01_01_01_01_01_01ul) != 0)
+                    if (((pawn >> 7) & blackPiecesBb & ~0x01_01_01_01_01_01_01_01ul) != 0)
                     {
                         // if moving forward will make it promote
                         if ((pawn & 0x00_00_00_00_00_00_FF_00) != 0)
@@ -306,7 +310,7 @@ namespace Charlie3
                     }
 
                     // if the pawn can take to the right
-                    if (((pawn >> 9) & board.BitBoard.BlackPieces & ~0x80_80_80_80_80_80_80_80ul) != 0)
+                    if (((pawn >> 9) & blackPiecesBb & ~0x80_80_80_80_80_80_80_80ul) != 0)
                     {
                         // if moving forward will make it promote
                         if ((pawn & 0x00_00_00_00_00_00_FF_00) != 0)
@@ -337,7 +341,7 @@ namespace Charlie3
                 else
                 {
                     // if the pawn can move forward
-                    if (((pawn << 8) & ~board.BitBoard.Occupied) != 0)
+                    if (((pawn << 8) & ~occupiedBb) != 0)
                     {
                         // if moving forward will make it promote
                         if ((pawn & 0x00_FF_00_00_00_00_00_00) != 0)
@@ -352,7 +356,7 @@ namespace Charlie3
                             moves.Add(new Move(pawn, pawn << 8));
 
                             // if the pawn can move a second space
-                            if (((pawn << 16) & 0x00_00_00_00_FF_00_00_00 & ~board.BitBoard.Occupied) != 0)
+                            if (((pawn << 16) & 0x00_00_00_00_FF_00_00_00 & ~occupiedBb) != 0)
                             {
                                 moves.Add(new Move(pawn, pawn << 16, false, false, true, PromotionType.None));
                             }
@@ -360,7 +364,7 @@ namespace Charlie3
                     }
 
                     // if the pawn can take to the left
-                    if (((pawn << 9) & board.BitBoard.WhitePieces & ~0x01_01_01_01_01_01_01_01ul) != 0)
+                    if (((pawn << 9) & whitePiecesBb & ~0x01_01_01_01_01_01_01_01ul) != 0)
                     {
                         // if moving forward will make it promote
                         if ((pawn & 0x00_FF_00_00_00_00_00_00) != 0)
@@ -377,7 +381,7 @@ namespace Charlie3
                     }
 
                     // if the pawn can take to the right
-                    if (((pawn << 7) & board.BitBoard.WhitePieces & ~0x80_80_80_80_80_80_80_80ul) != 0)
+                    if (((pawn << 7) & whitePiecesBb & ~0x80_80_80_80_80_80_80_80ul) != 0)
                     {
                         // if moving forward will make it promote
                         if ((pawn & 0x00_FF_00_00_00_00_00_00) != 0)

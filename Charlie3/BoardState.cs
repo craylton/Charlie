@@ -147,13 +147,14 @@ namespace Charlie3
 
         private bool IsInRayCheck(ulong king, ulong theirQueen, ulong theirRook, ulong theirBishop)
         {
+            var occupiedBb = BitBoard.Occupied;
             // scan up
             int distance = 0;
             while (((king >> distance) & ~0x00_00_00_00_00_00_00_FFul) != 0)
             {
                 distance += 8;
                 if (((king >> distance) & (theirRook | theirQueen)) != 0) return true;
-                if (((king >> distance) & BitBoard.Occupied) != 0) break;
+                if (((king >> distance) & occupiedBb) != 0) break;
             }
 
             // scan down
@@ -162,7 +163,7 @@ namespace Charlie3
             {
                 distance += 8;
                 if (((king << distance) & (theirRook | theirQueen)) != 0) return true;
-                if (((king << distance) & BitBoard.Occupied) != 0) break;
+                if (((king << distance) & occupiedBb) != 0) break;
             }
 
             // scan right
@@ -171,7 +172,7 @@ namespace Charlie3
             {
                 distance++;
                 if (((king >> distance) & (theirRook | theirQueen)) != 0) return true;
-                if (((king >> distance) & BitBoard.Occupied) != 0) break;
+                if (((king >> distance) & occupiedBb) != 0) break;
             }
 
             // scan left
@@ -180,7 +181,7 @@ namespace Charlie3
             {
                 distance++;
                 if (((king << distance) & (theirRook | theirQueen)) != 0) return true;
-                if (((king << distance) & BitBoard.Occupied) != 0) break;
+                if (((king << distance) & occupiedBb) != 0) break;
             }
 
             // scan up right
@@ -189,7 +190,7 @@ namespace Charlie3
             {
                 distance += 9;
                 if (((king >> distance) & (theirBishop | theirQueen)) != 0) return true;
-                if (((king >> distance) & BitBoard.Occupied) != 0) break;
+                if (((king >> distance) & occupiedBb) != 0) break;
             }
 
             // scan up left
@@ -198,7 +199,7 @@ namespace Charlie3
             {
                 distance += 7;
                 if (((king >> distance) & (theirBishop | theirQueen)) != 0) return true;
-                if (((king >> distance) & BitBoard.Occupied) != 0) break;
+                if (((king >> distance) & occupiedBb) != 0) break;
             }
 
             // scan down right
@@ -207,7 +208,7 @@ namespace Charlie3
             {
                 distance += 7;
                 if (((king << distance) & (theirBishop | theirQueen)) != 0) return true;
-                if (((king << distance) & BitBoard.Occupied) != 0) break;
+                if (((king << distance) & occupiedBb) != 0) break;
             }
 
             // scan down left
@@ -216,7 +217,7 @@ namespace Charlie3
             {
                 distance += 9;
                 if (((king << distance) & (theirBishop | theirQueen)) != 0) return true;
-                if (((king << distance) & BitBoard.Occupied) != 0) break;
+                if (((king << distance) & occupiedBb) != 0) break;
             }
 
             return false;
