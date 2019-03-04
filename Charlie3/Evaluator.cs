@@ -6,14 +6,14 @@
 
         private readonly int[] cellValues = new[]
         {
-            -2,-1,0,0,0,0,-1,-2,
-            -1,0, 1,1,1,1, 0,-1,
-            0, 1, 2,2,2,2, 1, 0,
-            1, 2, 3,3,3,3, 2, 1,
-            1, 2, 3,3,3,3, 2, 1,
-            0, 1, 2,2,2,2, 1, 0,
-            -1,0, 1,1,1,1, 0,-1,
-            -2,-1,0,0,0,0,-1,-2,
+            -5,-3,0,2,2,0,-3,-5,
+            -2,0, 2,3,3,2, 0,-2,
+            0, 1, 3,4,4,3, 1, 0,
+            2, 4, 5,7,7,5, 4, 2,
+            2, 4, 5,7,7,5, 4, 2,
+            0, 1, 3,4,4,3, 1, 0,
+            -2,0, 2,3,3,2, 0,-2,
+            -5,-3,0,2,2,0,-3,-5,
         };
 
         public int Evaluate(BoardState board)
@@ -36,14 +36,18 @@
 
             var whitePiecesBb = board.BitBoard.WhitePieces;
             var blackPiecesBb = board.BitBoard.BlackPieces;
+            var unoccupied = ~board.BitBoard.Occupied;
 
             for (int i = 0; i < 64; i++)
             {
-                if ((whitePiecesBb & (1ul << i)) != 0)
-                    whiteScore += cellValues[i];
+                var thisSquare = 1ul << i;
+                if ((unoccupied & thisSquare) != 0) continue;
 
-                if ((blackPiecesBb & (1ul << i)) != 0)
-                    blackScore += cellValues[i];
+                if ((board.BitBoard.WhiteKing & thisSquare & 0xFF_00_00_00_00_00_00_00) != 0) whiteScore += 10;
+                if ((board.BitBoard.BlackKing & thisSquare & 0x00_00_00_00_00_00_00_FF) != 0) blackScore += 10;
+
+                if ((whitePiecesBb & thisSquare) != 0) whiteScore += cellValues[i];
+                if ((blackPiecesBb & thisSquare) != 0) blackScore += cellValues[i];
             }
 
             return whiteScore - blackScore;
