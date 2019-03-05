@@ -100,148 +100,156 @@ namespace Charlie3
         internal bool IsInCheck(PieceColour toMove)
         {
             if (toMove == PieceColour.White)
-            {
-                if (IsInImmediateCheck(BitBoard.WhiteKing, BitBoard.BlackKing, toMove)) return true;
-                if (IsInRayCheck(BitBoard.WhiteKing, BitBoard.BlackQueen, BitBoard.BlackRook, BitBoard.BlackBishop)) return true;
-                if (IsInKnightCheck(BitBoard.WhiteKing, BitBoard.BlackKnight)) return true;
-            }
+                return IsUnderAttack(BitBoard.WhiteKing, PieceColour.Black);
             else
-            {
-                if (IsInImmediateCheck(BitBoard.BlackKing, BitBoard.WhiteKing, toMove)) return true;
-                if (IsInRayCheck(BitBoard.BlackKing, BitBoard.WhiteQueen, BitBoard.WhiteRook, BitBoard.WhiteBishop)) return true;
-                if (IsInKnightCheck(BitBoard.BlackKing, BitBoard.WhiteKnight)) return true;
-            }
-
-            return false;
+                return IsUnderAttack(BitBoard.BlackKing, PieceColour.White);
         }
 
-        private bool IsInImmediateCheck(ulong king, ulong theirKing, PieceColour toMove)
+        internal bool IsUnderAttack(ulong cell, PieceColour attacker)
         {
-            bool up = (king & ~0x00_00_00_00_00_00_00_FFul) != 0,
-            down = (king & ~0xFF_00_00_00_00_00_00_00ul) != 0,
-            right = (king & ~0x01_01_01_01_01_01_01_01ul) != 0,
-            left = (king & ~0x80_80_80_80_80_80_80_80ul) != 0;
-
-            if (up && ((king >> 8) & theirKing) != 0) return true;
-            if (down && ((king << 8) & theirKing) != 0) return true;
-            if (right && ((king >> 1) & theirKing) != 0) return true;
-            if (left && ((king << 1) & theirKing) != 0) return true;
-            if (up && right && ((king >> 9) & theirKing) != 0) return true;
-            if (up && left && ((king >> 7) & theirKing) != 0) return true;
-            if (down && right && ((king << 7) & theirKing) != 0) return true;
-            if (down && left && ((king << 9) & theirKing) != 0) return true;
-
-            if (toMove == PieceColour.White)
+            if (attacker == PieceColour.Black)
             {
-                if (up && right && ((king >> 9) & BitBoard.BlackPawn) != 0) return true;
-                if (up && left && ((king >> 7) & BitBoard.BlackPawn) != 0) return true;
+                if (IsUnderImmediateAttack(cell, BitBoard.BlackKing, attacker)) return true;
+                if (IsUnderRayAttack(cell, BitBoard.BlackQueen, BitBoard.BlackRook, BitBoard.BlackBishop)) return true;
+                if (IsInKnightCheck(cell, BitBoard.BlackKnight)) return true;
             }
             else
             {
-                if (down && right && ((king << 7) & BitBoard.WhitePawn) != 0) return true;
-                if (down && left && ((king << 9) & BitBoard.WhitePawn) != 0) return true;
+                if (IsUnderImmediateAttack(cell, BitBoard.WhiteKing, attacker)) return true;
+                if (IsUnderRayAttack(cell, BitBoard.WhiteQueen, BitBoard.WhiteRook, BitBoard.WhiteBishop)) return true;
+                if (IsInKnightCheck(cell, BitBoard.WhiteKnight)) return true;
             }
 
             return false;
         }
 
-        private bool IsInRayCheck(ulong king, ulong theirQueen, ulong theirRook, ulong theirBishop)
+        private bool IsUnderImmediateAttack(ulong cell, ulong theirKing, PieceColour attacker)
+        {
+            bool up = (cell & ~0x00_00_00_00_00_00_00_FFul) != 0,
+            down = (cell & ~0xFF_00_00_00_00_00_00_00ul) != 0,
+            right = (cell & ~0x01_01_01_01_01_01_01_01ul) != 0,
+            left = (cell & ~0x80_80_80_80_80_80_80_80ul) != 0;
+
+            if (up && ((cell >> 8) & theirKing) != 0) return true;
+            if (down && ((cell << 8) & theirKing) != 0) return true;
+            if (right && ((cell >> 1) & theirKing) != 0) return true;
+            if (left && ((cell << 1) & theirKing) != 0) return true;
+            if (up && right && ((cell >> 9) & theirKing) != 0) return true;
+            if (up && left && ((cell >> 7) & theirKing) != 0) return true;
+            if (down && right && ((cell << 7) & theirKing) != 0) return true;
+            if (down && left && ((cell << 9) & theirKing) != 0) return true;
+
+            if (attacker == PieceColour.Black)
+            {
+                if (up && right && ((cell >> 9) & BitBoard.BlackPawn) != 0) return true;
+                if (up && left && ((cell >> 7) & BitBoard.BlackPawn) != 0) return true;
+            }
+            else
+            {
+                if (down && right && ((cell << 7) & BitBoard.WhitePawn) != 0) return true;
+                if (down && left && ((cell << 9) & BitBoard.WhitePawn) != 0) return true;
+            }
+
+            return false;
+        }
+
+        private bool IsUnderRayAttack(ulong cell, ulong theirQueen, ulong theirRook, ulong theirBishop)
         {
             var occupiedBb = BitBoard.Occupied;
             // scan up
             int distance = 0;
-            while (((king >> distance) & ~0x00_00_00_00_00_00_00_FFul) != 0)
+            while (((cell >> distance) & ~0x00_00_00_00_00_00_00_FFul) != 0)
             {
                 distance += 8;
-                if (((king >> distance) & (theirRook | theirQueen)) != 0) return true;
-                if (((king >> distance) & occupiedBb) != 0) break;
+                if (((cell >> distance) & (theirRook | theirQueen)) != 0) return true;
+                if (((cell >> distance) & occupiedBb) != 0) break;
             }
 
             // scan down
             distance = 0;
-            while (((king << distance) & ~0xFF_00_00_00_00_00_00_00ul) != 0)
+            while (((cell << distance) & ~0xFF_00_00_00_00_00_00_00ul) != 0)
             {
                 distance += 8;
-                if (((king << distance) & (theirRook | theirQueen)) != 0) return true;
-                if (((king << distance) & occupiedBb) != 0) break;
+                if (((cell << distance) & (theirRook | theirQueen)) != 0) return true;
+                if (((cell << distance) & occupiedBb) != 0) break;
             }
 
             // scan right
             distance = 0;
-            while (((king >> distance) & ~0x01_01_01_01_01_01_01_01ul) != 0)
+            while (((cell >> distance) & ~0x01_01_01_01_01_01_01_01ul) != 0)
             {
                 distance++;
-                if (((king >> distance) & (theirRook | theirQueen)) != 0) return true;
-                if (((king >> distance) & occupiedBb) != 0) break;
+                if (((cell >> distance) & (theirRook | theirQueen)) != 0) return true;
+                if (((cell >> distance) & occupiedBb) != 0) break;
             }
 
             // scan left
             distance = 0;
-            while (((king << distance) & ~0x80_80_80_80_80_80_80_80ul) != 0)
+            while (((cell << distance) & ~0x80_80_80_80_80_80_80_80ul) != 0)
             {
                 distance++;
-                if (((king << distance) & (theirRook | theirQueen)) != 0) return true;
-                if (((king << distance) & occupiedBb) != 0) break;
+                if (((cell << distance) & (theirRook | theirQueen)) != 0) return true;
+                if (((cell << distance) & occupiedBb) != 0) break;
             }
 
             // scan up right
             distance = 0;
-            while (((king >> distance) & ~0x00_00_00_00_00_00_00_FFul & ~0x01_01_01_01_01_01_01_01ul) != 0)
+            while (((cell >> distance) & ~0x00_00_00_00_00_00_00_FFul & ~0x01_01_01_01_01_01_01_01ul) != 0)
             {
                 distance += 9;
-                if (((king >> distance) & (theirBishop | theirQueen)) != 0) return true;
-                if (((king >> distance) & occupiedBb) != 0) break;
+                if (((cell >> distance) & (theirBishop | theirQueen)) != 0) return true;
+                if (((cell >> distance) & occupiedBb) != 0) break;
             }
 
             // scan up left
             distance = 0;
-            while (((king >> distance) & ~0x00_00_00_00_00_00_00_FFul & ~0x80_80_80_80_80_80_80_80ul) != 0)
+            while (((cell >> distance) & ~0x00_00_00_00_00_00_00_FFul & ~0x80_80_80_80_80_80_80_80ul) != 0)
             {
                 distance += 7;
-                if (((king >> distance) & (theirBishop | theirQueen)) != 0) return true;
-                if (((king >> distance) & occupiedBb) != 0) break;
+                if (((cell >> distance) & (theirBishop | theirQueen)) != 0) return true;
+                if (((cell >> distance) & occupiedBb) != 0) break;
             }
 
             // scan down right
             distance = 0;
-            while (((king << distance) & ~0xFF_00_00_00_00_00_00_00ul & ~0x01_01_01_01_01_01_01_01ul) != 0)
+            while (((cell << distance) & ~0xFF_00_00_00_00_00_00_00ul & ~0x01_01_01_01_01_01_01_01ul) != 0)
             {
                 distance += 7;
-                if (((king << distance) & (theirBishop | theirQueen)) != 0) return true;
-                if (((king << distance) & occupiedBb) != 0) break;
+                if (((cell << distance) & (theirBishop | theirQueen)) != 0) return true;
+                if (((cell << distance) & occupiedBb) != 0) break;
             }
 
             // scan down left
             distance = 0;
-            while (((king << distance) & ~0xFF_00_00_00_00_00_00_00ul & ~0x80_80_80_80_80_80_80_80ul) != 0)
+            while (((cell << distance) & ~0xFF_00_00_00_00_00_00_00ul & ~0x80_80_80_80_80_80_80_80ul) != 0)
             {
                 distance += 9;
-                if (((king << distance) & (theirBishop | theirQueen)) != 0) return true;
-                if (((king << distance) & occupiedBb) != 0) break;
+                if (((cell << distance) & (theirBishop | theirQueen)) != 0) return true;
+                if (((cell << distance) & occupiedBb) != 0) break;
             }
 
             return false;
         }
 
-        private bool IsInKnightCheck(ulong king, ulong theirKnight)
+        private bool IsInKnightCheck(ulong cell, ulong theirKnight)
         {
-            bool up = (king & ~0x00_00_00_00_00_00_00_FFul) != 0,
-            up2 = (king & ~0x00_00_00_00_00_00_FF_FFul) != 0,
-            down = (king & ~0xFF_00_00_00_00_00_00_00ul) != 0,
-            down2 = (king & ~0xFF_FF_00_00_00_00_00_00ul) != 0,
-            right = (king & ~0x01_01_01_01_01_01_01_01ul) != 0,
-            right2 = (king & ~0x03_03_03_03_03_03_03_03ul) != 0,
-            left = (king & ~0x80_80_80_80_80_80_80_80ul) != 0,
-            left2 = (king & ~0xC0_C0_C0_C0_C0_C0_C0_C0ul) != 0;
+            bool up = (cell & ~0x00_00_00_00_00_00_00_FFul) != 0,
+            up2 = (cell & ~0x00_00_00_00_00_00_FF_FFul) != 0,
+            down = (cell & ~0xFF_00_00_00_00_00_00_00ul) != 0,
+            down2 = (cell & ~0xFF_FF_00_00_00_00_00_00ul) != 0,
+            right = (cell & ~0x01_01_01_01_01_01_01_01ul) != 0,
+            right2 = (cell & ~0x03_03_03_03_03_03_03_03ul) != 0,
+            left = (cell & ~0x80_80_80_80_80_80_80_80ul) != 0,
+            left2 = (cell & ~0xC0_C0_C0_C0_C0_C0_C0_C0ul) != 0;
 
-            if (up2 && right && ((king >> 17) & theirKnight) != 0) return true;
-            if (up && right2 && ((king >> 10) & theirKnight) != 0) return true;
-            if (down && right2 && ((king << 6) & theirKnight) != 0) return true;
-            if (down2 && right && ((king << 15) & theirKnight) != 0) return true;
-            if (down2 && left && ((king << 17) & theirKnight) != 0) return true;
-            if (down && left2 && ((king << 10) & theirKnight) != 0) return true;
-            if (up && left2 && ((king >> 6) & theirKnight) != 0) return true;
-            if (up2 && left && ((king >> 15) & theirKnight) != 0) return true;
+            if (up2 && right && ((cell >> 17) & theirKnight) != 0) return true;
+            if (up && right2 && ((cell >> 10) & theirKnight) != 0) return true;
+            if (down && right2 && ((cell << 6) & theirKnight) != 0) return true;
+            if (down2 && right && ((cell << 15) & theirKnight) != 0) return true;
+            if (down2 && left && ((cell << 17) & theirKnight) != 0) return true;
+            if (down && left2 && ((cell << 10) & theirKnight) != 0) return true;
+            if (up && left2 && ((cell >> 6) & theirKnight) != 0) return true;
+            if (up2 && left && ((cell >> 15) & theirKnight) != 0) return true;
 
             return false;
         }
