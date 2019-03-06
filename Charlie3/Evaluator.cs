@@ -36,12 +36,12 @@
 
             var whitePiecesBb = board.BitBoard.WhitePieces;
             var blackPiecesBb = board.BitBoard.BlackPieces;
-            var unoccupied = ~board.BitBoard.Occupied;
+            var unoccupiedBb = ~board.BitBoard.Occupied;
 
             for (int i = 0; i < 64; i++)
             {
                 var thisSquare = 1ul << i;
-                if ((unoccupied & thisSquare) != 0) continue;
+                if ((unoccupiedBb & thisSquare) != 0) continue;
 
                 if ((board.BitBoard.WhiteKing & thisSquare & 0xFF_00_00_00_00_00_00_00) != 0) whiteScore += 10;
                 if ((board.BitBoard.BlackKing & thisSquare & 0x00_00_00_00_00_00_00_FF) != 0) blackScore += 10;

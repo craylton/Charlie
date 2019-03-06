@@ -5,7 +5,7 @@ namespace Charlie3
 {
     public class Search
     {
-        private async Task<(Move Move, int Eval)> MiniMax(BoardState boardState, int depth)
+        private async Task<(Move Move, int Eval)> AlphaBetaWhite(BoardState boardState, int alpha, int beta, int depth)
         {
             if (depth == 0)
             {
@@ -16,25 +16,24 @@ namespace Charlie3
             var generator = new MoveGenerator();
             var moves = generator.GenerateLegalMoves(boardState).ToList();
 
-            bool isWhite = boardState.ToMove == PieceColour.White;
-            Move bestMove = default;
-            int bestEval = isWhite ? int.MinValue : int.MaxValue;
+            Move bestMove = moves.FirstOrDefault();
 
             foreach (var move in moves)
             {
-                var (_, eval) = await MiniMax(boardState.MakeMove(move), depth - 1);
+                var (_, eval) = await AlphaBetaBlack(boardState.MakeMove(move), alpha, beta, depth - 1);
 
-                if ((isWhite && eval >= bestEval) || (!isWhite && eval <= bestEval))
+                if (eval >= beta) return (move, beta);
+                if (eval > alpha)
                 {
-                    bestEval = eval;
+                    alpha = eval;
                     bestMove = move;
                 }
             }
 
-            return (bestMove, bestEval);
+            return (bestMove, alpha);
         }
-                
-        private async Task<(Move Move, int Eval)> AlphaBeta(BoardState boardState, int alpha, int beta, int depth)
+
+        private async Task<(Move Move, int Eval)> AlphaBetaBlack(BoardState boardState, int alpha, int beta, int depth)
         {
             if (depth == 0)
             {
@@ -45,33 +44,31 @@ namespace Charlie3
             var generator = new MoveGenerator();
             var moves = generator.GenerateLegalMoves(boardState).ToList();
 
-            bool isWhite = boardState.ToMove == PieceColour.White;
-            Move bestMove = default;
-            int bestEval = isWhite ? int.MinValue : int.MaxValue;
+            Move bestMove = moves.FirstOrDefault();
 
             foreach (var move in moves)
             {
-                var (_, eval) = await AlphaBeta(boardState.MakeMove(move), alpha, beta, depth - 1);
+                var (_, eval) = await AlphaBetaWhite(boardState.MakeMove(move), alpha, beta, depth - 1);
 
-                if ((isWhite && eval >= bestEval) || (!isWhite && eval <= bestEval))
+                if (eval <= alpha) return (move, alpha);
+                if (eval < beta)
                 {
-                    bestEval = eval;
+                    beta = eval;
                     bestMove = move;
                 }
-
-                if (isWhite && eval > alpha) alpha = eval;
-                if (!isWhite && eval < beta) beta = eval;
-
-                if (alpha >= beta) break;
             }
 
-            return (bestMove, bestEval);
+            return (bestMove, beta);
         }
 
         public async Task<Move> FindBestMove(BoardState currentBoard)
         {
-            var moveInfo = await MiniMax(currentBoard, 4);
-            //var moveInfo = await AlphaBeta(currentBoard, int.MinValue, int.MaxValue, 4);
+            (Move Move, int Eval) moveInfo;
+            if (currentBoard.ToMove == PieceColour.White)
+                moveInfo = await AlphaBetaWhite(currentBoard, int.MinValue, int.MaxValue, 5);
+            else
+                moveInfo = await AlphaBetaBlack(currentBoard, int.MinValue, int.MaxValue, 5);
+
             return moveInfo.Move;
         }
     }
