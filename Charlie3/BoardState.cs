@@ -5,7 +5,7 @@ namespace Charlie3
 {
     public class BoardState : ICloneable
     {
-        private IEnumerable<BoardState> previousStates;
+        private readonly List<BoardState> previousStates;
 
         public BitBoard BitBoard { get; }
 
@@ -28,12 +28,12 @@ namespace Charlie3
         }
 
         private BoardState(
-            IEnumerable<BoardState> previousStates,
+            List<BoardState> previousStates,
             BitBoard bitBoard, PieceColour toMove,
             int whiteCastle, int blackCastle,
             ulong whiteEnPassant, ulong blackEnPassant)
         {
-            this.previousStates = previousStates;
+            this.previousStates = new List<BoardState>(previousStates) { this };
 
             BitBoard = bitBoard;
 
@@ -47,7 +47,7 @@ namespace Charlie3
         }
 
         private BoardState(
-            IEnumerable<BoardState> previousStates,
+            List<BoardState> previousStates,
             BitBoard bitBoard, PieceColour toMove,
             int whiteCastle, int blackCastle,
             ulong whiteEnPassant, ulong blackEnPassant,
@@ -95,6 +95,18 @@ namespace Charlie3
                 previousStates, BitBoard, nextToMove,
                 whiteCastle, blackCastle,
                 whiteEP, blackEP, move);
+        }
+
+        internal bool IsThreeMoveRepetition()
+        {
+            int count = 1;
+            foreach (var state in previousStates)
+            {
+                if (state == this) continue;
+                if (state.BitBoard.Equals(BitBoard) && ++count == 3) return true;
+            }
+
+            return false;
         }
 
         internal bool IsInCheck(PieceColour toMove)

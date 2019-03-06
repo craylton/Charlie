@@ -13,6 +13,8 @@ namespace Charlie3
                 return (default, evaluator.Evaluate(boardState));
             }
 
+            if (boardState.IsThreeMoveRepetition()) return (default, 0);
+
             var generator = new MoveGenerator();
             var moves = generator.GenerateLegalMoves(boardState).ToList();
 
@@ -40,6 +42,8 @@ namespace Charlie3
                 var evaluator = new Evaluator();
                 return (default, evaluator.Evaluate(boardState));
             }
+
+            if (boardState.IsThreeMoveRepetition()) return (default, 0);
 
             var generator = new MoveGenerator();
             var moves = generator.GenerateLegalMoves(boardState).ToList();
