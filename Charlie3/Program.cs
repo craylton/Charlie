@@ -51,7 +51,7 @@ namespace Charlie3
                         {
                             for (int i = 3; i < @params.Length; i++)
                             {
-                                List<Move> moves = generator.GenerateLegalMoves(boardState).ToList();
+                                List<Move> moves = generator.GenerateLegalMoves(boardState);
                                 boardState = boardState.MakeMove(Move.FromString(moves, @params[i]));
                             }
                         }

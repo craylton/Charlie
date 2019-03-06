@@ -4,7 +4,7 @@ namespace Charlie3
 {
     public class MoveGenerator
     {
-        public IEnumerable<Move> GenerateLegalMoves(BoardState board)
+        public List<Move> GeneratePseudoLegalMoves(BoardState board)
         {
             var moves = new List<Move>();
 
@@ -27,6 +27,16 @@ namespace Charlie3
                 moves.AddRange(GenerateKingMoves(board.BitBoard.BlackKing, board.BitBoard.BlackPieces, board));
             }
 
+            return moves;
+        }
+
+        public List<Move> GenerateLegalMoves(BoardState board)
+        {
+            return TrimIllegalMoves(GeneratePseudoLegalMoves(board), board);
+        }
+
+        public List<Move> TrimIllegalMoves(List<Move> moves, BoardState board)
+        {
             // Remove any moves that leave the king in check
             moves.RemoveAll(m => board.MakeMove(m).IsInCheck(board.ToMove));
 

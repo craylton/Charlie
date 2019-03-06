@@ -20,7 +20,7 @@ namespace Charlie3
             if (boardState.IsThreeMoveRepetition()) return (default, 0);
 
             var generator = new MoveGenerator();
-            var moves = generator.GenerateLegalMoves(boardState).ToList();
+            var moves = generator.GenerateLegalMoves(boardState);
 
             Move bestMove = moves.FirstOrDefault();
             bool isWhite = boardState.ToMove == PieceColour.White;
@@ -43,7 +43,7 @@ namespace Charlie3
                 {
                     beta = eval;
                     bestMove = move;
-                    if (isRoot) MoveInfoChanged?.Invoke(this, new MoveInfo(depth, new List<Move> { move }, eval));
+                    if (isRoot) MoveInfoChanged?.Invoke(this, new MoveInfo(depth, new List<Move> { move }, -eval));
                 }
             }
 
