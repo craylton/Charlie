@@ -1,18 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace Charlie3
 {
-    class Program
+    public static class Program
     {
         private static BoardState boardState;
         private static MoveGenerator generator = new MoveGenerator();
+        private static Search searcher = new Search();
+
+        private static Stopwatch sw;
 
         private static void Main(string[] args)
         {
+            searcher.MoveInfoChanged += Searcher_MoveInfoChanged;
+
             while (true)
             {
                 var input = Console.ReadLine();
@@ -53,16 +60,28 @@ namespace Charlie3
 
                 if (input.StartsWith("go"))
                 {
-                    var searcher = new Search();
+                    sw = Stopwatch.StartNew();
                     Task.Run(async () =>
                     {
                         Move bestMove = await searcher.FindBestMove(boardState);
+                        sw.Stop();
 
                         Console.WriteLine("bestmove " + bestMove.ToString());
                         File.AppendAllLines("inputs.txt", new[] { "[BEST MOVE]: " + bestMove.ToString() });
                     });
                 }
             }
+        }
+
+        private static void Searcher_MoveInfoChanged(object sender, MoveInfo moveInfo)
+        {
+            var sb = new StringBuilder("info");
+            sb.Append(" depth " + moveInfo.Depth);
+            sb.Append(" time " + sw.ElapsedMilliseconds);
+            sb.Append(" pv " + moveInfo.Moves.FirstOrDefault().ToString());
+            sb.Append(" score cp " + moveInfo.Evaluation);
+
+            Console.WriteLine(sb.ToString());
         }
     }
 }

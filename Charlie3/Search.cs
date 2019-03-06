@@ -1,11 +1,15 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Charlie3
 {
     public class Search
     {
-        private async Task<(Move Move, int Eval)> AlphaBeta(BoardState boardState, int alpha, int beta, int depth)
+        public event EventHandler<MoveInfo> MoveInfoChanged;
+
+        private async Task<(Move Move, int Eval)> AlphaBeta(BoardState boardState, int alpha, int beta, int depth, bool isRoot = false)
         {
             if (depth == 0)
             {
@@ -32,12 +36,14 @@ namespace Charlie3
                 {
                     alpha = eval;
                     bestMove = move;
+                    if (isRoot) MoveInfoChanged?.Invoke(this, new MoveInfo(depth, new List<Move> { move }, eval));
                 }
 
                 if (!isWhite && eval < beta)
                 {
                     beta = eval;
                     bestMove = move;
+                    if (isRoot) MoveInfoChanged?.Invoke(this, new MoveInfo(depth, new List<Move> { move }, eval));
                 }
             }
 
@@ -46,7 +52,7 @@ namespace Charlie3
 
         public async Task<Move> FindBestMove(BoardState currentBoard)
         {
-            var moveInfo = await AlphaBeta(currentBoard, int.MinValue, int.MaxValue, 5);
+            var moveInfo = await AlphaBeta(currentBoard, int.MinValue, int.MaxValue, 5, true);
             return moveInfo.Move;
         }
     }
