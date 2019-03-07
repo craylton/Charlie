@@ -69,6 +69,15 @@ namespace Charlie3
                         Console.WriteLine("bestmove " + bestMove.ToString());
                         File.AppendAllLines("inputs.txt", new[] { "[BEST MOVE]: " + bestMove.ToString() });
                     });
+
+                    //Task.Run(async () =>
+                    //{
+                    //    Move bestMove = await searcher.GetTreeSearchMove(boardState);
+                    //    sw.Stop();
+
+                    //    Console.WriteLine("bestmove " + bestMove.ToString());
+                    //    File.AppendAllLines("inputs.txt", new[] { "[BEST MOVE]: " + bestMove.ToString() });
+                    //});
                 }
             }
         }

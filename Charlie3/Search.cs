@@ -55,5 +55,61 @@ namespace Charlie3
             var moveInfo = await AlphaBeta(currentBoard, int.MinValue, int.MaxValue, 5, true);
             return moveInfo.Move;
         }
+
+        public async Task<(Move Move, int Eval)> GetTreeSearchMove(BoardState board)
+        {
+            TreeNode root = new TreeNode(board, default);
+
+            int eval = 0;
+            while (root.Visits < 10)
+            {
+                eval = await TreeSearch(root);
+            }
+
+            var strongestMove = root.GetStrongestChild()?.Move ?? default;
+            return (strongestMove, eval);
+        }
+
+        private async Task<int> TreeSearch(TreeNode parent)
+        {
+            // Make sure this node has children
+            if (!parent.HasChildren)
+            {
+                var generator = new MoveGenerator();
+                var evaluator = new Evaluator();
+
+                var moves = generator.GenerateLegalMoves(parent.Board);
+                parent.Children = moves.Select(m => new TreeNode(parent.Board.MakeMove(m), m)).ToList();
+
+                foreach (var child in parent.Children)
+                {
+                    var evaluation = evaluator.Evaluate(child.Board);
+                    child.Evaluation = evaluation;
+                    child.Visits++;
+                }
+
+                parent.Visits++;
+                parent.UpdateEvaluation();
+                return parent.Evaluation;
+            }
+
+            TreeNode bestNode = parent.Children.First();
+            double bestScore = double.MinValue;
+
+            // Pick the most promising looking child
+            foreach (var node in parent.Children)
+            {
+                if (node.SearchScore > bestScore)
+                {
+                    bestScore = node.SearchScore;
+                    bestNode = node;
+                }
+            }
+
+            var eval = await TreeSearch(bestNode);
+            parent.Visits++;
+            parent.UpdateEvaluation();
+            return parent.Evaluation;
+        }
     }
 }
