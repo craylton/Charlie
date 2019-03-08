@@ -10,21 +10,21 @@ namespace Charlie3
 
             if (board.ToMove == PieceColour.White)
             {
-                moves.AddRange(GeneratePawnMoves(board.BitBoard.WhitePawn, board));
-                moves.AddRange(GenerateKnightMoves(board.BitBoard.WhiteKnight, board.BitBoard.WhitePieces, board));
-                moves.AddRange(GenerateBishopMoves(board.BitBoard.WhiteBishop, board.BitBoard.WhitePieces, board));
-                moves.AddRange(GenerateRookMoves(board.BitBoard.WhiteRook, board.BitBoard.WhitePieces, board));
                 moves.AddRange(GenerateQueenMoves(board.BitBoard.WhiteQueen, board.BitBoard.WhitePieces, board));
+                moves.AddRange(GenerateBishopMoves(board.BitBoard.WhiteBishop, board.BitBoard.WhitePieces, board));
+                moves.AddRange(GeneratePawnMoves(board.BitBoard.WhitePawn, board));
                 moves.AddRange(GenerateKingMoves(board.BitBoard.WhiteKing, board.BitBoard.WhitePieces, board));
+                moves.AddRange(GenerateRookMoves(board.BitBoard.WhiteRook, board.BitBoard.WhitePieces, board));
+                moves.AddRange(GenerateKnightMoves(board.BitBoard.WhiteKnight, board.BitBoard.WhitePieces, board));
             }
             else
             {
-                moves.AddRange(GeneratePawnMoves(board.BitBoard.BlackPawn, board));
-                moves.AddRange(GenerateKnightMoves(board.BitBoard.BlackKnight, board.BitBoard.BlackPieces, board));
-                moves.AddRange(GenerateBishopMoves(board.BitBoard.BlackBishop, board.BitBoard.BlackPieces, board));
-                moves.AddRange(GenerateRookMoves(board.BitBoard.BlackRook, board.BitBoard.BlackPieces, board));
                 moves.AddRange(GenerateQueenMoves(board.BitBoard.BlackQueen, board.BitBoard.BlackPieces, board));
+                moves.AddRange(GenerateBishopMoves(board.BitBoard.BlackBishop, board.BitBoard.BlackPieces, board));
+                moves.AddRange(GeneratePawnMoves(board.BitBoard.BlackPawn, board));
                 moves.AddRange(GenerateKingMoves(board.BitBoard.BlackKing, board.BitBoard.BlackPieces, board));
+                moves.AddRange(GenerateRookMoves(board.BitBoard.BlackRook, board.BitBoard.BlackPieces, board));
+                moves.AddRange(GenerateKnightMoves(board.BitBoard.BlackKnight, board.BitBoard.BlackPieces, board));
             }
 
             return moves;
