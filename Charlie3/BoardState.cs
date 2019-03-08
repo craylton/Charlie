@@ -123,13 +123,13 @@ namespace Charlie3
             {
                 if (IsUnderImmediateAttack(cell, BitBoard.BlackKing, attacker)) return true;
                 if (IsUnderRayAttack(cell, BitBoard.BlackQueen, BitBoard.BlackRook, BitBoard.BlackBishop)) return true;
-                if (IsInKnightCheck(cell, BitBoard.BlackKnight)) return true;
+                if (IsUnderKnightAttack(cell, BitBoard.BlackKnight)) return true;
             }
             else
             {
                 if (IsUnderImmediateAttack(cell, BitBoard.WhiteKing, attacker)) return true;
                 if (IsUnderRayAttack(cell, BitBoard.WhiteQueen, BitBoard.WhiteRook, BitBoard.WhiteBishop)) return true;
-                if (IsInKnightCheck(cell, BitBoard.WhiteKnight)) return true;
+                if (IsUnderKnightAttack(cell, BitBoard.WhiteKnight)) return true;
             }
 
             return false;
@@ -243,7 +243,7 @@ namespace Charlie3
             return false;
         }
 
-        private bool IsInKnightCheck(ulong cell, ulong theirKnight)
+        private bool IsUnderKnightAttack(ulong cell, ulong theirKnight)
         {
             bool up = (cell & ~0x00_00_00_00_00_00_00_FFul) != 0,
             up2 = (cell & ~0x00_00_00_00_00_00_FF_FFul) != 0,
