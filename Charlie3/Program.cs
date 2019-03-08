@@ -66,6 +66,7 @@ namespace Charlie3
                         Move bestMove = await searcher.FindBestMove(boardState);
                         sw.Stop();
 
+                        //Console.WriteLine(sw.ElapsedMilliseconds + "ms");
                         Console.WriteLine("bestmove " + bestMove.ToString());
                         File.AppendAllLines("inputs.txt", new[] { "[BEST MOVE]: " + bestMove.ToString() });
                     });

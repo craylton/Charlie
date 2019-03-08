@@ -21,29 +21,32 @@ namespace Charlie3
 
             var generator = new MoveGenerator();
             var moves = generator.GenerateLegalMoves(boardState);
+            var moveInfos = moves.Select(m => MetaMove.FromState(boardState, m))
+                                 .OrderByDescending(mi => mi.IsCheck)
+                                 .ThenByDescending(mi => mi.IsCapture).ToList();
 
             Move bestMove = moves.FirstOrDefault();
             bool isWhite = boardState.ToMove == PieceColour.White;
 
-            foreach (var move in moves)
+            foreach (var moveInfo in moveInfos)
             {
-                var (_, eval) = await AlphaBeta(boardState.MakeMove(move), alpha, beta, depth - 1);
+                var (_, eval) = await AlphaBeta(boardState.MakeMove(moveInfo.Move), alpha, beta, depth - 1);
 
-                if (isWhite && eval >= beta) return (move, beta);
-                if (!isWhite && eval <= alpha) return (move, alpha);
+                if (isWhite && eval >= beta) return (moveInfo.Move, beta);
+                if (!isWhite && eval <= alpha) return (moveInfo.Move, alpha);
 
                 if (isWhite && eval > alpha)
                 {
                     alpha = eval;
-                    bestMove = move;
-                    if (isRoot) MoveInfoChanged?.Invoke(this, new MoveInfo(depth, new List<Move> { move }, eval));
+                    bestMove = moveInfo.Move;
+                    if (isRoot) MoveInfoChanged?.Invoke(this, new MoveInfo(depth, new List<Move> { moveInfo.Move }, eval));
                 }
 
                 if (!isWhite && eval < beta)
                 {
                     beta = eval;
-                    bestMove = move;
-                    if (isRoot) MoveInfoChanged?.Invoke(this, new MoveInfo(depth, new List<Move> { move }, -eval));
+                    bestMove = moveInfo.Move;
+                    if (isRoot) MoveInfoChanged?.Invoke(this, new MoveInfo(depth, new List<Move> { moveInfo.Move }, -eval));
                 }
             }
 
