@@ -1,4 +1,7 @@
-﻿namespace Charlie3
+﻿using System.Runtime.InteropServices;
+using System.Security;
+
+namespace Charlie3
 {
     public static class Utils
     {
@@ -8,15 +11,25 @@
 
             ulong n = 1;
 
-            if ((input >> 32) == 0) { n = n + 32; input = input << 32; }
-            if ((input >> 48) == 0) { n = n + 16; input = input << 16; }
-            if ((input >> 56) == 0) { n = n + 8; input = input << 8; }
-            if ((input >> 60) == 0) { n = n + 4; input = input << 4; }
-            if ((input >> 62) == 0) { n = n + 2; input = input << 2; }
+            if ((input >> 32) == 0) { n += 32; input <<= 32; }
+            if ((input >> 48) == 0) { n += 16; input <<= 16; }
+            if ((input >> 56) == 0) { n += 8; input <<= 8; }
+            if ((input >> 60) == 0) { n += 4; input <<= 4; }
+            if ((input >> 62) == 0) { n += 2; input <<= 2; }
             n -= input >> 63;
 
             return n;
         }
+
+        public static int CountTrailingZeroes(ulong input)
+        {
+            return RtlFindLeastSignificantBit(input);
+            //return 63 - CountLeadingZeros(input);
+        }
+
+        // This dll is apparently a Windows thing
+        [DllImport("ntdll"), SuppressUnmanagedCodeSecurity]
+        private static extern int RtlFindLeastSignificantBit(ulong ul);
 
         public static string[] CellNames { get; } = new string[] {
             "a1","b1","c1","d1","e1","f1","g1","h1",
@@ -28,16 +41,6 @@
             "a7","b7","c7","d7","e7","f7","g7","h7",
             "a8","b8","c8","d8","e8","f8","g8","h8",
         };
-
-        /// <summary>
-        /// Gets the number of zeroes after the last set one.
-        /// </summary>
-        public static int LSB(ulong v)
-        {
-            int r;
-            for (r = 0; (v >>= 1) != 0; r++) ;
-            return r;
-        }
 
         public static char[] PromotionSuffixes { get; } = new[] { '?', 'N', 'B', 'R', 'Q' };
     }

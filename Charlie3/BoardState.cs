@@ -245,25 +245,8 @@ namespace Charlie3
 
         private bool IsUnderKnightAttack(ulong cell, ulong theirKnight)
         {
-            bool up = (cell & ~0x00_00_00_00_00_00_00_FFul) != 0,
-            up2 = (cell & ~0x00_00_00_00_00_00_FF_FFul) != 0,
-            down = (cell & ~0xFF_00_00_00_00_00_00_00ul) != 0,
-            down2 = (cell & ~0xFF_FF_00_00_00_00_00_00ul) != 0,
-            right = (cell & ~0x01_01_01_01_01_01_01_01ul) != 0,
-            right2 = (cell & ~0x03_03_03_03_03_03_03_03ul) != 0,
-            left = (cell & ~0x80_80_80_80_80_80_80_80ul) != 0,
-            left2 = (cell & ~0xC0_C0_C0_C0_C0_C0_C0_C0ul) != 0;
-
-            if (up2 && right && ((cell >> 17) & theirKnight) != 0) return true;
-            if (up && right2 && ((cell >> 10) & theirKnight) != 0) return true;
-            if (down && right2 && ((cell << 6) & theirKnight) != 0) return true;
-            if (down2 && right && ((cell << 15) & theirKnight) != 0) return true;
-            if (down2 && left && ((cell << 17) & theirKnight) != 0) return true;
-            if (down && left2 && ((cell << 10) & theirKnight) != 0) return true;
-            if (up && left2 && ((cell >> 6) & theirKnight) != 0) return true;
-            if (up2 && left && ((cell >> 15) & theirKnight) != 0) return true;
-
-            return false;
+            var cellIndex = Utils.CountTrailingZeroes(cell);
+            return (Magics.KnightAttacks[cellIndex] & theirKnight) != 0;
         }
 
         public object Clone() => new BoardState(
