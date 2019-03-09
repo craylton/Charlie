@@ -55,7 +55,7 @@ namespace Charlie3
 
         public async Task<Move> FindBestMove(BoardState currentBoard)
         {
-            var moveInfo = await AlphaBeta(currentBoard, int.MinValue, int.MaxValue, 6, true);
+            var moveInfo = await AlphaBeta(currentBoard, int.MinValue, int.MaxValue, 5, true);
             return moveInfo.Move;
         }
 
