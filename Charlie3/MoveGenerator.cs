@@ -37,8 +37,18 @@ namespace Charlie3
 
         public List<Move> TrimIllegalMoves(List<Move> moves, BoardState board)
         {
-            // Remove any moves that leave the king in check
-            moves.RemoveAll(m => board.MakeMove(m).IsInCheck(board.ToMove));
+            PieceColour attacker = board.ToMove == PieceColour.White ? PieceColour.Black : PieceColour.White;
+
+            // If there is a chance we are in check, do a more comprehensive search
+            moves.RemoveAll(m =>
+            {
+                BoardState newState = board.MakeMove(m);
+                // Look if there are any enemy pieces aimed at the king
+                if (newState.IsInPseudoCheck(attacker))
+                    return newState.IsInCheck(board.ToMove);
+
+                return false;
+            });
 
             return moves;
         }
@@ -263,8 +273,8 @@ namespace Charlie3
                     (board.BitBoard.Occupied & 0x00_00_00_00_00_00_00_06) == 0 &&
                     (board.BitBoard.BlackRook & 0x00_00_00_00_00_00_00_01) != 0 &&
                     !board.IsInCheck(PieceColour.Black) &&
-                    !board.IsUnderAttack(king >> 1, PieceColour.Black) &&
-                    !board.IsUnderAttack(king >> 2, PieceColour.Black))
+                    !board.IsUnderAttack(king >> 1, PieceColour.White) &&
+                    !board.IsUnderAttack(king >> 2, PieceColour.White))
                 {
                     moves.Add(new Move(king, 0x00_00_00_00_00_00_00_02, false, true, false, PromotionType.None));
                 }
@@ -274,9 +284,9 @@ namespace Charlie3
                     (board.BitBoard.Occupied & 0x00_00_00_00_00_00_00_70) == 0 &&
                     (board.BitBoard.BlackRook & 0x00_00_00_00_00_00_00_80) != 0 &&
                     !board.IsInCheck(PieceColour.Black) &&
-                    !board.IsUnderAttack(king << 1, PieceColour.Black) &&
-                    !board.IsUnderAttack(king << 2, PieceColour.Black) &&
-                    !board.IsUnderAttack(king << 3, PieceColour.Black))
+                    !board.IsUnderAttack(king << 1, PieceColour.White) &&
+                    !board.IsUnderAttack(king << 2, PieceColour.White) &&
+                    !board.IsUnderAttack(king << 3, PieceColour.White))
                 {
                     moves.Add(new Move(king, 0x00_00_00_00_00_00_00_20, false, true, false, PromotionType.None));
                 }

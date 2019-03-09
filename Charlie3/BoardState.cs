@@ -117,6 +117,32 @@ namespace Charlie3
                 return IsUnderAttack(BitBoard.BlackKing, PieceColour.White);
         }
 
+        internal bool IsInPseudoCheck(PieceColour attacker)
+        {
+            if (attacker == PieceColour.Black)
+            {
+                if (IsUnderImmediateAttack(BitBoard.WhiteKing, BitBoard.BlackKing, attacker)) return true;
+                if (IsUnderKnightAttack(BitBoard.WhiteKing, BitBoard.BlackKnight)) return true;
+
+                var cellIndex = Utils.CountTrailingZeroes(BitBoard.WhiteKing);
+
+                if ((Magics.BishopAttacks[cellIndex] & (BitBoard.BlackBishop | BitBoard.BlackQueen)) != 0) return true;
+                if ((Magics.RookAttacks[cellIndex] & (BitBoard.BlackRook | BitBoard.BlackQueen)) != 0) return true;
+            }
+            else
+            {
+                if (IsUnderImmediateAttack(BitBoard.BlackKing, BitBoard.WhiteKing, attacker)) return true;
+                if (IsUnderKnightAttack(BitBoard.BlackKing, BitBoard.WhiteKnight)) return true;
+
+                var cellIndex = Utils.CountTrailingZeroes(BitBoard.BlackKing);
+
+                if ((Magics.BishopAttacks[cellIndex] & (BitBoard.WhiteBishop | BitBoard.WhiteQueen)) != 0) return true;
+                if ((Magics.RookAttacks[cellIndex] & (BitBoard.WhiteRook | BitBoard.WhiteQueen)) != 0) return true;
+            }
+
+            return false;
+        }
+
         internal bool IsUnderAttack(ulong cell, PieceColour attacker)
         {
             if (attacker == PieceColour.Black)
