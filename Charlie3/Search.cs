@@ -19,14 +19,24 @@ namespace Charlie3
 
             if (boardState.IsThreeMoveRepetition()) return (default, 0);
 
+            bool isWhite = boardState.ToMove == PieceColour.White;
             var generator = new MoveGenerator();
             var moves = generator.GenerateLegalMoves(boardState);
+
+            // Test for checkmate / stalemate
+            if (!moves.Any())
+            {
+                if (boardState.IsInCheck(boardState.ToMove))
+                    return (default, isWhite ? int.MaxValue : int.MinValue);
+
+                else return (default, 0);
+            }
+
             var moveInfos = moves.Select(m => MetaMove.FromState(boardState, m))
                                  .OrderByDescending(mi => mi.IsCheck)
                                  .ThenByDescending(mi => mi.IsCapture).ToList();
 
             Move bestMove = moves.FirstOrDefault();
-            bool isWhite = boardState.ToMove == PieceColour.White;
 
             foreach (var moveInfo in moveInfos)
             {
