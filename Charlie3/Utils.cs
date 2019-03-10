@@ -1,36 +1,7 @@
-﻿using System.Runtime.InteropServices;
-using System.Security;
-
-namespace Charlie3
+﻿namespace Charlie3
 {
     public static class Utils
     {
-        public static ulong CountLeadingZeros(ulong input)
-        {
-            if (input == 0) return 0;
-
-            ulong n = 1;
-
-            if ((input >> 32) == 0) { n += 32; input <<= 32; }
-            if ((input >> 48) == 0) { n += 16; input <<= 16; }
-            if ((input >> 56) == 0) { n += 8; input <<= 8; }
-            if ((input >> 60) == 0) { n += 4; input <<= 4; }
-            if ((input >> 62) == 0) { n += 2; input <<= 2; }
-            n -= input >> 63;
-
-            return n;
-        }
-
-        public static int CountTrailingZeroes(ulong input)
-        {
-            return RtlFindLeastSignificantBit(input);
-            //return 63 - CountLeadingZeros(input);
-        }
-
-        // This dll is apparently a Windows thing
-        [DllImport("ntdll"), SuppressUnmanagedCodeSecurity]
-        private static extern int RtlFindLeastSignificantBit(ulong ul);
-
         public static string[] CellNames { get; } = new string[] {
             "a1","b1","c1","d1","e1","f1","g1","h1",
             "a2","b2","c2","d2","e2","f2","g2","h2",

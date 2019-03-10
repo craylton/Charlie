@@ -1,9 +1,9 @@
-﻿using System;
+﻿using Charlie3.Enums;
 using System.Collections.Generic;
 
 namespace Charlie3
 {
-    public class BoardState : ICloneable
+    public class BoardState
     {
         private readonly List<BoardState> previousStates;
 
@@ -124,7 +124,7 @@ namespace Charlie3
                 if (IsUnderImmediateAttack(BitBoard.WhiteKing, BitBoard.BlackKing, attacker)) return true;
                 if (IsUnderKnightAttack(BitBoard.WhiteKing, BitBoard.BlackKnight)) return true;
 
-                var cellIndex = Utils.CountTrailingZeroes(BitBoard.WhiteKing);
+                var cellIndex = BitBoard.WhiteKing.CountTrailingZeroes();
 
                 if ((Magics.BishopAttacks[cellIndex] & (BitBoard.BlackBishop | BitBoard.BlackQueen)) != 0) return true;
                 if ((Magics.RookAttacks[cellIndex] & (BitBoard.BlackRook | BitBoard.BlackQueen)) != 0) return true;
@@ -134,7 +134,7 @@ namespace Charlie3
                 if (IsUnderImmediateAttack(BitBoard.BlackKing, BitBoard.WhiteKing, attacker)) return true;
                 if (IsUnderKnightAttack(BitBoard.BlackKing, BitBoard.WhiteKnight)) return true;
 
-                var cellIndex = Utils.CountTrailingZeroes(BitBoard.BlackKing);
+                var cellIndex = BitBoard.BlackKing.CountTrailingZeroes();
 
                 if ((Magics.BishopAttacks[cellIndex] & (BitBoard.WhiteBishop | BitBoard.WhiteQueen)) != 0) return true;
                 if ((Magics.RookAttacks[cellIndex] & (BitBoard.WhiteRook | BitBoard.WhiteQueen)) != 0) return true;
@@ -271,13 +271,8 @@ namespace Charlie3
 
         private bool IsUnderKnightAttack(ulong cell, ulong theirKnight)
         {
-            var cellIndex = Utils.CountTrailingZeroes(cell);
+            var cellIndex = cell.CountTrailingZeroes();
             return (Magics.KnightAttacks[cellIndex] & theirKnight) != 0;
         }
-
-        public object Clone() => new BoardState(
-            previousStates, BitBoard, ToMove,
-            WhiteCastle, BlackCastle,
-            WhiteEnPassant, BlackEnPassant);
     }
 }

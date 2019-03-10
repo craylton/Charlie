@@ -1,4 +1,6 @@
-﻿namespace Charlie3
+﻿using Charlie3.Enums;
+
+namespace Charlie3
 {
     public class Evaluator
     {

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Charlie3.Enums;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Charlie3
@@ -29,8 +30,8 @@ namespace Charlie3
 
         public override string ToString()
         {
-            var from = Utils.CellNames[Utils.CountLeadingZeros(FromCell)];
-            var to = Utils.CellNames[Utils.CountLeadingZeros(ToCell)];
+            var from = Utils.CellNames[FromCell.CountLeadingZeros()];
+            var to = Utils.CellNames[ToCell.CountLeadingZeros()];
 
             var promotion = string.Empty;
 

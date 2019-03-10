@@ -63,15 +63,6 @@ namespace Charlie3
                 {
                     sw = Stopwatch.StartNew();
                     Task.Run(async () => await searcher.Start(boardState));
-
-                    //Task.Run(async () =>
-                    //{
-                    //    Move bestMove = await searcher.GetTreeSearchMove(boardState);
-                    //    sw.Stop();
-
-                    //    Console.WriteLine("bestmove " + bestMove.ToString());
-                    //    File.AppendAllLines("inputs.txt", new[] { "[BEST MOVE]: " + bestMove.ToString() });
-                    //});
                 }
             }
         }

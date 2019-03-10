@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Charlie3.Enums;
+using System.Collections.Generic;
 
 namespace Charlie3
 {
@@ -15,7 +16,7 @@ namespace Charlie3
                 moves.AddRange(GeneratePawnMoves(board.BitBoard.WhitePawn, board));
                 moves.AddRange(GenerateKingMoves(board.BitBoard.WhiteKing, board.BitBoard.WhitePieces, board));
                 moves.AddRange(GenerateRookMoves(board.BitBoard.WhiteRook, board.BitBoard.WhitePieces, board));
-                moves.AddRange(GenerateKnightMoves(board.BitBoard.WhiteKnight, board.BitBoard.WhitePieces, board));
+                moves.AddRange(GenerateKnightMoves(board.BitBoard.WhiteKnight, board.BitBoard.WhitePieces));
             }
             else
             {
@@ -24,7 +25,7 @@ namespace Charlie3
                 moves.AddRange(GeneratePawnMoves(board.BitBoard.BlackPawn, board));
                 moves.AddRange(GenerateKingMoves(board.BitBoard.BlackKing, board.BitBoard.BlackPieces, board));
                 moves.AddRange(GenerateRookMoves(board.BitBoard.BlackRook, board.BitBoard.BlackPieces, board));
-                moves.AddRange(GenerateKnightMoves(board.BitBoard.BlackKnight, board.BitBoard.BlackPieces, board));
+                moves.AddRange(GenerateKnightMoves(board.BitBoard.BlackKnight, board.BitBoard.BlackPieces));
             }
 
             return moves;
@@ -53,7 +54,7 @@ namespace Charlie3
             return moves;
         }
 
-        private IEnumerable<Move> GenerateKnightMoves(ulong knights, ulong friendlyPieces, BoardState board)
+        private IEnumerable<Move> GenerateKnightMoves(ulong knights, ulong friendlyPieces)
         {
             var moves = new List<Move>();
 
