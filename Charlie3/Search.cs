@@ -101,7 +101,6 @@ namespace Charlie3
         {
             TreeNode root = new TreeNode(default, 0);
             TreeNode bestNode = new TreeNode(default, default);
-
             var isWhite = currentBoard.ToMove == PieceColour.White;
 
             for (int i = 1; i < 6; i++)

@@ -16,6 +16,5 @@ namespace Charlie3
 
         public void Deconstruct(out List<TreeNode> children, out Move move, out int evaluation) =>
             (children, move, evaluation) = (Children, Move, Evaluation);
-
     }
 }
