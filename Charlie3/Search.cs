@@ -11,18 +11,22 @@ namespace Charlie3
         public event EventHandler<MoveInfo> BestMoveChanged;
         public event EventHandler<Move> BestMoveFound;
 
-        private async Task<(Move Move, int Eval)> AlphaBeta(TreeNode parent, BoardState boardState, int alpha, int beta, int depth, bool isRoot = false)
+        private async Task<TreeNode> AlphaBeta(TreeNode parent, BoardState boardState, int alpha, int beta, int depth)
         {
             if (depth == 0)
             {
                 // Evaluate this node
                 var evaluator = new Evaluator();
                 parent.Evaluation = evaluator.Evaluate(boardState);
-                return (default, parent.Evaluation);
+                return new TreeNode(default, parent.Evaluation);
             }
 
             // Test for 3-move repetition
-            if (boardState.IsThreeMoveRepetition()) return (default, 0);
+            if (boardState.IsThreeMoveRepetition())
+            {
+                parent.Evaluation = 0;
+                return new TreeNode(default, parent.Evaluation);
+            }
 
             bool isWhite = boardState.ToMove == PieceColour.White;
 
@@ -47,27 +51,33 @@ namespace Charlie3
             if (!parent.Children.Any())
             {
                 if (boardState.IsInCheck(boardState.ToMove))
-                    return (default, isWhite ? int.MinValue : int.MaxValue);
-
-                else return (default, 0);
+                {
+                    parent.Evaluation = isWhite ? int.MinValue : int.MaxValue;
+                    return new TreeNode(default, parent.Evaluation);
+                }
+                else
+                {
+                    parent.Evaluation = 0;
+                    return new TreeNode(default, parent.Evaluation);
+                }
             }
 
             Move bestMove = parent.Children.FirstOrDefault().Move;
 
             foreach (var node in parent.Children)
             {
-                var (_, eval) = await AlphaBeta(node, boardState.MakeMove(node.Move), alpha, beta, depth - 1);
+                (_, _, int eval) = await AlphaBeta(node, boardState.MakeMove(node.Move), alpha, beta, depth - 1);
 
                 // Alpha beta cutoffs
                 if (isWhite && eval >= beta)
                 {
                     parent.Evaluation = beta;
-                    return (node.Move, beta);
+                    return new TreeNode(node.Move, beta);
                 }
                 if (!isWhite && eval <= alpha)
                 {
                     parent.Evaluation = alpha;
-                    return (node.Move, alpha);
+                    return new TreeNode(node.Move, alpha);
                 }
 
                 // Finding new best moves
@@ -75,31 +85,34 @@ namespace Charlie3
                 {
                     alpha = eval;
                     bestMove = node.Move;
-                    if (isRoot) BestMoveChanged?.Invoke(this, new MoveInfo(depth, new List<Move> { node.Move }, eval));
                 }
                 if (!isWhite && eval < beta)
                 {
                     beta = eval;
                     bestMove = node.Move;
-                    if (isRoot) BestMoveChanged?.Invoke(this, new MoveInfo(depth, new List<Move> { node.Move }, -eval));
                 }
             }
 
             parent.Evaluation = isWhite ? alpha : beta;
-            return (bestMove, parent.Evaluation);
+            return new TreeNode(bestMove, parent.Evaluation);
         }
 
         public async Task Start(BoardState currentBoard)
         {
             TreeNode root = new TreeNode(default, 0);
-            Move bestMove = default;
+            TreeNode bestNode = new TreeNode(default, default);
+
+            var isWhite = currentBoard.ToMove == PieceColour.White;
 
             for (int i = 1; i < 6; i++)
             {
-                (bestMove, _) = await AlphaBeta(root, currentBoard, int.MinValue, int.MaxValue, i, true);
+                bestNode = await AlphaBeta(root, currentBoard, int.MinValue, int.MaxValue, i);
+
+                var eval = isWhite ? bestNode.Evaluation : -bestNode.Evaluation;
+                BestMoveChanged?.Invoke(this, new MoveInfo(i, new List<Move> { bestNode.Move }, eval));
             }
 
-            BestMoveFound?.Invoke(this, bestMove);
+            BestMoveFound?.Invoke(this, bestNode.Move);
         }
     }
 }
