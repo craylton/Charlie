@@ -3,11 +3,15 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Timers;
 
 namespace Charlie3
 {
     public class Search
     {
+        private readonly Timer timer;
+        private bool cancel;
+
         public event EventHandler<MoveInfo> BestMoveChanged;
         public event EventHandler<Move> BestMoveFound;
 
@@ -68,6 +72,8 @@ namespace Charlie3
             {
                 (_, _, int eval) = await AlphaBeta(node, boardState.MakeMove(node.Move), alpha, beta, depth - 1);
 
+                if (cancel) break;
+
                 // Alpha beta cutoffs
                 if (isWhite && eval >= beta)
                 {
@@ -97,15 +103,27 @@ namespace Charlie3
             return new TreeNode(bestMove, parent.Evaluation);
         }
 
-        public async Task Start(BoardState currentBoard)
+        public Search()
         {
+            timer = new Timer() { AutoReset = false };
+            timer.Elapsed += Timer_Elapsed;
+        }
+
+        public async Task Start(BoardState currentBoard, int timeMs)
+        {
+            cancel = false;
+
+            timer.Interval = timeMs;
+            timer.Start();
+
             TreeNode root = new TreeNode(default, 0);
             TreeNode bestNode = new TreeNode(default, default);
             var isWhite = currentBoard.ToMove == PieceColour.White;
 
-            for (int i = 1; i < 6; i++)
+            int i = 1;
+            while (!cancel)
             {
-                bestNode = await AlphaBeta(root, currentBoard, int.MinValue, int.MaxValue, i);
+                bestNode = await AlphaBeta(root, currentBoard, int.MinValue, int.MaxValue, i++);
 
                 var eval = isWhite ? bestNode.Evaluation : -bestNode.Evaluation;
                 BestMoveChanged?.Invoke(this, new MoveInfo(i, new List<Move> { bestNode.Move }, eval));
@@ -113,5 +131,8 @@ namespace Charlie3
 
             BestMoveFound?.Invoke(this, bestNode.Move);
         }
+
+        private void Timer_Elapsed(object sender, ElapsedEventArgs e) => 
+            cancel = true;
     }
 }
