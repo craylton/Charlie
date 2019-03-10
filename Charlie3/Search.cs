@@ -7,66 +7,98 @@ namespace Charlie3
 {
     public class Search
     {
-        public event EventHandler<MoveInfo> MoveInfoChanged;
+        public event EventHandler<MoveInfo> BestMoveChanged;
+        public event EventHandler<Move> BestMoveFound;
 
-        private async Task<(Move Move, int Eval)> AlphaBeta(BoardState boardState, int alpha, int beta, int depth, bool isRoot = false)
+        private async Task<(Move Move, int Eval)> AlphaBeta(TreeNode2 parent, BoardState boardState, int alpha, int beta, int depth, bool isRoot = false)
         {
             if (depth == 0)
             {
+                // Evaluate this node
                 var evaluator = new Evaluator();
-                return (default, evaluator.Evaluate(boardState));
+                parent.Evaluation = evaluator.Evaluate(boardState);
+                return (default, parent.Evaluation);
             }
 
+            // Test for 3-move repetition
             if (boardState.IsThreeMoveRepetition()) return (default, 0);
 
             bool isWhite = boardState.ToMove == PieceColour.White;
-            var generator = new MoveGenerator();
-            var moves = generator.GenerateLegalMoves(boardState);
+
+            if (depth == 1 || !parent.Children.Any())
+            {
+                // Generate child nodes if not already there
+                var generator = new MoveGenerator();
+                var defaultEval = isWhite ? int.MinValue : int.MaxValue;
+                parent.Children = generator.GenerateLegalMoves(boardState)
+                                          .Select(m => new TreeNode2(m, defaultEval)).ToList();
+            }
+            else
+            {
+                // Sort the move list in order of best to worst
+                if (isWhite)
+                    parent.Children = parent.Children.OrderByDescending(c => c.Evaluation).ToList();
+                else
+                    parent.Children = parent.Children.OrderBy(c => c.Evaluation).ToList();
+            }
 
             // Test for checkmate / stalemate
-            if (!moves.Any())
+            if (!parent.Children.Any())
             {
                 if (boardState.IsInCheck(boardState.ToMove))
-                    return (default, isWhite ? int.MaxValue : int.MinValue);
+                    return (default, isWhite ? int.MinValue : int.MaxValue);
 
                 else return (default, 0);
             }
 
-            var moveInfos = moves.Select(m => MetaMove.FromState(boardState, m))
-                                 .OrderByDescending(mi => mi.IsCheck)
-                                 .ThenByDescending(mi => mi.IsCapture).ToList();
+            Move bestMove = parent.Children.Select(c => c.Move).FirstOrDefault();
 
-            Move bestMove = moves.FirstOrDefault();
-
-            foreach (var moveInfo in moveInfos)
+            foreach (var node in parent.Children)
             {
-                var (_, eval) = await AlphaBeta(boardState.MakeMove(moveInfo.Move), alpha, beta, depth - 1);
+                var (_, eval) = await AlphaBeta(node, boardState.MakeMove(node.Move), alpha, beta, depth - 1);
 
-                if (isWhite && eval >= beta) return (moveInfo.Move, beta);
-                if (!isWhite && eval <= alpha) return (moveInfo.Move, alpha);
+                // Alpha beta cutoffs
+                if (isWhite && eval >= beta)
+                {
+                    parent.Evaluation = beta;
+                    return (node.Move, beta);
+                }
+                if (!isWhite && eval <= alpha)
+                {
+                    parent.Evaluation = alpha;
+                    return (node.Move, alpha);
+                }
 
+                // Finding new best moves
                 if (isWhite && eval > alpha)
                 {
                     alpha = eval;
-                    bestMove = moveInfo.Move;
-                    if (isRoot) MoveInfoChanged?.Invoke(this, new MoveInfo(depth, new List<Move> { moveInfo.Move }, eval));
+                    bestMove = node.Move;
+                    if (isRoot) BestMoveChanged?.Invoke(this, new MoveInfo(depth, new List<Move> { node.Move }, eval));
                 }
-
                 if (!isWhite && eval < beta)
                 {
                     beta = eval;
-                    bestMove = moveInfo.Move;
-                    if (isRoot) MoveInfoChanged?.Invoke(this, new MoveInfo(depth, new List<Move> { moveInfo.Move }, -eval));
+                    bestMove = node.Move;
+                    if (isRoot) BestMoveChanged?.Invoke(this, new MoveInfo(depth, new List<Move> { node.Move }, -eval));
                 }
             }
 
-            return (bestMove, isWhite ? alpha : beta);
+            parent.Evaluation = isWhite ? alpha : beta;
+            return (bestMove, parent.Evaluation);
         }
 
-        public async Task<Move> FindBestMove(BoardState currentBoard)
+        public async Task Start(BoardState currentBoard)
         {
-            var moveInfo = await AlphaBeta(currentBoard, int.MinValue, int.MaxValue, 5, true);
-            return moveInfo.Move;
+            TreeNode2 root = new TreeNode2(default, 0);
+            Move bestMove = default;
+
+            for (int i = 1; i < 6; i++)
+            {
+                (bestMove, _) = await AlphaBeta(root, currentBoard, int.MinValue, int.MaxValue, i, true);
+            }
+
+            BestMoveFound?.Invoke(this, bestMove);
         }
 
         public async Task<(Move Move, int Eval)> GetTreeSearchMove(BoardState board)

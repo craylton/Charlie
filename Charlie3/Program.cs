@@ -18,7 +18,8 @@ namespace Charlie3
 
         private static void Main(string[] args)
         {
-            searcher.MoveInfoChanged += Searcher_MoveInfoChanged;
+            searcher.BestMoveChanged += Searcher_BestMoveChanged;
+            searcher.BestMoveFound += Searcher_BestMoveFound;
 
             while (true)
             {
@@ -61,15 +62,7 @@ namespace Charlie3
                 if (input.StartsWith("go"))
                 {
                     sw = Stopwatch.StartNew();
-                    Task.Run(async () =>
-                    {
-                        Move bestMove = await searcher.FindBestMove(boardState);
-                        sw.Stop();
-
-                        //Console.WriteLine(sw.ElapsedMilliseconds + "ms");
-                        Console.WriteLine("bestmove " + bestMove.ToString());
-                        File.AppendAllLines("inputs.txt", new[] { "[BEST MOVE]: " + bestMove.ToString() });
-                    });
+                    Task.Run(async () => await searcher.Start(boardState));
 
                     //Task.Run(async () =>
                     //{
@@ -83,7 +76,15 @@ namespace Charlie3
             }
         }
 
-        private static void Searcher_MoveInfoChanged(object sender, MoveInfo moveInfo)
+        private static void Searcher_BestMoveFound(object sender, Move bestMove)
+        {
+            sw.Stop();
+            //Console.WriteLine(sw.ElapsedMilliseconds + "ms");
+            Console.WriteLine("bestmove " + bestMove.ToString());
+            File.AppendAllLines("inputs.txt", new[] { "[BEST MOVE]: " + bestMove.ToString() });
+        }
+
+        private static void Searcher_BestMoveChanged(object sender, MoveInfo moveInfo)
         {
             var sb = new StringBuilder("info");
             sb.Append(" depth " + moveInfo.Depth);
