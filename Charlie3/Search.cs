@@ -58,6 +58,7 @@ namespace Charlie3
                 if (boardState.IsInCheck(boardState.ToMove))
                 {
                     parent.Evaluation = isWhite ? int.MinValue : int.MaxValue;
+                    parent.IsMate = true;
                     return;
                 }
                 else
@@ -67,23 +68,28 @@ namespace Charlie3
                 }
             }
 
-            if (isRoot) bestNode = parent.Children.FirstOrDefault();
+            var bestChild = parent.Children.FirstOrDefault();
+            if (isRoot) bestNode = bestChild;
 
             foreach (var node in parent.Children)
             {
                 await AlphaBeta(node, boardState.MakeMove(node.Move), alpha, beta, depth - 1);
 
-                if (cancel) break;
+                if (cancel) return;
 
                 // Alpha beta cutoffs
                 if (isWhite && node.Evaluation >= beta)
                 {
                     parent.Evaluation = beta;
+                    parent.Depth = node.Depth + 1;
+                    parent.IsMate = node.IsMate;
                     return;
                 }
                 if (!isWhite && node.Evaluation <= alpha)
                 {
                     parent.Evaluation = alpha;
+                    parent.Depth = node.Depth + 1;
+                    parent.IsMate = node.IsMate;
                     return;
                 }
 
@@ -91,16 +97,20 @@ namespace Charlie3
                 if (isWhite && node.Evaluation > alpha)
                 {
                     alpha = node.Evaluation;
+                    bestChild = node;
                     if (isRoot) bestNode = node;
                 }
                 if (!isWhite && node.Evaluation < beta)
                 {
                     beta = node.Evaluation;
+                    bestChild = node;
                     if (isRoot) bestNode = node;
                 }
             }
 
             parent.Evaluation = isWhite ? alpha : beta;
+            parent.Depth = bestChild.Depth + 1;
+            parent.IsMate = bestChild.IsMate;
         }
 
         public Search()
@@ -112,6 +122,7 @@ namespace Charlie3
         public async Task Start(BoardState currentBoard, int timeMs)
         {
             cancel = false;
+            bestNode = new TreeNode(default, default);
 
             timer.Interval = timeMs;
             timer.Start();
@@ -125,7 +136,9 @@ namespace Charlie3
                 await AlphaBeta(root, currentBoard, int.MinValue, int.MaxValue, i++, true);
 
                 var eval = isWhite ? bestNode.Evaluation : -bestNode.Evaluation;
-                BestMoveChanged?.Invoke(this, new MoveInfo(i, new List<Move> { bestNode.Move }, eval));
+                BestMoveChanged?.Invoke(this, new MoveInfo(bestNode.Depth, new List<Move> { bestNode.Move }, eval));
+
+                if (bestNode.IsMate) cancel = true;
             }
 
             BestMoveFound?.Invoke(this, bestNode.Move);
