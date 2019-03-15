@@ -245,7 +245,7 @@ namespace Charlie3
             if (board.ToMove == PieceColour.White)
             {
                 // If can short castle
-                if ((board.WhiteCastle & 0b01) != 0 &&
+                if ((board.CastleRules & 0b0001) != 0 &&
                     (board.BitBoard.Occupied & 0x06_00_00_00_00_00_00_00) == 0 &&
                     (board.BitBoard.WhiteRook & 0x01_00_00_00_00_00_00_00) != 0 &&
                     !board.IsInCheck(PieceColour.White) &&
@@ -256,7 +256,7 @@ namespace Charlie3
                 }
 
                 // If can long castle
-                if ((board.WhiteCastle & 0b10) != 0 &&
+                if ((board.CastleRules & 0b0010) != 0 &&
                     (board.BitBoard.Occupied & 0x70_00_00_00_00_00_00_00) == 0 &&
                     (board.BitBoard.WhiteRook & 0x80_00_00_00_00_00_00_00) != 0 &&
                     !board.IsInCheck(PieceColour.White) &&
@@ -270,7 +270,7 @@ namespace Charlie3
             else
             {
                 // If can short castle
-                if ((board.BlackCastle & 0b01) != 0 &&
+                if ((board.CastleRules & 0b0100) != 0 &&
                     (board.BitBoard.Occupied & 0x00_00_00_00_00_00_00_06) == 0 &&
                     (board.BitBoard.BlackRook & 0x00_00_00_00_00_00_00_01) != 0 &&
                     !board.IsInCheck(PieceColour.Black) &&
@@ -281,7 +281,7 @@ namespace Charlie3
                 }
 
                 // If can long castle
-                if ((board.BlackCastle & 0b10) != 0 &&
+                if ((board.CastleRules & 0b1000) != 0 &&
                     (board.BitBoard.Occupied & 0x00_00_00_00_00_00_00_70) == 0 &&
                     (board.BitBoard.BlackRook & 0x00_00_00_00_00_00_00_80) != 0 &&
                     !board.IsInCheck(PieceColour.Black) &&

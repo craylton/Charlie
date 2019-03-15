@@ -5,13 +5,12 @@ namespace Charlie3
 {
     public class BoardState
     {
-        private readonly List<BoardState> previousStates;
+        private readonly List<int> previousStates;
 
         public BitBoard BitBoard { get; }
 
-        // For castle, 01 means short castle, 10 means long
-        public int WhiteCastle { get; }
-        public int BlackCastle { get; }
+        // 0001 = white short, 0010 = white long, 0100 = black short, 1000 = black long
+        public byte CastleRules { get; }
 
         // For en-passants, the set bit is where the capturing pawn will end up. White = white can capture
         public ulong WhiteEnPassant { get; }
@@ -20,25 +19,24 @@ namespace Charlie3
         public PieceColour ToMove { get; }
 
         public BoardState() :
-            this(new List<BoardState>(),
+            this(new List<int>(),
                 BitBoard.GetDefault(),
                 PieceColour.White,
-                0b_00000011, 0b_00000011, 0, 0)
+                0b_00001111, 0, 0)
         {
         }
 
         private BoardState(
-            List<BoardState> previousStates,
+            List<int> previousStates,
             BitBoard bitBoard, PieceColour toMove,
-            int whiteCastle, int blackCastle,
+            byte castleRules,
             ulong whiteEnPassant, ulong blackEnPassant)
         {
-            this.previousStates = new List<BoardState>(previousStates) { this };
+            this.previousStates = new List<int>(previousStates) { GetHashCode() };
 
             BitBoard = bitBoard;
 
-            WhiteCastle = whiteCastle;
-            BlackCastle = blackCastle;
+            CastleRules = castleRules;
 
             WhiteEnPassant = whiteEnPassant;
             BlackEnPassant = blackEnPassant;
@@ -47,13 +45,13 @@ namespace Charlie3
         }
 
         private BoardState(
-            List<BoardState> previousStates,
+            List<int> previousStates,
             BitBoard bitBoard, PieceColour toMove,
-            int whiteCastle, int blackCastle,
+            byte castleRules,
             ulong whiteEnPassant, ulong blackEnPassant,
             Move move) :
             this(previousStates, new BitBoard(bitBoard, move), toMove,
-                whiteCastle, blackCastle,
+                castleRules,
                 whiteEnPassant, blackEnPassant)
         {
         }
@@ -72,38 +70,37 @@ namespace Charlie3
             }
 
             // Check if castling rules have changed
-            int whiteCastle = WhiteCastle, blackCastle = BlackCastle;
+            byte castleRules = CastleRules;
             if ((BitBoard.WhiteRook & move.FromCell & 0x01_00_00_00_00_00_00_00) != 0)
-                whiteCastle &= ~0b_00000001;
+                castleRules &= unchecked((byte)~0b_00000001);
 
             if ((BitBoard.WhiteRook & move.FromCell & 0x80_00_00_00_00_00_00_00) != 0)
-                whiteCastle &= ~0b_00000010;
+                castleRules &= unchecked((byte)~0b_00000010);
 
-            if ((BitBoard.WhiteKing & move.FromCell) != 0) whiteCastle = 0;
+            if ((BitBoard.WhiteKing & move.FromCell) != 0) castleRules &= unchecked((byte)~0b_00000011);
 
             if ((BitBoard.BlackRook & move.FromCell & 0x00_00_00_00_00_00_00_01) != 0)
-                blackCastle &= ~0b_00000001;
+                castleRules &= unchecked((byte)~0b_00000100);
 
             if ((BitBoard.BlackRook & move.FromCell & 0x00_00_00_00_00_00_00_80) != 0)
-                blackCastle &= ~0b_00000010;
+                castleRules &= unchecked((byte)~0b_00001000);
 
-            if ((BitBoard.BlackKing & move.FromCell) != 0) blackCastle = 0;
+            if ((BitBoard.BlackKing & move.FromCell) != 0) castleRules &= unchecked((byte)~0b_00001100);
 
             PieceColour nextToMove = ToMove == PieceColour.White ? PieceColour.Black : PieceColour.White;
 
             return new BoardState(
                 previousStates, BitBoard, nextToMove,
-                whiteCastle, blackCastle,
+                castleRules,
                 whiteEP, blackEP, move);
         }
 
         internal bool IsThreeMoveRepetition()
         {
-            int count = 1;
+            int count = 0;
             foreach (var state in previousStates)
             {
-                if (state == this) continue;
-                if (state.BitBoard.Equals(BitBoard) && ++count == 3) return true;
+                if (state.Equals(GetHashCode()) && ++count == 3) return true;
             }
 
             return false;
