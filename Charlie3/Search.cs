@@ -12,6 +12,8 @@ namespace Charlie3
         private readonly Timer timer;
         private bool cancel;
         private TreeNode bestNode;
+        private readonly Evaluator evaluator = new Evaluator();
+        private readonly MoveGenerator generator = new MoveGenerator();
 
         public event EventHandler<MoveInfo> BestMoveChanged;
         public event EventHandler<Move> BestMoveFound;
@@ -21,7 +23,6 @@ namespace Charlie3
             if (depth == 0)
             {
                 // Evaluate this node
-                var evaluator = new Evaluator();
                 parent.Evaluation = evaluator.Evaluate(boardState);
                 return;
             }
@@ -35,10 +36,9 @@ namespace Charlie3
 
             bool isWhite = boardState.ToMove == PieceColour.White;
 
-            if (depth == 1 || !parent.Children.Any())
+            if (!parent.Children.Any())
             {
                 // Generate child nodes if not already there
-                var generator = new MoveGenerator();
                 var defaultEval = isWhite ? int.MinValue : int.MaxValue;
                 parent.Children = generator.GenerateLegalMoves(boardState)
                                            .Select(m => new TreeNode(m, defaultEval)).ToList();
@@ -75,8 +75,6 @@ namespace Charlie3
             {
                 await AlphaBeta(node, boardState.MakeMove(node.Move), alpha, beta, depth - 1);
 
-                if (cancel) return;
-
                 // Alpha beta cutoffs
                 if (isWhite && node.Evaluation >= beta)
                 {
@@ -92,6 +90,8 @@ namespace Charlie3
                     parent.IsMate = node.IsMate;
                     return;
                 }
+
+                if (cancel) return;
 
                 // Finding new best moves
                 if (isWhite && node.Evaluation > alpha)
@@ -127,7 +127,7 @@ namespace Charlie3
             timer.Interval = timeMs;
             timer.Start();
 
-            TreeNode root = new TreeNode(default, default);
+            var root = new TreeNode(default, default);
             var isWhite = currentBoard.ToMove == PieceColour.White;
 
             int i = 1;

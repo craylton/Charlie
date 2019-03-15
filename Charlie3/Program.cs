@@ -64,14 +64,14 @@ namespace Charlie3
                 {
                     sw = Stopwatch.StartNew();
                     var @params = input.Split(' ');
-                    int timeMs = 5000;
+                    int timeMs = 10000;
 
                     if (@params.Length >= 5)
                     {
                         if (boardState.ToMove == PieceColour.White && @params[1] == "wtime")
-                            timeMs = int.Parse(@params[2]) / 35;
+                            timeMs = int.Parse(@params[2]) / 30;
                         else if (boardState.ToMove == PieceColour.Black && @params[3] == "btime")
-                            timeMs = int.Parse(@params[4]) / 35;
+                            timeMs = int.Parse(@params[4]) / 30;
                     }
 
                     Task.Run(async () => await searcher.Start(boardState, timeMs));
