@@ -102,22 +102,6 @@ namespace Charlie3
                     parent.Children = parent.Children.OrderBy(c => c.Evaluation).ToList();
             }
 
-            // Test for checkmate / stalemate
-            if (!parent.Children.Any())
-            {
-                if (boardState.IsInCheck(boardState.ToMove))
-                {
-                    parent.Evaluation = isWhite ? int.MinValue : int.MaxValue;
-                    parent.IsMate = true;
-                    return (new List<Move>(), true);
-                }
-                else
-                {
-                    parent.Evaluation = 0;
-                    return (new List<Move>(), true);
-                }
-            }
-
             var bestChild = parent.Children.FirstOrDefault();
             var bestPv = new List<Move>();
             if (isRoot) bestNode = bestChild;
@@ -176,8 +160,15 @@ namespace Charlie3
             // Test for checkmate / stalemate
             if (!parent.Children.Any())
             {
-                parent.Evaluation = isWhite ? int.MinValue : int.MaxValue;
-                parent.IsMate = true;
+                if (boardState.IsInCheck(boardState.ToMove))
+                {
+                    parent.Evaluation = isWhite ? int.MinValue : int.MaxValue;
+                    parent.IsMate = true;
+                }
+                else
+                {
+                    parent.Evaluation = 0;
+                }
             }
             else
             {
@@ -185,7 +176,127 @@ namespace Charlie3
                 parent.Depth = bestChild.Depth + 1;
                 parent.IsMate = bestChild.IsMate;
             }
+
             return (bestPv, true);
+        }
+
+
+
+
+
+        private async Task<bool> Quiesce(TreeNode parent, BoardState boardState, int alpha, int beta, int depth)
+        {
+            bool isWhite = boardState.ToMove == PieceColour.White;
+
+            // Test if our opponent made a legal move to get here
+            if (boardState.IsInCheck(isWhite ? PieceColour.Black : PieceColour.White))
+            {
+                parent.Evaluation = isWhite ? int.MaxValue : int.MinValue;
+                return false;
+            }
+
+            var standPat = evaluator.Evaluate(boardState);
+
+            if (depth == 0)
+            {
+                // Evaluate this node
+                parent.Evaluation = standPat;
+                return true;
+            }
+
+            // Alpha beta cutoff
+            if ((isWhite && standPat >= beta) ||
+                (!isWhite && standPat <= alpha))
+            {
+                parent.Evaluation = standPat;
+                return true;
+            }
+
+            if (isWhite && standPat > alpha) alpha = standPat;
+            if (!isWhite && standPat < beta) beta = standPat;
+
+            // Test for 3-move repetition
+            if (boardState.IsThreeMoveRepetition())
+            {
+                parent.Evaluation = 0;
+                return true;
+            }
+
+            if (!parent.Children.Any())
+            {
+                // Generate child nodes if not already there
+                var defaultEval = isWhite ? int.MinValue : int.MaxValue;
+                parent.Children = generator.GeneratePseudoLegalMoves(boardState)
+                                           .Select(m => new TreeNode(m, defaultEval)).ToList();
+            }
+            else
+            {
+                // Sort the move list in order of best to worst
+                if (isWhite)
+                    parent.Children = parent.Children.OrderByDescending(c => c.Evaluation).ToList();
+                else
+                    parent.Children = parent.Children.OrderBy(c => c.Evaluation).ToList();
+            }
+
+            var bestChild = parent.Children.FirstOrDefault();
+
+            int i = 0;
+            while (i < parent.Children.Count)
+            {
+                // We are only interested in captures here
+                if (!parent.Children[i].Move.IsCapture(boardState)) continue;
+
+                var legal = await Quiesce(parent.Children[i], boardState.MakeMove(parent.Children[i].Move), alpha, beta, depth - 1);
+
+                // Check if this was a legal move
+                if (!legal)
+                {
+                    parent.Children.RemoveAt(i);
+                    continue;
+                }
+
+                if (isWhite && parent.Children[i].Evaluation > alpha)
+                {
+                    if (parent.Children[i].Evaluation >= beta)
+                    {
+                        parent.Evaluation = parent.Children[i].Evaluation;
+                        return true;
+                    }
+                    alpha = parent.Children[i].Evaluation;
+                }
+
+                if (!isWhite && parent.Children[i].Evaluation < beta)
+                {
+                    if (parent.Children[i].Evaluation <= alpha)
+                    {
+                        parent.Evaluation = parent.Children[i].Evaluation;
+                        return true;
+                    }
+                    beta = parent.Children[i].Evaluation;
+                }
+
+                if (cancel) return true;
+
+                i++;
+            }
+
+            // Test for checkmate / stalemate
+            if (!parent.Children.Any())
+            {
+                if (boardState.IsInCheck(boardState.ToMove))
+                {
+                    parent.Evaluation = isWhite ? int.MinValue : int.MaxValue;
+                }
+                else
+                {
+                    parent.Evaluation = 0;
+                }
+            }
+            else
+            {
+                parent.Evaluation = isWhite ? alpha : beta;
+            }
+            return true;
         }
     }
 }

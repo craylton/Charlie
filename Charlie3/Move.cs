@@ -67,5 +67,7 @@ namespace Charlie3
 
             return matches.FirstOrDefault();
         }
+
+        public bool IsCapture(BoardState board) => (board.BitBoard.Occupied & FromCell) != 0;
     }
 }
