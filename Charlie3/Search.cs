@@ -43,8 +43,11 @@ namespace Charlie3
             {
                 var (pv, _) = await AlphaBeta(root, currentBoard, int.MinValue, int.MaxValue, depth++, true);
 
-                var eval = isWhite ? bestNode.Evaluation : -bestNode.Evaluation;
-                BestMoveChanged?.Invoke(this, new MoveInfo(bestNode.Depth, pv, eval, bestNode.IsMate));
+                if (pv.Any())
+                {
+                    var eval = isWhite ? bestNode.Evaluation : -bestNode.Evaluation;
+                    BestMoveChanged?.Invoke(this, new MoveInfo(bestNode.Depth, pv, eval, bestNode.IsMate));
+                }
 
                 if (bestNode.IsMate) cancel = true;
             }
