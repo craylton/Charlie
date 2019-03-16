@@ -95,8 +95,11 @@ namespace Charlie3
             var sb = new StringBuilder("info");
             sb.Append(" depth " + moveInfo.Depth);
             sb.Append(" time " + sw.ElapsedMilliseconds);
-            sb.Append(" pv " + string.Join(' ', moveInfo.Moves.Select(mi=>mi.ToString())));
-            sb.Append(" score cp " + moveInfo.Evaluation);
+            sb.Append(" pv " + string.Join(' ', moveInfo.Moves.Select(mi => mi.ToString())));
+            if (moveInfo.IsMate)
+                sb.Append(" score mate " + ((moveInfo.Depth + 1) / 2));
+            else
+                sb.Append(" score cp " + moveInfo.Evaluation);
 
             Console.WriteLine(sb.ToString());
         }
