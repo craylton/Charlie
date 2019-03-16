@@ -41,10 +41,10 @@ namespace Charlie3
             int depth = 1;
             while (!cancel)
             {
-                await AlphaBeta(root, currentBoard, int.MinValue, int.MaxValue, depth++, true);
+                var pv = await AlphaBeta(root, currentBoard, int.MinValue, int.MaxValue, depth++, true);
 
                 var eval = isWhite ? bestNode.Evaluation : -bestNode.Evaluation;
-                BestMoveChanged?.Invoke(this, new MoveInfo(bestNode.Depth, new List<Move> { bestNode.Move }, eval));
+                BestMoveChanged?.Invoke(this, new MoveInfo(bestNode.Depth, pv, eval));
 
                 if (bestNode.IsMate) cancel = true;
             }
@@ -58,20 +58,20 @@ namespace Charlie3
             cancel = true;
         }
 
-        private async Task AlphaBeta(TreeNode parent, BoardState boardState, int alpha, int beta, int depth, bool isRoot = false)
+        private async Task<List<Move>> AlphaBeta(TreeNode parent, BoardState boardState, int alpha, int beta, int depth, bool isRoot = false)
         {
             if (depth == 0)
             {
                 // Evaluate this node
                 parent.Evaluation = evaluator.Evaluate(boardState);
-                return;
+                return new List<Move>();
             }
 
             // Test for 3-move repetition
             if (boardState.IsThreeMoveRepetition())
             {
                 parent.Evaluation = 0;
-                return;
+                return new List<Move>();
             }
 
             bool isWhite = boardState.ToMove == PieceColour.White;
@@ -99,21 +99,22 @@ namespace Charlie3
                 {
                     parent.Evaluation = isWhite ? int.MinValue : int.MaxValue;
                     parent.IsMate = true;
-                    return;
+                    return new List<Move>();
                 }
                 else
                 {
                     parent.Evaluation = 0;
-                    return;
+                    return new List<Move>();
                 }
             }
 
             var bestChild = parent.Children.FirstOrDefault();
+            var bestPv = new List<Move>();
             if (isRoot) bestNode = bestChild;
 
             foreach (var node in parent.Children)
             {
-                await AlphaBeta(node, boardState.MakeMove(node.Move), alpha, beta, depth - 1);
+                var pv = await AlphaBeta(node, boardState.MakeMove(node.Move), alpha, beta, depth - 1);
 
                 // Alpha beta cutoffs
                 if (isWhite && node.Evaluation >= beta)
@@ -121,29 +122,33 @@ namespace Charlie3
                     parent.Evaluation = beta;
                     parent.Depth = node.Depth + 1;
                     parent.IsMate = node.IsMate;
-                    return;
+                    return new List<Move>();
                 }
                 if (!isWhite && node.Evaluation <= alpha)
                 {
                     parent.Evaluation = alpha;
                     parent.Depth = node.Depth + 1;
                     parent.IsMate = node.IsMate;
-                    return;
+                    return new List<Move>();
                 }
 
-                if (cancel) return;
+                if (cancel) return new List<Move>();
 
                 // Finding new best moves
                 if (isWhite && node.Evaluation > alpha)
                 {
                     alpha = node.Evaluation;
                     bestChild = node;
+                    bestPv = pv;
+                    bestPv.Insert(0, node.Move);
                     if (isRoot) bestNode = node;
                 }
                 if (!isWhite && node.Evaluation < beta)
                 {
                     beta = node.Evaluation;
                     bestChild = node;
+                    bestPv = pv;
+                    bestPv.Insert(0, node.Move);
                     if (isRoot) bestNode = node;
                 }
             }
@@ -151,6 +156,7 @@ namespace Charlie3
             parent.Evaluation = isWhite ? alpha : beta;
             parent.Depth = bestChild.Depth + 1;
             parent.IsMate = bestChild.IsMate;
+            return bestPv;
         }
     }
 }
