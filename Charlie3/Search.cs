@@ -41,7 +41,7 @@ namespace Charlie3
             int depth = 1;
             while (!cancel)
             {
-                var pv = await AlphaBeta(root, currentBoard, int.MinValue, int.MaxValue, depth++, true);
+                var (pv, _) = await AlphaBeta(root, currentBoard, int.MinValue, int.MaxValue, depth++, true);
 
                 var eval = isWhite ? bestNode.Evaluation : -bestNode.Evaluation;
                 BestMoveChanged?.Invoke(this, new MoveInfo(bestNode.Depth, pv, eval, bestNode.IsMate));
@@ -58,29 +58,36 @@ namespace Charlie3
             cancel = true;
         }
 
-        private async Task<List<Move>> AlphaBeta(TreeNode parent, BoardState boardState, int alpha, int beta, int depth, bool isRoot = false)
+        private async Task<(List<Move> PV, bool IsLegal)> AlphaBeta(TreeNode parent, BoardState boardState, int alpha, int beta, int depth, bool isRoot = false)
         {
+            bool isWhite = boardState.ToMove == PieceColour.White;
+
+            // Test if our opponent made a legal move to get here
+            if (boardState.IsInCheck(isWhite ? PieceColour.Black : PieceColour.White))
+            {
+                parent.Evaluation = isWhite ? int.MaxValue : int.MinValue;
+                return (new List<Move>(), false);
+            }
+
             if (depth == 0)
             {
                 // Evaluate this node
                 parent.Evaluation = evaluator.Evaluate(boardState);
-                return new List<Move>();
+                return (new List<Move>(), true);
             }
 
             // Test for 3-move repetition
             if (boardState.IsThreeMoveRepetition())
             {
                 parent.Evaluation = 0;
-                return new List<Move>();
+                return (new List<Move>(), true);
             }
-
-            bool isWhite = boardState.ToMove == PieceColour.White;
 
             if (!parent.Children.Any())
             {
                 // Generate child nodes if not already there
                 var defaultEval = isWhite ? int.MinValue : int.MaxValue;
-                parent.Children = generator.GenerateLegalMoves(boardState)
+                parent.Children = generator.GeneratePseudoLegalMoves(boardState)
                                            .Select(m => new TreeNode(m, defaultEval)).ToList();
             }
             else
@@ -99,12 +106,12 @@ namespace Charlie3
                 {
                     parent.Evaluation = isWhite ? int.MinValue : int.MaxValue;
                     parent.IsMate = true;
-                    return new List<Move>();
+                    return (new List<Move>(), true);
                 }
                 else
                 {
                     parent.Evaluation = 0;
-                    return new List<Move>();
+                    return (new List<Move>(), true);
                 }
             }
 
@@ -112,51 +119,70 @@ namespace Charlie3
             var bestPv = new List<Move>();
             if (isRoot) bestNode = bestChild;
 
-            foreach (var node in parent.Children)
+            int i = 0;
+            while (i < parent.Children.Count)
             {
-                var pv = await AlphaBeta(node, boardState.MakeMove(node.Move), alpha, beta, depth - 1);
+                var (pv, legal) = await AlphaBeta(parent.Children[i], boardState.MakeMove(parent.Children[i].Move), alpha, beta, depth - 1);
+
+                // Check if this was a legal move
+                if (!legal)
+                {
+                    parent.Children.RemoveAt(i);
+                    continue;
+                }
 
                 // Alpha beta cutoffs
-                if (isWhite && node.Evaluation >= beta)
+                if (isWhite && parent.Children[i].Evaluation >= beta)
                 {
                     parent.Evaluation = beta;
-                    parent.Depth = node.Depth + 1;
-                    parent.IsMate = node.IsMate;
-                    return new List<Move>();
+                    parent.Depth = parent.Children[i].Depth + 1;
+                    parent.IsMate = parent.Children[i].IsMate;
+                    return (bestPv, true);
                 }
-                if (!isWhite && node.Evaluation <= alpha)
+                if (!isWhite && parent.Children[i].Evaluation <= alpha)
                 {
                     parent.Evaluation = alpha;
-                    parent.Depth = node.Depth + 1;
-                    parent.IsMate = node.IsMate;
-                    return new List<Move>();
+                    parent.Depth = parent.Children[i].Depth + 1;
+                    parent.IsMate = parent.Children[i].IsMate;
+                    return (bestPv, true);
                 }
 
-                if (cancel) return new List<Move>();
+                if (cancel) return (bestPv, true);
 
                 // Finding new best moves
-                if (isWhite && node.Evaluation > alpha)
+                if (isWhite && parent.Children[i].Evaluation > alpha)
                 {
-                    alpha = node.Evaluation;
-                    bestChild = node;
+                    alpha = parent.Children[i].Evaluation;
+                    bestChild = parent.Children[i];
                     bestPv = pv;
-                    bestPv.Insert(0, node.Move);
-                    if (isRoot) bestNode = node;
+                    bestPv.Insert(0, parent.Children[i].Move);
+                    if (isRoot) bestNode = parent.Children[i];
                 }
-                if (!isWhite && node.Evaluation < beta)
+                if (!isWhite && parent.Children[i].Evaluation < beta)
                 {
-                    beta = node.Evaluation;
-                    bestChild = node;
+                    beta = parent.Children[i].Evaluation;
+                    bestChild = parent.Children[i];
                     bestPv = pv;
-                    bestPv.Insert(0, node.Move);
-                    if (isRoot) bestNode = node;
+                    bestPv.Insert(0, parent.Children[i].Move);
+                    if (isRoot) bestNode = parent.Children[i];
                 }
+
+                i++;
             }
 
-            parent.Evaluation = isWhite ? alpha : beta;
-            parent.Depth = bestChild.Depth + 1;
-            parent.IsMate = bestChild.IsMate;
-            return bestPv;
+            // Test for checkmate / stalemate
+            if (!parent.Children.Any())
+            {
+                parent.Evaluation = isWhite ? int.MinValue : int.MaxValue;
+                parent.IsMate = true;
+            }
+            else
+            {
+                parent.Evaluation = isWhite ? alpha : beta;
+                parent.Depth = bestChild.Depth + 1;
+                parent.IsMate = bestChild.IsMate;
+            }
+            return (bestPv, true);
         }
     }
 }
