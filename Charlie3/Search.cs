@@ -18,6 +18,46 @@ namespace Charlie3
         public event EventHandler<MoveInfo> BestMoveChanged;
         public event EventHandler<Move> BestMoveFound;
 
+        public Search()
+        {
+            timer = new Timer() { AutoReset = false };
+            timer.Elapsed += (s, e) => cancel = true;
+        }
+
+        public async Task Start(BoardState currentBoard, int timeMs)
+        {
+            cancel = false;
+
+            // Negative time means infinite search
+            if (timeMs >= 0)
+            {
+                timer.Interval = timeMs;
+                timer.Start();
+            }
+
+            var root = new TreeNode(default, default);
+            var isWhite = currentBoard.ToMove == PieceColour.White;
+
+            int depth = 1;
+            while (!cancel)
+            {
+                await AlphaBeta(root, currentBoard, int.MinValue, int.MaxValue, depth++, true);
+
+                var eval = isWhite ? bestNode.Evaluation : -bestNode.Evaluation;
+                BestMoveChanged?.Invoke(this, new MoveInfo(bestNode.Depth, new List<Move> { bestNode.Move }, eval));
+
+                if (bestNode.IsMate) cancel = true;
+            }
+
+            BestMoveFound?.Invoke(this, bestNode.Move);
+        }
+
+        public void Stop()
+        {
+            timer.Stop();
+            cancel = true;
+        }
+
         private async Task AlphaBeta(TreeNode parent, BoardState boardState, int alpha, int beta, int depth, bool isRoot = false)
         {
             if (depth == 0)
@@ -111,36 +151,6 @@ namespace Charlie3
             parent.Evaluation = isWhite ? alpha : beta;
             parent.Depth = bestChild.Depth + 1;
             parent.IsMate = bestChild.IsMate;
-        }
-
-        public Search()
-        {
-            timer = new Timer() { AutoReset = false };
-            timer.Elapsed += (s, e) => cancel = true;
-        }
-
-        public async Task Start(BoardState currentBoard, int timeMs)
-        {
-            cancel = false;
-
-            timer.Interval = timeMs;
-            timer.Start();
-
-            var root = new TreeNode(default, default);
-            var isWhite = currentBoard.ToMove == PieceColour.White;
-
-            int depth = 1;
-            while (!cancel)
-            {
-                await AlphaBeta(root, currentBoard, int.MinValue, int.MaxValue, depth++, true);
-
-                var eval = isWhite ? bestNode.Evaluation : -bestNode.Evaluation;
-                BestMoveChanged?.Invoke(this, new MoveInfo(bestNode.Depth, new List<Move> { bestNode.Move }, eval));
-
-                if (bestNode.IsMate) cancel = true;
-            }
-
-            BestMoveFound?.Invoke(this, bestNode.Move);
         }
     }
 }

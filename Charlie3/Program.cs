@@ -38,6 +38,9 @@ namespace Charlie3
                     case "isready":
                         Console.WriteLine("readyok");
                         break;
+                    case "stop":
+                        searcher.Stop();
+                        break;
                     case "quit":
                         return;
                 }
@@ -64,7 +67,7 @@ namespace Charlie3
                 {
                     sw = Stopwatch.StartNew();
                     var @params = input.Split(' ');
-                    int timeMs = 10000;
+                    int timeMs = -1;
 
                     if (@params.Length >= 5)
                     {
