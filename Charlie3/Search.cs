@@ -11,7 +11,7 @@ namespace Charlie3
     {
         private readonly Timer timer;
         private bool cancel;
-        private TreeNode bestNode;
+        private TreeNode bestNode = new TreeNode(default, default);
         private readonly Evaluator evaluator = new Evaluator();
         private readonly MoveGenerator generator = new MoveGenerator();
 
@@ -116,13 +116,12 @@ namespace Charlie3
         public Search()
         {
             timer = new Timer() { AutoReset = false };
-            timer.Elapsed += Timer_Elapsed;
+            timer.Elapsed += (s, e) => cancel = true;
         }
 
         public async Task Start(BoardState currentBoard, int timeMs)
         {
             cancel = false;
-            bestNode = new TreeNode(default, default);
 
             timer.Interval = timeMs;
             timer.Start();
@@ -130,10 +129,10 @@ namespace Charlie3
             var root = new TreeNode(default, default);
             var isWhite = currentBoard.ToMove == PieceColour.White;
 
-            int i = 1;
+            int depth = 1;
             while (!cancel)
             {
-                await AlphaBeta(root, currentBoard, int.MinValue, int.MaxValue, i++, true);
+                await AlphaBeta(root, currentBoard, int.MinValue, int.MaxValue, depth++, true);
 
                 var eval = isWhite ? bestNode.Evaluation : -bestNode.Evaluation;
                 BestMoveChanged?.Invoke(this, new MoveInfo(bestNode.Depth, new List<Move> { bestNode.Move }, eval));
@@ -143,7 +142,5 @@ namespace Charlie3
 
             BestMoveFound?.Invoke(this, bestNode.Move);
         }
-
-        private void Timer_Elapsed(object sender, ElapsedEventArgs e) => cancel = true;
     }
 }
