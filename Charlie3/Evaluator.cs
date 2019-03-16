@@ -98,8 +98,8 @@ namespace Charlie3
 
             var unoccupiedBb = ~board.BitBoard.Occupied;
 
-            if (board.IsInPseudoCheck(PieceColour.White)) whiteScore += 30;
-            if (board.IsInPseudoCheck(PieceColour.Black)) blackScore += 30;
+            if (board.IsInPseudoCheck(PieceColour.White)) whiteScore += 25;
+            if (board.IsInPseudoCheck(PieceColour.Black)) blackScore += 25;
 
             for (int i = 0; i < 64; i++)
             {
@@ -120,6 +120,32 @@ namespace Charlie3
                 if ((board.BitBoard.BlackRook & thisSquare) != 0) blackScore += rookValues[63 - i];
                 if ((board.BitBoard.BlackQueen & thisSquare) != 0) blackScore += queenValues[63 - i];
                 if ((board.BitBoard.BlackKing & thisSquare) != 0) blackScore += kingValues[63 - i];
+            }
+
+            for (int i = 0; i < ChessBoard.Files.Length; i++)
+            {
+                // Check for isolated pawns
+                if ((board.BitBoard.WhitePawn & ChessBoard.Files[i]) != 0)
+                {
+                    bool isPawnToLeft = i != 0 && (board.BitBoard.WhitePawn & ChessBoard.Files[i - 1]) != 0;
+                    bool IsPawnToRight = i != ChessBoard.Files.Length - 1 && 
+                                        (board.BitBoard.WhitePawn & ChessBoard.Files[i + 1]) != 0;
+
+                    if (!isPawnToLeft && !IsPawnToRight) whiteScore -= 20;
+                }
+
+                if ((board.BitBoard.BlackPawn & ChessBoard.Files[i]) != 0)
+                {
+                    bool isPawnToLeft = i != 0 && (board.BitBoard.BlackPawn & ChessBoard.Files[i - 1]) != 0;
+                    bool IsPawnToRight = i != ChessBoard.Files.Length - 1 && 
+                                        (board.BitBoard.BlackPawn & ChessBoard.Files[i + 1]) != 0;
+
+                    if (!isPawnToLeft && !IsPawnToRight) blackScore -= 20;
+                }
+
+                // Check for doubled pawns
+                if ((board.BitBoard.WhitePawn & ChessBoard.Files[i]).BitCount() > 1) whiteScore -= 20;
+                if ((board.BitBoard.BlackPawn & ChessBoard.Files[i]).BitCount() > 1) blackScore -= 20;
             }
 
             return whiteScore - blackScore;
