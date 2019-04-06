@@ -4,7 +4,7 @@ namespace Charlie3
 {
     public class Evaluator
     {
-        private const int pawn = 100, knight = 320, bishop = 330, rook = 500, queen = 900, king = 20000;
+        private const int pawn = 100, knight = 320, bishop = 330, rook = 500, queen = 900;
 
         private readonly int[] pawnValues = new[]
         {
@@ -66,6 +66,18 @@ namespace Charlie3
             -20,-10,-10, -5, -5,-10,-10,-20,
         };
 
+        private readonly int[] openingQueenValues = new[]
+        {
+            -20,-20,-20,-20,-20,-20,-20,-20,
+            -20,-20,-20,-20,-20,-20,-20,-20,
+            -30,-30,-30,-30,-30,-30,-30,-30,
+            -33,-30,-30,-30,-30,-30,-30,-33,
+            -29,-24,-19,-16,-16,-19,-24,-29,
+             -5, -3,  0,  1,  1,  0, -3, -5,
+              0,  2,  5,  7,  7,  5,  2,  0,
+              2,  5, 11, 17, 17, 11,  5,  2,
+        };
+
         private readonly int[] kingValues = new[]
         {
             -30,-40,-40,-50,-50,-40,-40,-30,
@@ -78,30 +90,47 @@ namespace Charlie3
              20, 30, 10,  0,  0, 10, 30, 20
         };
 
+        private readonly int[] endgameKingValues = new[]
+        {
+            -10,-5,  0,  5,  5,  0,-5, -10,
+            -5,  0,  5,  8,  8,  5, 0, -5,
+             0,  5,  8, 10, 10,  8, 5,  0,
+             4,  7, 11, 14, 14, 11, 7,  4,
+             4,  7, 11, 14, 14, 11, 7,  4,
+             0,  5,  8, 10, 10,  8, 5,  0,
+            -5,  0,  5,  8,  8,  5, 0, -5,
+            -10,-5,  0,  5,  5,  0,-5, -10,
+        };
+
         public int Evaluate(BoardState board)
         {
             int whiteScore = 0, blackScore = 0;
 
-            whiteScore += board.BitBoard.WhitePawn.BitCount() * pawn;
-            whiteScore += board.BitBoard.WhiteKnight.BitCount() * knight;
-            whiteScore += board.BitBoard.WhiteBishop.BitCount() * bishop;
-            whiteScore += board.BitBoard.WhiteRook.BitCount() * rook;
-            whiteScore += board.BitBoard.WhiteQueen.BitCount() * queen;
-            whiteScore += board.BitBoard.WhiteKing.BitCount() * king;
+            ulong whiteAttacks = 0ul, blackAttacks = 0ul;
+            int whiteMaterial = 0, blackMaterial = 0;
 
-            blackScore += board.BitBoard.BlackPawn.BitCount() * pawn;
-            blackScore += board.BitBoard.BlackKnight.BitCount() * knight;
-            blackScore += board.BitBoard.BlackBishop.BitCount() * bishop;
-            blackScore += board.BitBoard.BlackRook.BitCount() * rook;
-            blackScore += board.BitBoard.BlackQueen.BitCount() * queen;
-            blackScore += board.BitBoard.BlackKing.BitCount() * king;
+            whiteMaterial += board.BitBoard.WhitePawn.BitCount() * pawn;
+            whiteMaterial += board.BitBoard.WhiteKnight.BitCount() * knight;
+            whiteMaterial += board.BitBoard.WhiteBishop.BitCount() * bishop;
+            whiteMaterial += board.BitBoard.WhiteRook.BitCount() * rook;
+            whiteMaterial += board.BitBoard.WhiteQueen.BitCount() * queen;
+
+            blackMaterial += board.BitBoard.BlackPawn.BitCount() * pawn;
+            blackMaterial += board.BitBoard.BlackKnight.BitCount() * knight;
+            blackMaterial += board.BitBoard.BlackBishop.BitCount() * bishop;
+            blackMaterial += board.BitBoard.BlackRook.BitCount() * rook;
+            blackMaterial += board.BitBoard.BlackQueen.BitCount() * queen;
+
+            whiteScore += whiteMaterial;
+            blackScore += blackMaterial;
+
+            bool isOpening = whiteMaterial + blackMaterial >= 6200;
+            bool isEndgame = whiteMaterial + blackMaterial <= 3600;
 
             var unoccupiedBb = ~board.BitBoard.Occupied;
 
             if (board.IsInPseudoCheck(PieceColour.White)) whiteScore += 25;
             if (board.IsInPseudoCheck(PieceColour.Black)) blackScore += 25;
-
-            ulong whiteAttacks = 0ul, blackAttacks = 0ul;
 
             for (int i = 0; i < 64; i++)
             {
@@ -117,15 +146,27 @@ namespace Charlie3
                 if ((board.BitBoard.WhiteKnight & thisSquare) != 0) whiteScore += knightValues[i];
                 if ((board.BitBoard.WhiteBishop & thisSquare) != 0) whiteScore += bishopValues[i];
                 if ((board.BitBoard.WhiteRook & thisSquare) != 0) whiteScore += rookValues[i];
-                if ((board.BitBoard.WhiteQueen & thisSquare) != 0) whiteScore += queenValues[i];
-                if ((board.BitBoard.WhiteKing & thisSquare) != 0) whiteScore += kingValues[i];
+                if ((board.BitBoard.WhiteQueen & thisSquare) != 0)
+                {
+                    whiteScore += isOpening ? openingQueenValues[i] : queenValues[i];
+                }
+                if ((board.BitBoard.WhiteKing & thisSquare) != 0)
+                {
+                    whiteScore += isEndgame ? endgameKingValues[i] : kingValues[i];
+                }
 
                 if ((board.BitBoard.BlackPawn & thisSquare) != 0) blackScore += pawnValues[63 - i];
                 if ((board.BitBoard.BlackKnight & thisSquare) != 0) blackScore += knightValues[63 - i];
                 if ((board.BitBoard.BlackBishop & thisSquare) != 0) blackScore += bishopValues[63 - i];
                 if ((board.BitBoard.BlackRook & thisSquare) != 0) blackScore += rookValues[63 - i];
                 if ((board.BitBoard.BlackQueen & thisSquare) != 0) blackScore += queenValues[63 - i];
-                if ((board.BitBoard.BlackKing & thisSquare) != 0) blackScore += kingValues[63 - i];
+                {
+                    blackScore += isOpening ? openingQueenValues[63-i] : queenValues[63-i];
+                }
+                if ((board.BitBoard.BlackKing & thisSquare) != 0)
+                {
+                    blackScore += isEndgame ? endgameKingValues[63 - i] : kingValues[63 - i];
+                }
             }
 
             var whiteTerritory = whiteAttacks & ~blackAttacks;
