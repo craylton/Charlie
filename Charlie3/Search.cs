@@ -49,7 +49,11 @@ namespace Charlie3
                     BestMoveChanged?.Invoke(this, new MoveInfo(bestNode.Depth, pv, eval, bestNode.IsMate));
                 }
 
-                if (bestNode.IsMate) cancel = true;
+                if (bestNode.IsMate)
+                {
+                    cancel = true;
+                    BestMoveChanged?.Invoke(this, new MoveInfo(depth - 1, pv, 0, true));
+                }
             }
 
             BestMoveFound?.Invoke(this, bestNode.Move);
