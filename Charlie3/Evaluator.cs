@@ -101,9 +101,15 @@ namespace Charlie3
             if (board.IsInPseudoCheck(PieceColour.White)) whiteScore += 25;
             if (board.IsInPseudoCheck(PieceColour.Black)) blackScore += 25;
 
+            ulong whiteAttacks = 0ul, blackAttacks = 0ul;
+
             for (int i = 0; i < 64; i++)
             {
                 var thisSquare = 1ul << i;
+
+                if (board.IsUnderAttack(thisSquare, PieceColour.White)) whiteAttacks |= thisSquare;
+                if (board.IsUnderAttack(thisSquare, PieceColour.Black)) blackAttacks |= thisSquare;
+
                 if ((unoccupiedBb & thisSquare) != 0) continue;
 
                 // Assign values to each piece according to its position
@@ -122,13 +128,19 @@ namespace Charlie3
                 if ((board.BitBoard.BlackKing & thisSquare) != 0) blackScore += kingValues[63 - i];
             }
 
+            var whiteTerritory = whiteAttacks & ~blackAttacks;
+            var blackTerritory = blackAttacks & ~whiteAttacks;
+
+            whiteScore += whiteTerritory.BitCount() * 5;
+            blackScore += blackTerritory.BitCount() * 5;
+
             for (int i = 0; i < ChessBoard.Files.Length; i++)
             {
                 // Check for isolated pawns
                 if ((board.BitBoard.WhitePawn & ChessBoard.Files[i]) != 0)
                 {
                     bool isPawnToLeft = i != 0 && (board.BitBoard.WhitePawn & ChessBoard.Files[i - 1]) != 0;
-                    bool IsPawnToRight = i != ChessBoard.Files.Length - 1 && 
+                    bool IsPawnToRight = i != ChessBoard.Files.Length - 1 &&
                                         (board.BitBoard.WhitePawn & ChessBoard.Files[i + 1]) != 0;
 
                     if (!isPawnToLeft && !IsPawnToRight) whiteScore -= 20;
@@ -137,7 +149,7 @@ namespace Charlie3
                 if ((board.BitBoard.BlackPawn & ChessBoard.Files[i]) != 0)
                 {
                     bool isPawnToLeft = i != 0 && (board.BitBoard.BlackPawn & ChessBoard.Files[i - 1]) != 0;
-                    bool IsPawnToRight = i != ChessBoard.Files.Length - 1 && 
+                    bool IsPawnToRight = i != ChessBoard.Files.Length - 1 &&
                                         (board.BitBoard.BlackPawn & ChessBoard.Files[i + 1]) != 0;
 
                     if (!isPawnToLeft && !IsPawnToRight) blackScore -= 20;
