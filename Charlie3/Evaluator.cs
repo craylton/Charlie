@@ -161,7 +161,7 @@ namespace Charlie3
                 if ((board.BitBoard.BlackRook & thisSquare) != 0) blackScore += rookValues[63 - i];
                 if ((board.BitBoard.BlackQueen & thisSquare) != 0) blackScore += queenValues[63 - i];
                 {
-                    blackScore += isOpening ? openingQueenValues[63-i] : queenValues[63-i];
+                    blackScore += isOpening ? openingQueenValues[63 - i] : queenValues[63 - i];
                 }
                 if ((board.BitBoard.BlackKing & thisSquare) != 0)
                 {
@@ -174,6 +174,19 @@ namespace Charlie3
 
             whiteScore += whiteTerritory.BitCount() * 5;
             blackScore += blackTerritory.BitCount() * 5;
+
+            // Hanging pieces are worth half value
+            whiteScore -= (blackTerritory & board.BitBoard.WhitePawn).BitCount() * pawn / 2;
+            whiteScore -= (blackTerritory & board.BitBoard.WhiteKnight).BitCount() * knight / 2;
+            whiteScore -= (blackTerritory & board.BitBoard.WhiteBishop).BitCount() * bishop / 2;
+            whiteScore -= (blackTerritory & board.BitBoard.WhiteRook).BitCount() * rook / 2;
+            whiteScore -= (blackTerritory & board.BitBoard.WhiteQueen).BitCount() * queen / 2;
+
+            blackScore -= (whiteTerritory & board.BitBoard.BlackPawn).BitCount() * pawn / 2;
+            blackScore -= (whiteTerritory & board.BitBoard.BlackKnight).BitCount() * knight / 2;
+            blackScore -= (whiteTerritory & board.BitBoard.BlackBishop).BitCount() * bishop / 2;
+            blackScore -= (whiteTerritory & board.BitBoard.BlackRook).BitCount() * rook / 2;
+            blackScore -= (whiteTerritory & board.BitBoard.BlackQueen).BitCount() * queen / 2;
 
             for (int i = 0; i < ChessBoard.Files.Length; i++)
             {
