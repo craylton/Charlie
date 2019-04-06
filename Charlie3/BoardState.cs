@@ -98,9 +98,10 @@ namespace Charlie3
         internal bool IsThreeMoveRepetition()
         {
             int count = 0;
+            var thisHash = GetHashCode();
             foreach (var state in previousStates)
             {
-                if (state.Equals(GetHashCode()) && ++count == 3) return true;
+                if (state.Equals(thisHash) && ++count == 3) return true;
             }
 
             return false;
