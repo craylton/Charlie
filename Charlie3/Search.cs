@@ -41,7 +41,7 @@ namespace Charlie3
             int depth = 1;
             while (!cancel)
             {
-                var (pv, _) = await AlphaBeta(root, currentBoard, int.MinValue, int.MaxValue, depth++, true);
+                var (pv, _) = await AlphaBeta(root, currentBoard, int.MinValue, int.MaxValue, depth, true);
 
                 if (pv.Any())
                 {
@@ -52,8 +52,10 @@ namespace Charlie3
                 if (bestNode.IsMate)
                 {
                     cancel = true;
-                    BestMoveChanged?.Invoke(this, new MoveInfo(depth - 1, pv, 0, true));
+                    BestMoveChanged?.Invoke(this, new MoveInfo(bestNode.Depth, pv, 0, true));
                 }
+
+                depth++;
             }
 
             BestMoveFound?.Invoke(this, bestNode.Move);

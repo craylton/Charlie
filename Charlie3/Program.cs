@@ -96,7 +96,7 @@ namespace Charlie3
             sb.Append(" time " + sw.ElapsedMilliseconds);
             sb.Append(" pv " + string.Join(' ', moveInfo.Moves.Select(mi => mi.ToString())));
             if (moveInfo.IsMate)
-                sb.Append(" score mate " + ((moveInfo.Depth + 1) / 2));
+                sb.Append(" score mate " + (moveInfo.Evaluation < 0 ? "-" : "") + ((moveInfo.Depth + 1) / 2));
             else
                 sb.Append(" score cp " + moveInfo.Evaluation);
 
