@@ -5,13 +5,13 @@ namespace Charlie3
 {
     public static class HashCache
     {
-        private const int MaxEntries = 10;
+        private const int MaxEntries = 1000;
 
-        private static List<(int Hash, int Eval)> table = new List<(int, int)>();
+        private static readonly List<(int Hash, int Eval)> table = new List<(int, int)>();
 
         public static bool Exists(int hash)
         {
-            for (int i = 0; i< table.Count; i++)
+            for (int i = table.Count-1; i >= 0; i--)
             {
                 if (table[i].Hash == hash) return true;
             }
