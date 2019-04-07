@@ -18,5 +18,12 @@ namespace Charlie3
             Depth = 1;
             Children = new List<TreeNode>();
         }
+        public override string ToString()
+        {
+            string score = Evaluation.ToString();
+            if (IsMate) score = (Evaluation < 0 ? "-M" : "M") + (Depth + 1) / 2;
+
+            return $"{Move.ToString()} ({score})";
+        }
     }
 }
