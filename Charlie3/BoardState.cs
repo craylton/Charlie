@@ -1,4 +1,5 @@
 ﻿using Charlie3.Enums;
+using System;
 using System.Collections.Generic;
 
 namespace Charlie3
@@ -32,8 +33,6 @@ namespace Charlie3
             byte castleRules,
             ulong whiteEnPassant, ulong blackEnPassant)
         {
-            this.previousStates = new List<int>(previousStates) { GetHashCode() };
-
             BitBoard = bitBoard;
 
             CastleRules = castleRules;
@@ -42,6 +41,8 @@ namespace Charlie3
             BlackEnPassant = blackEnPassant;
 
             ToMove = toMove;
+
+            this.previousStates = new List<int>(previousStates) { GetHashCode() };
         }
 
         private BoardState(
@@ -272,5 +273,16 @@ namespace Charlie3
             var cellIndex = cell.CountTrailingZeroes();
             return (Magics.KnightAttacks[cellIndex] & theirKnight) != 0;
         }
+
+        public override bool Equals(object obj) =>
+            obj is BoardState state &&
+            EqualityComparer<BitBoard>.Default.Equals(BitBoard, state.BitBoard) &&
+            CastleRules == state.CastleRules &&
+            WhiteEnPassant == state.WhiteEnPassant &&
+            BlackEnPassant == state.BlackEnPassant &&
+            ToMove == state.ToMove;
+
+        public override int GetHashCode() =>
+            HashCode.Combine(BitBoard, CastleRules, WhiteEnPassant, BlackEnPassant, ToMove);
     }
 }
