@@ -19,8 +19,8 @@ namespace Charlie3
 
         public PieceColour ToMove { get; }
 
-        public BoardState() :
-            this(new List<int>(),
+        public BoardState() : this(
+                new List<int>(),
                 BitBoard.GetDefault(),
                 PieceColour.White,
                 0b_00001111, 0, 0)
@@ -29,9 +29,11 @@ namespace Charlie3
 
         private BoardState(
             List<int> previousStates,
-            BitBoard bitBoard, PieceColour toMove,
+            BitBoard bitBoard,
+            PieceColour toMove,
             byte castleRules,
-            ulong whiteEnPassant, ulong blackEnPassant)
+            ulong whiteEnPassant,
+            ulong blackEnPassant)
         {
             BitBoard = bitBoard;
 
@@ -47,13 +49,18 @@ namespace Charlie3
 
         private BoardState(
             List<int> previousStates,
-            BitBoard bitBoard, PieceColour toMove,
+            BitBoard bitBoard,
+            PieceColour toMove,
             byte castleRules,
-            ulong whiteEnPassant, ulong blackEnPassant,
-            Move move) :
-            this(previousStates, new BitBoard(bitBoard, move), toMove,
+            ulong whiteEnPassant,
+            ulong blackEnPassant,
+            Move move) : this(
+                previousStates,
+                new BitBoard(bitBoard, move),
+                toMove,
                 castleRules,
-                whiteEnPassant, blackEnPassant)
+                whiteEnPassant,
+                blackEnPassant)
         {
         }
 
@@ -72,18 +79,18 @@ namespace Charlie3
 
             // Check if castling rules have changed
             byte castleRules = CastleRules;
-            if ((BitBoard.WhiteRook & move.FromCell & 0x01_00_00_00_00_00_00_00) != 0)
+            if ((BitBoard.WhiteRook & move.FromCell & ChessBoard.SquareH1) != 0)
                 castleRules &= unchecked((byte)~0b_00000001);
 
-            if ((BitBoard.WhiteRook & move.FromCell & 0x80_00_00_00_00_00_00_00) != 0)
+            if ((BitBoard.WhiteRook & move.FromCell & ChessBoard.SquareA1) != 0)
                 castleRules &= unchecked((byte)~0b_00000010);
 
             if ((BitBoard.WhiteKing & move.FromCell) != 0) castleRules &= unchecked((byte)~0b_00000011);
 
-            if ((BitBoard.BlackRook & move.FromCell & 0x00_00_00_00_00_00_00_01) != 0)
+            if ((BitBoard.BlackRook & move.FromCell & ChessBoard.SquareH8) != 0)
                 castleRules &= unchecked((byte)~0b_00000100);
 
-            if ((BitBoard.BlackRook & move.FromCell & 0x00_00_00_00_00_00_00_80) != 0)
+            if ((BitBoard.BlackRook & move.FromCell & ChessBoard.SquareA8) != 0)
                 castleRules &= unchecked((byte)~0b_00001000);
 
             if ((BitBoard.BlackKing & move.FromCell) != 0) castleRules &= unchecked((byte)~0b_00001100);
@@ -91,9 +98,13 @@ namespace Charlie3
             PieceColour nextToMove = ToMove == PieceColour.White ? PieceColour.Black : PieceColour.White;
 
             return new BoardState(
-                previousStates, BitBoard, nextToMove,
+                previousStates,
+                BitBoard,
+                nextToMove,
                 castleRules,
-                whiteEP, blackEP, move);
+                whiteEP,
+                blackEP,
+                move);
         }
 
         internal bool IsThreeMoveRepetition()
@@ -162,10 +173,10 @@ namespace Charlie3
 
         private bool IsUnderImmediateAttack(ulong cell, ulong theirKing, PieceColour attacker)
         {
-            bool up = (cell & ~0x00_00_00_00_00_00_00_FFul) != 0,
-            down = (cell & ~0xFF_00_00_00_00_00_00_00ul) != 0,
-            right = (cell & ~0x01_01_01_01_01_01_01_01ul) != 0,
-            left = (cell & ~0x80_80_80_80_80_80_80_80ul) != 0;
+            bool up = (cell & ~ChessBoard.Rank8) != 0,
+            down = (cell & ~ChessBoard.Rank1) != 0,
+            right = (cell & ~ChessBoard.HFile) != 0,
+            left = (cell & ~ChessBoard.AFile) != 0;
 
             if (up && ((cell >> 8) & theirKing) != 0) return true;
             if (down && ((cell << 8) & theirKing) != 0) return true;
@@ -195,7 +206,7 @@ namespace Charlie3
             var occupiedBb = BitBoard.Occupied;
             // scan up
             int distance = 0;
-            while (((cell >> distance) & ~0x00_00_00_00_00_00_00_FFul) != 0)
+            while (((cell >> distance) & ~ChessBoard.Rank8) != 0)
             {
                 distance += 8;
                 if (((cell >> distance) & (theirRook | theirQueen)) != 0) return true;
@@ -204,7 +215,7 @@ namespace Charlie3
 
             // scan down
             distance = 0;
-            while (((cell << distance) & ~0xFF_00_00_00_00_00_00_00ul) != 0)
+            while (((cell << distance) & ~ChessBoard.Rank1) != 0)
             {
                 distance += 8;
                 if (((cell << distance) & (theirRook | theirQueen)) != 0) return true;
@@ -213,7 +224,7 @@ namespace Charlie3
 
             // scan right
             distance = 0;
-            while (((cell >> distance) & ~0x01_01_01_01_01_01_01_01ul) != 0)
+            while (((cell >> distance) & ~ChessBoard.HFile) != 0)
             {
                 distance++;
                 if (((cell >> distance) & (theirRook | theirQueen)) != 0) return true;
@@ -222,7 +233,7 @@ namespace Charlie3
 
             // scan left
             distance = 0;
-            while (((cell << distance) & ~0x80_80_80_80_80_80_80_80ul) != 0)
+            while (((cell << distance) & ~ChessBoard.AFile) != 0)
             {
                 distance++;
                 if (((cell << distance) & (theirRook | theirQueen)) != 0) return true;
@@ -231,7 +242,7 @@ namespace Charlie3
 
             // scan up right
             distance = 0;
-            while (((cell >> distance) & ~0x00_00_00_00_00_00_00_FFul & ~0x01_01_01_01_01_01_01_01ul) != 0)
+            while (((cell >> distance) & ~ChessBoard.Rank8 & ~ChessBoard.HFile) != 0)
             {
                 distance += 9;
                 if (((cell >> distance) & (theirBishop | theirQueen)) != 0) return true;
@@ -240,7 +251,7 @@ namespace Charlie3
 
             // scan up left
             distance = 0;
-            while (((cell >> distance) & ~0x00_00_00_00_00_00_00_FFul & ~0x80_80_80_80_80_80_80_80ul) != 0)
+            while (((cell >> distance) & ~ChessBoard.Rank8 & ~ChessBoard.AFile) != 0)
             {
                 distance += 7;
                 if (((cell >> distance) & (theirBishop | theirQueen)) != 0) return true;
@@ -249,7 +260,7 @@ namespace Charlie3
 
             // scan down right
             distance = 0;
-            while (((cell << distance) & ~0xFF_00_00_00_00_00_00_00ul & ~0x01_01_01_01_01_01_01_01ul) != 0)
+            while (((cell << distance) & ~ChessBoard.Rank1 & ~ChessBoard.HFile) != 0)
             {
                 distance += 7;
                 if (((cell << distance) & (theirBishop | theirQueen)) != 0) return true;
@@ -258,7 +269,7 @@ namespace Charlie3
 
             // scan down left
             distance = 0;
-            while (((cell << distance) & ~0xFF_00_00_00_00_00_00_00ul & ~0x80_80_80_80_80_80_80_80ul) != 0)
+            while (((cell << distance) & ~ChessBoard.Rank1 & ~ChessBoard.AFile) != 0)
             {
                 distance += 9;
                 if (((cell << distance) & (theirBishop | theirQueen)) != 0) return true;

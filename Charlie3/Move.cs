@@ -18,8 +18,13 @@ namespace Charlie3
 
         public PromotionType PromotionType { get; }
 
-        public Move(ulong fromCell, ulong toCell,
-            bool isEnPassant, bool isCastle, bool isDoublePush, PromotionType promotionType) =>
+        public Move(
+            ulong fromCell,
+            ulong toCell,
+            bool isEnPassant,
+            bool isCastle,
+            bool isDoublePush,
+            PromotionType promotionType) =>
             (FromCell, ToCell, IsEnPassant, IsCastle, IsDoublePush, PromotionType) =
             (fromCell, toCell, isEnPassant, isCastle, isDoublePush, promotionType);
 

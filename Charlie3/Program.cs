@@ -12,8 +12,8 @@ namespace Charlie3
     public static class Program
     {
         private static BoardState boardState;
-        private static MoveGenerator generator = new MoveGenerator();
-        private static Search searcher = new Search();
+        private static readonly MoveGenerator generator = new MoveGenerator();
+        private static readonly Search searcher = new Search();
 
         private static Stopwatch sw;
 
