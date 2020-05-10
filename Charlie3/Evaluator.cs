@@ -214,7 +214,7 @@ namespace Charlie3
                 if ((board.BitBoard.BlackPawn & ChessBoard.Files[i]).BitCount() > 1) blackScore -= 20;
             }
 
-            return whiteScore - blackScore;
+            return (whiteScore - blackScore) * (board.ToMove == PieceColour.White ? 1 : -1);
         }
     }
 }

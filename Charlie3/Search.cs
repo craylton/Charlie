@@ -36,29 +36,39 @@ namespace Charlie3
             }
 
             var root = new TreeNode(default, default);
-            var isWhite = currentBoard.ToMove == PieceColour.White;
 
-            int depth = 1;
+            Move bestMove = default;
+            int eval = 0;
+            int depth = 0;
+
             while (!cancel)
             {
-                var (pv, _) = await AlphaBeta(root, currentBoard, int.MinValue, int.MaxValue, depth, true);
-
-                if (pv.Any())
+                if (depth > 0)
                 {
-                    var eval = isWhite ? bestNode.Evaluation : -bestNode.Evaluation;
-                    BestMoveChanged?.Invoke(this, new MoveInfo(bestNode.Depth, pv, eval, bestNode.IsMate));
-                }
-
-                if (bestNode.IsMate)
-                {
-                    cancel = true;
-                    BestMoveChanged?.Invoke(this, new MoveInfo(bestNode.Depth, pv, 0, true));
+                    bestMove = bestNode.Move;
+                    var bestMoveInfo = new MoveInfo(depth, new List<Move> { bestMove }, eval, bestNode.IsMate);
+                    BestMoveChanged?.Invoke(this, bestMoveInfo);
                 }
 
                 depth++;
+
+                //var (pv, _) = await AlphaBeta2(root, currentBoard, int.MinValue, int.MaxValue, depth, true);
+                eval = await AlphaBeta2(currentBoard, int.MinValue + 10, int.MaxValue - 10, depth, true);
+
+                //if (pv.Any())
+                //{
+                //    //var eval = bestNode.Evaluation;
+                //    BestMoveChanged?.Invoke(this, new MoveInfo(bestNode.Depth, pv, eval, bestNode.IsMate));
+                //}
+
+                //if (bestNode.IsMate)
+                //{
+                //    cancel = true;
+                //    BestMoveChanged?.Invoke(this, new MoveInfo(bestNode.Depth, pv, 0, true));
+                //}
             }
 
-            BestMoveFound?.Invoke(this, bestNode.Move);
+            BestMoveFound?.Invoke(this, bestMove);
         }
 
         public void Stop()
@@ -67,14 +77,66 @@ namespace Charlie3
             cancel = true;
         }
 
-        private async Task<(List<Move> PV, bool IsLegal)> AlphaBeta(TreeNode parent, BoardState boardState, int alpha, int beta, int depth, bool isRoot = false)
+        private async Task<int> AlphaBeta2(
+            BoardState boardState,
+            int alpha,
+            int beta,
+            int depth,
+            bool isRoot = false)
+        {
+            if (depth == 0) return evaluator.Evaluate(boardState);
+            if (boardState.IsThreeMoveRepetition()) return 0;
+
+            var moves = generator.GenerateLegalMoves(boardState);
+
+            if (!moves.Any())
+            {
+                if (boardState.IsInCheck(boardState.ToMove))
+                    return int.MinValue + 10;
+                else return 0;
+            }
+
+            foreach (var move in moves)
+            {
+                var eval = -await AlphaBeta2(boardState.MakeMove(move), -beta, -alpha, depth - 1);
+
+                if (eval >= beta)
+                {
+                    if (isRoot) bestNode = new TreeNode(move, eval);
+                    return beta;
+                }
+                if (eval > alpha)
+                {
+                    if (isRoot) bestNode = new TreeNode(move, eval);
+                    alpha = eval;
+                }
+
+                if (cancel) break;
+            }
+
+            return alpha;
+        }
+
+
+
+
+
+
+
+        private async Task<(List<Move> PV, bool IsLegal)> AlphaBeta(
+            TreeNode parent,
+            BoardState boardState,
+            int alpha,
+            int beta,
+            int depth,
+            bool isRoot = false)
         {
             bool isWhite = boardState.ToMove == PieceColour.White;
 
             // Test if our opponent made a legal move to get here
             if (boardState.IsInCheck(isWhite ? PieceColour.Black : PieceColour.White))
             {
-                parent.Evaluation = isWhite ? int.MaxValue : int.MinValue;
+                parent.Evaluation = int.MaxValue;
                 return (new List<Move>(), false);
             }
 
@@ -82,6 +144,7 @@ namespace Charlie3
             {
                 // Evaluate this node
                 parent.Evaluation = evaluator.Evaluate(boardState);
+                //(parent.Evaluation, _) = await Quiesce(parent, boardState.MakeMove(parent.Move), alpha, beta, 3);
                 return (new List<Move>(), true);
             }
 
@@ -95,17 +158,14 @@ namespace Charlie3
             if (!parent.Children.Any())
             {
                 // Generate child nodes if not already there
-                var defaultEval = isWhite ? int.MinValue : int.MaxValue;
                 parent.Children = generator.GeneratePseudoLegalMoves(boardState)
-                                           .Select(m => new TreeNode(m, defaultEval)).ToList();
+                                           .Select(m => new TreeNode(m, int.MinValue))
+                                           .ToList();
             }
             else
             {
                 // Sort the move list in order of best to worst
-                if (isWhite)
-                    parent.Children = parent.Children.OrderByDescending(c => c.Evaluation).ToList();
-                else
-                    parent.Children = parent.Children.OrderBy(c => c.Evaluation).ToList();
+                parent.Children = parent.Children.OrderByDescending(c => c.Evaluation).ToList();
             }
 
             var bestChild = parent.Children.FirstOrDefault();
@@ -125,16 +185,9 @@ namespace Charlie3
                 }
 
                 // Alpha beta cutoffs
-                if (isWhite && parent.Children[i].Evaluation >= beta)
+                if (parent.Children[i].Evaluation >= beta)
                 {
                     parent.Evaluation = beta;
-                    parent.Depth = parent.Children[i].Depth + 1;
-                    parent.IsMate = parent.Children[i].IsMate;
-                    return (bestPv, true);
-                }
-                if (!isWhite && parent.Children[i].Evaluation <= alpha)
-                {
-                    parent.Evaluation = alpha;
                     parent.Depth = parent.Children[i].Depth + 1;
                     parent.IsMate = parent.Children[i].IsMate;
                     return (bestPv, true);
@@ -143,17 +196,9 @@ namespace Charlie3
                 if (cancel) return (bestPv, true);
 
                 // Finding new best moves
-                if (isWhite && parent.Children[i].Evaluation > alpha)
+                if (parent.Children[i].Evaluation > alpha)
                 {
                     alpha = parent.Children[i].Evaluation;
-                    bestChild = parent.Children[i];
-                    bestPv = pv;
-                    bestPv.Insert(0, parent.Children[i].Move);
-                    if (isRoot) bestNode = parent.Children[i];
-                }
-                if (!isWhite && parent.Children[i].Evaluation < beta)
-                {
-                    beta = parent.Children[i].Evaluation;
                     bestChild = parent.Children[i];
                     bestPv = pv;
                     bestPv.Insert(0, parent.Children[i].Move);
@@ -168,7 +213,7 @@ namespace Charlie3
             {
                 if (boardState.IsInCheck(boardState.ToMove))
                 {
-                    parent.Evaluation = isWhite ? int.MinValue : int.MaxValue;
+                    parent.Evaluation = int.MinValue;
                     parent.IsMate = true;
                 }
                 else
@@ -178,7 +223,7 @@ namespace Charlie3
             }
             else
             {
-                parent.Evaluation = isWhite ? alpha : beta;
+                parent.Evaluation = alpha;
                 parent.Depth = bestChild.Depth + 1;
                 parent.IsMate = bestChild.IsMate;
             }
@@ -190,15 +235,15 @@ namespace Charlie3
 
 
 
-        private async Task<bool> Quiesce(TreeNode parent, BoardState boardState, int alpha, int beta, int depth)
+        private async Task<(int eval, bool legal)> Quiesce(TreeNode parent, BoardState boardState, int alpha, int beta, int depth)
         {
             bool isWhite = boardState.ToMove == PieceColour.White;
 
             // Test if our opponent made a legal move to get here
             if (boardState.IsInCheck(isWhite ? PieceColour.Black : PieceColour.White))
             {
-                parent.Evaluation = isWhite ? int.MaxValue : int.MinValue;
-                return false;
+                parent.Evaluation = int.MaxValue;
+                return (parent.Evaluation, false);
             }
 
             var standPat = evaluator.Evaluate(boardState);
@@ -207,41 +252,37 @@ namespace Charlie3
             {
                 // Evaluate this node
                 parent.Evaluation = standPat;
-                return true;
+                return (parent.Evaluation, true);
             }
 
             // Alpha beta cutoff
-            if ((isWhite && standPat >= beta) ||
-                (!isWhite && standPat <= alpha))
+            if (standPat >= beta)
             {
                 parent.Evaluation = standPat;
-                return true;
+                return (parent.Evaluation, true);
             }
 
-            if (isWhite && standPat > alpha) alpha = standPat;
-            if (!isWhite && standPat < beta) beta = standPat;
+            if (standPat > alpha) alpha = standPat;
 
             // Test for 3-move repetition
             if (boardState.IsThreeMoveRepetition())
             {
                 parent.Evaluation = 0;
-                return true;
+                return (parent.Evaluation, true);
             }
 
             if (!parent.Children.Any())
             {
                 // Generate child nodes if not already there
-                var defaultEval = isWhite ? int.MinValue : int.MaxValue;
                 parent.Children = generator.GeneratePseudoLegalMoves(boardState)
-                                           .Select(m => new TreeNode(m, defaultEval)).ToList();
+                                           .Where(move => move.IsCapture(boardState))
+                                           .Select(m => new TreeNode(m, int.MinValue))
+                                           .ToList();
             }
             else
             {
                 // Sort the move list in order of best to worst
-                if (isWhite)
-                    parent.Children = parent.Children.OrderByDescending(c => c.Evaluation).ToList();
-                else
-                    parent.Children = parent.Children.OrderBy(c => c.Evaluation).ToList();
+                parent.Children = parent.Children.OrderByDescending(c => c.Evaluation).ToList();
             }
 
             var bestChild = parent.Children.FirstOrDefault();
@@ -252,7 +293,7 @@ namespace Charlie3
                 // We are only interested in captures here
                 if (!parent.Children[i].Move.IsCapture(boardState)) continue;
 
-                var legal = await Quiesce(parent.Children[i], boardState.MakeMove(parent.Children[i].Move), alpha, beta, depth - 1);
+                var (_, legal) = await Quiesce(parent.Children[i], boardState.MakeMove(parent.Children[i].Move), alpha, beta, depth - 1);
 
                 // Check if this was a legal move
                 if (!legal)
@@ -261,27 +302,18 @@ namespace Charlie3
                     continue;
                 }
 
-                if (isWhite && parent.Children[i].Evaluation > alpha)
+                if (parent.Children[i].Evaluation >= beta)
                 {
-                    if (parent.Children[i].Evaluation >= beta)
-                    {
-                        parent.Evaluation = parent.Children[i].Evaluation;
-                        return true;
-                    }
+                    parent.Evaluation = parent.Children[i].Evaluation;
+                    return (parent.Evaluation, true);
+                }
+
+                if (parent.Children[i].Evaluation > alpha)
+                {
                     alpha = parent.Children[i].Evaluation;
                 }
 
-                if (!isWhite && parent.Children[i].Evaluation < beta)
-                {
-                    if (parent.Children[i].Evaluation <= alpha)
-                    {
-                        parent.Evaluation = parent.Children[i].Evaluation;
-                        return true;
-                    }
-                    beta = parent.Children[i].Evaluation;
-                }
-
-                if (cancel) return true;
+                if (cancel) return (parent.Evaluation, true);
 
                 i++;
             }
@@ -291,7 +323,7 @@ namespace Charlie3
             {
                 if (boardState.IsInCheck(boardState.ToMove))
                 {
-                    parent.Evaluation = isWhite ? int.MinValue : int.MaxValue;
+                    parent.Evaluation = int.MinValue;
                 }
                 else
                 {
@@ -300,9 +332,10 @@ namespace Charlie3
             }
             else
             {
-                parent.Evaluation = isWhite ? alpha : beta;
+                parent.Evaluation = alpha;
             }
-            return true;
+
+            return (parent.Evaluation, true);
         }
     }
 }
