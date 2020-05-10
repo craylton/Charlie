@@ -77,8 +77,10 @@ namespace Charlie3
             cancel = true;
         }
 
-        private async Task<int> AlphaBeta2(BoardState boardState,int alpha,int beta,int depth,bool isRoot = false)
+        private async Task<int> AlphaBeta2(BoardState boardState, int alpha, int beta, int depth, bool isRoot = false)
         {
+            bool foundPv = false;
+
             if (depth == 0) return evaluator.Evaluate(boardState);
             if (boardState.IsThreeMoveRepetition()) return 0;
 
@@ -93,7 +95,18 @@ namespace Charlie3
 
             foreach (var move in moves)
             {
-                var eval = -await AlphaBeta2(boardState.MakeMove(move), -beta, -alpha, depth - 1);
+                int eval = 0;
+
+                if (foundPv)
+                {
+                    eval = -await AlphaBeta2(boardState.MakeMove(move), -alpha - 1, -alpha, depth - 1);
+                    if (eval > alpha && eval < beta)
+                        eval = -await AlphaBeta2(boardState.MakeMove(move), -beta, -alpha, depth - 1);
+                }
+                else
+                {
+                    eval = -await AlphaBeta2(boardState.MakeMove(move), -beta, -alpha, depth - 1);
+                }
 
                 if (eval >= beta)
                 {
@@ -104,6 +117,7 @@ namespace Charlie3
                 {
                     if (isRoot) bestNode = new TreeNode(move, eval);
                     alpha = eval;
+                    foundPv = true;
                 }
 
                 if (cancel) break;
