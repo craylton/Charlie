@@ -77,12 +77,7 @@ namespace Charlie3
             cancel = true;
         }
 
-        private async Task<int> AlphaBeta2(
-            BoardState boardState,
-            int alpha,
-            int beta,
-            int depth,
-            bool isRoot = false)
+        private async Task<int> AlphaBeta2(BoardState boardState,int alpha,int beta,int depth,bool isRoot = false)
         {
             if (depth == 0) return evaluator.Evaluate(boardState);
             if (boardState.IsThreeMoveRepetition()) return 0;

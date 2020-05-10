@@ -31,10 +31,8 @@ namespace Charlie3
             return moves;
         }
 
-        public List<Move> GenerateLegalMoves(BoardState board)
-        {
-            return TrimIllegalMoves(GeneratePseudoLegalMoves(board), board);
-        }
+        public List<Move> GenerateLegalMoves(BoardState board) =>
+            TrimIllegalMoves(GeneratePseudoLegalMoves(board), board);
 
         public List<Move> TrimIllegalMoves(List<Move> moves, BoardState board)
         {
@@ -271,7 +269,7 @@ namespace Charlie3
             {
                 // If can short castle
                 if ((board.CastleRules & 0b0100) != 0 &&
-                    (board.BitBoard.Occupied & (ChessBoard.SquareF8| ChessBoard.SquareG8)) == 0 &&
+                    (board.BitBoard.Occupied & (ChessBoard.SquareF8 | ChessBoard.SquareG8)) == 0 &&
                     (board.BitBoard.BlackRook & ChessBoard.SquareH8) != 0 &&
                     !board.IsInCheck(PieceColour.Black) &&
                     !board.IsUnderAttack(king >> 1, PieceColour.White) &&
@@ -282,7 +280,7 @@ namespace Charlie3
 
                 // If can long castle
                 if ((board.CastleRules & 0b1000) != 0 &&
-                    (board.BitBoard.Occupied & (ChessBoard.SquareB8| ChessBoard.SquareC8| ChessBoard.SquareD8)) == 0 &&
+                    (board.BitBoard.Occupied & (ChessBoard.SquareB8 | ChessBoard.SquareC8 | ChessBoard.SquareD8)) == 0 &&
                     (board.BitBoard.BlackRook & ChessBoard.SquareA8) != 0 &&
                     !board.IsInCheck(PieceColour.Black) &&
                     !board.IsUnderAttack(king << 1, PieceColour.White) &&

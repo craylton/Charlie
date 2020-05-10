@@ -159,7 +159,7 @@ namespace Charlie3
                 if ((board.BitBoard.BlackKnight & thisSquare) != 0) blackScore += knightValues[63 - i];
                 if ((board.BitBoard.BlackBishop & thisSquare) != 0) blackScore += bishopValues[63 - i];
                 if ((board.BitBoard.BlackRook & thisSquare) != 0) blackScore += rookValues[63 - i];
-                if ((board.BitBoard.BlackQueen & thisSquare) != 0) blackScore += queenValues[63 - i];
+                if ((board.BitBoard.BlackQueen & thisSquare) != 0)
                 {
                     blackScore += isOpening ? openingQueenValues[63 - i] : queenValues[63 - i];
                 }
