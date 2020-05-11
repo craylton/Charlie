@@ -36,19 +36,35 @@ namespace Charlie3
 
             Move bestMove = default;
             Move[] pv, prevPv;
-            int eval = DrawScore, depth = 0;
+            int eval = DrawScore, depth = 1;
+            int alpha = NegativeInfinityScore, beta = InfinityScore;
 
             while (!cancel)
             {
-                pv = new Move[++depth];
-                eval = await AlphaBeta(currentBoard, NegativeInfinityScore, InfinityScore, depth, pv, bestMove);
+                pv = new Move[depth];
+                eval = await AlphaBeta(currentBoard, alpha, beta, depth, pv, bestMove);
 
                 if (cancel) break;
+
+                if (eval <= alpha)
+                {
+                    alpha = NegativeInfinityScore;
+                    continue;
+                }
+                else if (eval >= beta)
+                {
+                    beta = InfinityScore;
+                    continue;
+                }
 
                 prevPv = pv.Reverse().TakeWhile(move => !move.Equals(default(Move))).ToArray();
                 bestMove = prevPv[0];
 
                 BestMoveChanged?.Invoke(this, new MoveInfo(depth, prevPv, eval));
+
+                alpha = eval - 100;
+                beta = eval + 100;
+                depth++;
             }
 
             BestMoveFound?.Invoke(this, bestMove);
