@@ -1,4 +1,5 @@
 ﻿using Charlie3.Enums;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -74,5 +75,17 @@ namespace Charlie3
         }
 
         public bool IsCapture(BoardState board) => (board.BitBoard.Occupied & FromCell) != 0;
+
+        public override bool Equals(object obj) =>
+            obj is Move move &&
+            FromCell == move.FromCell &&
+            ToCell == move.ToCell &&
+            IsEnPassant == move.IsEnPassant &&
+            IsCastle == move.IsCastle &&
+            IsDoublePush == move.IsDoublePush &&
+            PromotionType == move.PromotionType;
+
+        public override int GetHashCode() =>
+            HashCode.Combine(FromCell, ToCell, IsEnPassant, IsCastle, IsDoublePush, PromotionType);
     }
 }
