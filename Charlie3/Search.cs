@@ -41,7 +41,7 @@ namespace Charlie3
             while (!cancel)
             {
                 pv = new Move[++depth];
-                eval = await AlphaBeta(currentBoard, NegativeInfinityScore, InfinityScore, depth, pv);
+                eval = await AlphaBeta(currentBoard, NegativeInfinityScore, InfinityScore, depth, pv, bestMove);
 
                 if (cancel) break;
 
@@ -60,7 +60,7 @@ namespace Charlie3
             cancel = true;
         }
 
-        private async Task<int> AlphaBeta(BoardState boardState, int alpha, int beta, int depth, Move[] pv)
+        private async Task<int> AlphaBeta(BoardState boardState, int alpha, int beta, int depth, Move[] pv, Move pvMove)
         {
             bool foundPv = false;
 
@@ -68,6 +68,7 @@ namespace Charlie3
             if (boardState.IsThreeMoveRepetition()) return DrawScore;
 
             var moves = generator.GenerateLegalMoves(boardState);
+            moves.MoveToFront(pvMove);
 
             if (!moves.Any())
             {
@@ -84,14 +85,14 @@ namespace Charlie3
 
                 if (foundPv)
                 {
-                    eval = -await AlphaBeta(newBoardState, -alpha - 1, -alpha, depth - 1, localPv);
+                    eval = -await AlphaBeta(newBoardState, -alpha - 1, -alpha, depth - 1, localPv, default);
 
                     if (eval > alpha && eval < beta)
-                        eval = -await AlphaBeta(newBoardState, -beta, -alpha, depth - 1, localPv);
+                        eval = -await AlphaBeta(newBoardState, -beta, -alpha, depth - 1, localPv, default);
                 }
                 else
                 {
-                    eval = -await AlphaBeta(newBoardState, -beta, -alpha, depth - 1, localPv);
+                    eval = -await AlphaBeta(newBoardState, -beta, -alpha, depth - 1, localPv, default);
                 }
 
                 if (cancel) break;
