@@ -64,6 +64,7 @@ namespace Charlie3
         {
             bool foundPv = false;
 
+            //if (depth == 0) return await Quiesce(boardState, alpha, beta);
             if (depth == 0) return evaluator.Evaluate(boardState);
             if (boardState.IsThreeMoveRepetition()) return DrawScore;
 
@@ -116,112 +117,27 @@ namespace Charlie3
             return alpha;
         }
 
+        private async Task<int> Quiesce(BoardState boardState, int alpha, int beta)
+        {
+            var eval = evaluator.Evaluate(boardState);
 
+            if (eval >= beta) return beta;
+            if (eval > alpha) alpha = eval;
 
+            var moves = generator.GenerateLegalMoves(boardState)
+                                 .Where(move => move.IsCapture(boardState));
 
+            foreach (var move in moves)
+            {
+                var newBoardState = boardState.MakeMove(move); ;
 
+                eval = -await Quiesce(newBoardState, -beta, -alpha);
 
-        //private async Task<(int eval, bool legal)> Quiesce(TreeNode parent, BoardState boardState, int alpha, int beta, int depth)
-        //{
-        //    bool isWhite = boardState.ToMove == PieceColour.White;
+                if (eval >= beta) return beta;
+                if (eval > alpha) alpha = eval;
+            }
 
-        //    // Test if our opponent made a legal move to get here
-        //    if (boardState.IsInCheck(isWhite ? PieceColour.Black : PieceColour.White))
-        //    {
-        //        parent.Evaluation = int.MaxValue;
-        //        return (parent.Evaluation, false);
-        //    }
-
-        //    var standPat = evaluator.Evaluate(boardState);
-
-        //    if (depth == 0)
-        //    {
-        //        // Evaluate this node
-        //        parent.Evaluation = standPat;
-        //        return (parent.Evaluation, true);
-        //    }
-
-        //    // Alpha beta cutoff
-        //    if (standPat >= beta)
-        //    {
-        //        parent.Evaluation = standPat;
-        //        return (parent.Evaluation, true);
-        //    }
-
-        //    if (standPat > alpha) alpha = standPat;
-
-        //    // Test for 3-move repetition
-        //    if (boardState.IsThreeMoveRepetition())
-        //    {
-        //        parent.Evaluation = 0;
-        //        return (parent.Evaluation, true);
-        //    }
-
-        //    if (!parent.Children.Any())
-        //    {
-        //        // Generate child nodes if not already there
-        //        parent.Children = generator.GeneratePseudoLegalMoves(boardState)
-        //                                   .Where(move => move.IsCapture(boardState))
-        //                                   .Select(m => new TreeNode(m, int.MinValue))
-        //                                   .ToList();
-        //    }
-        //    else
-        //    {
-        //        // Sort the move list in order of best to worst
-        //        parent.Children = parent.Children.OrderByDescending(c => c.Evaluation).ToList();
-        //    }
-
-        //    var bestChild = parent.Children.FirstOrDefault();
-
-        //    int i = 0;
-        //    while (i < parent.Children.Count)
-        //    {
-        //        // We are only interested in captures here
-        //        if (!parent.Children[i].Move.IsCapture(boardState)) continue;
-
-        //        var (_, legal) = await Quiesce(parent.Children[i], boardState.MakeMove(parent.Children[i].Move), alpha, beta, depth - 1);
-
-        //        // Check if this was a legal move
-        //        if (!legal)
-        //        {
-        //            parent.Children.RemoveAt(i);
-        //            continue;
-        //        }
-
-        //        if (parent.Children[i].Evaluation >= beta)
-        //        {
-        //            parent.Evaluation = parent.Children[i].Evaluation;
-        //            return (parent.Evaluation, true);
-        //        }
-
-        //        if (parent.Children[i].Evaluation > alpha)
-        //        {
-        //            alpha = parent.Children[i].Evaluation;
-        //        }
-
-        //        if (cancel) return (parent.Evaluation, true);
-
-        //        i++;
-        //    }
-
-        //    // Test for checkmate / stalemate
-        //    if (!parent.Children.Any())
-        //    {
-        //        if (boardState.IsInCheck(boardState.ToMove))
-        //        {
-        //            parent.Evaluation = int.MinValue;
-        //        }
-        //        else
-        //        {
-        //            parent.Evaluation = 0;
-        //        }
-        //    }
-        //    else
-        //    {
-        //        parent.Evaluation = alpha;
-        //    }
-
-        //    return (parent.Evaluation, true);
-        //}
+            return alpha;
+        }
     }
 }

@@ -74,7 +74,7 @@ namespace Charlie3
             return matches.FirstOrDefault();
         }
 
-        public bool IsCapture(BoardState board) => (board.BitBoard.Occupied & FromCell) != 0;
+        public bool IsCapture(BoardState board) => (board.BitBoard.Occupied & ToCell) != 0;
 
         public override bool Equals(object obj) =>
             obj is Move move &&
