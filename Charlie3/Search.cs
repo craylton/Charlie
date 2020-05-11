@@ -80,8 +80,7 @@ namespace Charlie3
         {
             bool foundPv = false;
 
-            //if (depth == 0) return await Quiesce(boardState, alpha, beta);
-            if (depth == 0) return evaluator.Evaluate(boardState);
+            if (depth == 0) return await Quiesce(boardState, alpha, beta);
             if (boardState.IsThreeMoveRepetition()) return DrawScore;
 
             var moves = generator.GenerateLegalMoves(boardState);
