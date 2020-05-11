@@ -38,22 +38,24 @@ namespace Charlie3
             var root = new TreeNode(default, default);
 
             Move bestMove = default;
-            int eval = 0;
-            int depth = 0;
+            Move[] pv, prevPv;
+            int eval = 0, depth = 0;
 
             while (!cancel)
             {
-                if (depth > 0)
-                {
-                    bestMove = bestNode.Move;
-                    var bestMoveInfo = new MoveInfo(depth, new List<Move> { bestMove }, eval, bestNode.IsMate);
-                    BestMoveChanged?.Invoke(this, bestMoveInfo);
-                }
-
                 depth++;
+                pv = new Move[depth];
 
-                //var (pv, _) = await AlphaBeta2(root, currentBoard, int.MinValue, int.MaxValue, depth, true);
-                eval = await AlphaBeta2(currentBoard, int.MinValue + 10, int.MaxValue - 10, depth, true);
+                //var (pv, _) = await AlphaBeta(root, currentBoard, int.MinValue, int.MaxValue, depth, true);
+                eval = await AlphaBeta2(currentBoard, int.MinValue + 10, int.MaxValue - 10, depth, pv);
+
+                if (cancel) break;
+
+                prevPv = pv.Reverse().ToArray();
+                bestMove = prevPv[0];
+                var bestMoveInfo = new MoveInfo(depth, prevPv.ToList(), eval);
+                BestMoveChanged?.Invoke(this, bestMoveInfo);
+
 
                 //if (pv.Any())
                 //{
@@ -77,7 +79,7 @@ namespace Charlie3
             cancel = true;
         }
 
-        private async Task<int> AlphaBeta2(BoardState boardState, int alpha, int beta, int depth, bool isRoot = false)
+        private async Task<int> AlphaBeta2(BoardState boardState, int alpha, int beta, int depth, Move[] pv)
         {
             bool foundPv = false;
 
@@ -95,29 +97,31 @@ namespace Charlie3
 
             foreach (var move in moves)
             {
+                Move[] localPv = new Move[depth-1];
+
                 int eval = 0;
 
                 if (foundPv)
                 {
-                    eval = -await AlphaBeta2(boardState.MakeMove(move), -alpha - 1, -alpha, depth - 1);
+                    eval = -await AlphaBeta2(boardState.MakeMove(move), -alpha - 1, -alpha, depth - 1, localPv);
                     if (eval > alpha && eval < beta)
-                        eval = -await AlphaBeta2(boardState.MakeMove(move), -beta, -alpha, depth - 1);
+                        eval = -await AlphaBeta2(boardState.MakeMove(move), -beta, -alpha, depth - 1, localPv);
                 }
                 else
                 {
-                    eval = -await AlphaBeta2(boardState.MakeMove(move), -beta, -alpha, depth - 1);
+                    eval = -await AlphaBeta2(boardState.MakeMove(move), -beta, -alpha, depth - 1, localPv);
                 }
 
                 if (eval >= beta)
                 {
-                    if (isRoot) bestNode = new TreeNode(move, eval);
                     return beta;
                 }
                 if (eval > alpha)
                 {
-                    if (isRoot) bestNode = new TreeNode(move, eval);
                     alpha = eval;
                     foundPv = true;
+                    localPv.CopyTo(pv, 0);
+                    pv[depth - 1] = move;
                 }
 
                 if (cancel) break;
