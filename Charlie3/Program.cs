@@ -67,17 +67,20 @@ namespace Charlie3
                 {
                     sw = Stopwatch.StartNew();
                     var @params = input.Split(' ');
-                    int timeMs = -1;
+                    MoveTimeInfo timeInfo = new MoveTimeInfo(0, 0, true);
 
                     if (@params.Length >= 5)
                     {
+                        int whiteTime = int.Parse(@params[2]);
+                        int blackTime = int.Parse(@params[4]);
+
                         if (boardState.ToMove == PieceColour.White && @params[1] == "wtime")
-                            timeMs = int.Parse(@params[2]) / 25;
+                            timeInfo = new MoveTimeInfo(whiteTime / 30, whiteTime / 20, false);
                         else if (boardState.ToMove == PieceColour.Black && @params[3] == "btime")
-                            timeMs = int.Parse(@params[4]) / 25;
+                            timeInfo = new MoveTimeInfo(blackTime / 30, blackTime / 20, false);
                     }
 
-                    Task.Run(async () => await searcher.Start(boardState, timeMs));
+                    Task.Run(async () => await searcher.Start(boardState, timeInfo));
                 }
             }
         }

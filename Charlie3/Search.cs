@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Timers;
@@ -9,6 +10,7 @@ namespace Charlie3
     {
         private bool cancel;
         private readonly Timer timer = new Timer() { AutoReset = false };
+        private readonly Stopwatch sw = new Stopwatch();
 
         private const int InfinityScore = 1 << 24;
         private const int NegativeInfinityScore = -InfinityScore;
@@ -23,15 +25,15 @@ namespace Charlie3
 
         public Search() => timer.Elapsed += (s, e) => cancel = true;
 
-        public async Task Start(BoardState currentBoard, int timeMs)
+        public async Task Start(BoardState currentBoard, MoveTimeInfo timeInfo)
         {
             cancel = false;
 
-            // Negative time means infinite search
-            if (timeMs >= 0)
+            if (!timeInfo.IsAnalysis)
             {
-                timer.Interval = timeMs;
+                timer.Interval = timeInfo.MaxTime;
                 timer.Start();
+                sw.Start();
             }
 
             Move bestMove = default;
@@ -65,14 +67,18 @@ namespace Charlie3
                 alpha = eval - 100;
                 beta = eval + 100;
                 depth++;
+
+                if (!timeInfo.IsAnalysis && sw.ElapsedMilliseconds * 4 > timeInfo.IdealTime) break;
             }
 
+            Stop();
             BestMoveFound?.Invoke(this, bestMove);
         }
 
         public void Stop()
         {
             timer.Stop();
+            sw.Reset();
             cancel = true;
         }
 
