@@ -35,14 +35,14 @@ namespace Charlie3
             }
 
             Move bestMove = default;
-            Move[] pv, prevPv;
+            Move[] pv, prevPv = new Move[0];
             int eval = DrawScore, depth = 1;
             int alpha = NegativeInfinityScore, beta = InfinityScore;
 
             while (!cancel)
             {
                 pv = new Move[depth];
-                eval = await AlphaBeta(currentBoard, alpha, beta, depth, pv, bestMove);
+                eval = await AlphaBeta(currentBoard, alpha, beta, depth, pv, prevPv);
 
                 if (cancel) break;
 
@@ -57,7 +57,7 @@ namespace Charlie3
                     continue;
                 }
 
-                prevPv = pv.Reverse().TakeWhile(move => !move.Equals(default(Move))).ToArray();
+                prevPv = pv.Reverse().TakeWhile(move => move.IsValid()).ToArray();
                 bestMove = prevPv[0];
 
                 BestMoveChanged?.Invoke(this, new MoveInfo(depth, prevPv, eval));
@@ -76,7 +76,7 @@ namespace Charlie3
             cancel = true;
         }
 
-        private async Task<int> AlphaBeta(BoardState boardState, int alpha, int beta, int depth, Move[] pv, Move pvMove)
+        private async Task<int> AlphaBeta(BoardState boardState, int alpha, int beta, int depth, Move[] pv, Move[] pvMoves)
         {
             bool foundPv = false;
 
@@ -84,7 +84,8 @@ namespace Charlie3
             if (boardState.IsThreeMoveRepetition()) return DrawScore;
 
             var moves = generator.GenerateLegalMoves(boardState);
-            moves.MoveToFront(pvMove);
+            if (pvMoves.Length > 0)
+                moves.MoveToFront(pvMoves[0]);
 
             if (!moves.Any())
             {
@@ -95,36 +96,34 @@ namespace Charlie3
 
             foreach (var move in moves)
             {
-                Move[] localPv = new Move[depth - 1];
+                bool isPvMove = pvMoves.Length > 0 && pvMoves[0].Equals(move);
+                Move[] childPvMoves = isPvMove ? pvMoves[1..] : new Move[0];
+                Move[] pvBuffer = new Move[depth - 1];
+
                 int eval = DrawScore;
                 var newBoardState = boardState.MakeMove(move);
 
                 if (foundPv)
                 {
-                    eval = -await AlphaBeta(newBoardState, -alpha - 1, -alpha, depth - 1, localPv, default);
+                    eval = -await AlphaBeta(newBoardState, -alpha - 1, -alpha, depth - 1, pvBuffer, childPvMoves);
 
                     if (eval > alpha && eval < beta)
-                        eval = -await AlphaBeta(newBoardState, -beta, -alpha, depth - 1, localPv, default);
+                        eval = -await AlphaBeta(newBoardState, -beta, -alpha, depth - 1, pvBuffer, childPvMoves);
                 }
                 else
                 {
-                    eval = -await AlphaBeta(newBoardState, -beta, -alpha, depth - 1, localPv, default);
+                    eval = -await AlphaBeta(newBoardState, -beta, -alpha, depth - 1, pvBuffer, childPvMoves);
                 }
 
                 if (cancel) break;
 
-                if (eval >= beta)
-                {
-                    localPv.CopyTo(pv, 0);
-                    pv[depth - 1] = move;
-                    return beta;
-                }
+                if (eval >= beta) return beta;
 
                 if (eval > alpha)
                 {
                     alpha = eval;
                     foundPv = true;
-                    localPv.CopyTo(pv, 0);
+                    pvBuffer.CopyTo(pv, 0);
                     pv[depth - 1] = move;
                 }
             }
