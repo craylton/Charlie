@@ -1,4 +1,5 @@
 ﻿using Charlie3.Enums;
+using System;
 
 namespace Charlie3
 {
@@ -175,6 +176,45 @@ namespace Charlie3
             new[] { DefaultWhiteBishop, DefaultBlackBishop },
             new[] { DefaultWhiteKnight, DefaultBlackKnight },
             new[] { DefaultWhitePawn, DefaultBlackPawn });
+
+        public override bool Equals(object obj) =>
+            obj is BitBoard board &&
+            WhiteKing == board.WhiteKing &&
+            BlackKing == board.BlackKing &&
+            WhiteQueen == board.WhiteQueen &&
+            BlackQueen == board.BlackQueen &&
+            WhiteRook == board.WhiteRook &&
+            BlackRook == board.BlackRook &&
+            WhiteBishop == board.WhiteBishop &&
+            BlackBishop == board.BlackBishop &&
+            WhiteKnight == board.WhiteKnight &&
+            BlackKnight == board.BlackKnight &&
+            WhitePawn == board.WhitePawn &&
+            BlackPawn == board.BlackPawn &&
+            WhitePieces == board.WhitePieces &&
+            BlackPieces == board.BlackPieces &&
+            Occupied == board.Occupied;
+
+        public override int GetHashCode()
+        {
+            HashCode hash = new HashCode();
+            hash.Add(WhiteKing);
+            hash.Add(BlackKing);
+            hash.Add(WhiteQueen);
+            hash.Add(BlackQueen);
+            hash.Add(WhiteRook);
+            hash.Add(BlackRook);
+            hash.Add(WhiteBishop);
+            hash.Add(BlackBishop);
+            hash.Add(WhiteKnight);
+            hash.Add(BlackKnight);
+            hash.Add(WhitePawn);
+            hash.Add(BlackPawn);
+            hash.Add(WhitePieces);
+            hash.Add(BlackPieces);
+            hash.Add(Occupied);
+            return hash.ToHashCode();
+        }
 
         public ulong WhiteKing { get; }
         public ulong BlackKing { get; }
