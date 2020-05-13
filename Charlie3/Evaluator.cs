@@ -172,21 +172,26 @@ namespace Charlie3
             var whiteTerritory = whiteAttacks & ~blackAttacks;
             var blackTerritory = blackAttacks & ~whiteAttacks;
 
-            whiteScore += whiteTerritory.BitCount() * 5;
-            blackScore += blackTerritory.BitCount() * 5;
+            whiteScore += whiteAttacks.BitCount() * 5 + whiteTerritory.BitCount() * 10;
+            blackScore += blackAttacks.BitCount() * 5 + blackTerritory.BitCount() * 10;
 
             // Hanging pieces are worth half value
-            whiteScore -= (blackTerritory & board.BitBoard.WhitePawn).BitCount() * pawn / 2;
-            whiteScore -= (blackTerritory & board.BitBoard.WhiteKnight).BitCount() * knight / 2;
-            whiteScore -= (blackTerritory & board.BitBoard.WhiteBishop).BitCount() * bishop / 2;
-            whiteScore -= (blackTerritory & board.BitBoard.WhiteRook).BitCount() * rook / 2;
-            whiteScore -= (blackTerritory & board.BitBoard.WhiteQueen).BitCount() * queen / 2;
-
-            blackScore -= (whiteTerritory & board.BitBoard.BlackPawn).BitCount() * pawn / 2;
-            blackScore -= (whiteTerritory & board.BitBoard.BlackKnight).BitCount() * knight / 2;
-            blackScore -= (whiteTerritory & board.BitBoard.BlackBishop).BitCount() * bishop / 2;
-            blackScore -= (whiteTerritory & board.BitBoard.BlackRook).BitCount() * rook / 2;
-            blackScore -= (whiteTerritory & board.BitBoard.BlackQueen).BitCount() * queen / 2;
+            if (board.ToMove == PieceColour.Black)
+            {
+                whiteScore -= (blackTerritory & board.BitBoard.WhitePawn).BitCount() * pawn / 2;
+                whiteScore -= (blackTerritory & board.BitBoard.WhiteKnight).BitCount() * knight / 2;
+                whiteScore -= (blackTerritory & board.BitBoard.WhiteBishop).BitCount() * bishop / 2;
+                whiteScore -= (blackTerritory & board.BitBoard.WhiteRook).BitCount() * rook / 2;
+                whiteScore -= (blackTerritory & board.BitBoard.WhiteQueen).BitCount() * queen / 2;
+            }
+            else if (board.ToMove == PieceColour.White)
+            {
+                blackScore -= (whiteTerritory & board.BitBoard.BlackPawn).BitCount() * pawn / 2;
+                blackScore -= (whiteTerritory & board.BitBoard.BlackKnight).BitCount() * knight / 2;
+                blackScore -= (whiteTerritory & board.BitBoard.BlackBishop).BitCount() * bishop / 2;
+                blackScore -= (whiteTerritory & board.BitBoard.BlackRook).BitCount() * rook / 2;
+                blackScore -= (whiteTerritory & board.BitBoard.BlackQueen).BitCount() * queen / 2;
+            }
 
             for (int i = 0; i < ChessBoard.Files.Length; i++)
             {
