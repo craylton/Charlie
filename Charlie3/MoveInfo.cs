@@ -8,12 +8,10 @@ namespace Charlie3
         public IEnumerable<Move> Moves { get; }
         public int Evaluation { get; }
         public bool IsMate { get; }
+        public uint Time { get; }
+        public ulong Nodes { get; }
 
-        public MoveInfo(int depth, IEnumerable<Move> moves, int evaluation) :
-            this(depth, moves, evaluation, false)
-        { }
-
-        public MoveInfo(int depth, IEnumerable<Move> moves, int evaluation, bool isMate) : this() =>
-            (Depth, Moves, Evaluation, IsMate) = (depth, moves, evaluation, isMate);
+        public MoveInfo(int depth, IEnumerable<Move> moves, int evaluation, bool isMate, uint time, ulong nodes) =>
+            (Depth, Moves, Evaluation, IsMate, Time, Nodes) = (depth, moves, evaluation, isMate, time, nodes);
     }
 }

@@ -20,6 +20,8 @@ namespace Charlie3
         private readonly Evaluator evaluator = new Evaluator();
         private readonly MoveGenerator generator = new MoveGenerator();
 
+        private ulong nodesSearched;
+
         public event EventHandler<MoveInfo> BestMoveChanged;
         public event EventHandler<Move> BestMoveFound;
 
@@ -28,12 +30,13 @@ namespace Charlie3
         public async Task Start(BoardState currentBoard, MoveTimeInfo timeInfo)
         {
             cancel = false;
+            nodesSearched = 0;
+            sw.Start();
 
             if (!timeInfo.IsAnalysis)
             {
                 timer.Interval = timeInfo.MaxTime;
                 timer.Start();
-                sw.Start();
             }
 
             Move bestMove = default;
@@ -62,7 +65,8 @@ namespace Charlie3
                 prevPv = pv.Reverse().TakeWhile(move => move.IsValid()).ToArray();
                 bestMove = prevPv[0];
 
-                BestMoveChanged?.Invoke(this, new MoveInfo(depth, prevPv, eval));
+                var time = Convert.ToUInt32(sw.ElapsedMilliseconds);
+                BestMoveChanged?.Invoke(this, new MoveInfo(depth, prevPv, eval, false, time, nodesSearched));
 
                 alpha = eval - 100;
                 beta = eval + 100;
@@ -86,8 +90,17 @@ namespace Charlie3
         {
             bool foundPv = false;
 
-            if (depth == 0) return await Quiesce(boardState, alpha, beta);
-            if (boardState.IsThreeMoveRepetition()) return DrawScore;
+            if (depth == 0)
+            {
+                nodesSearched++;
+                return await Quiesce(boardState, alpha, beta);
+            }
+
+            if (boardState.IsThreeMoveRepetition())
+            {
+                nodesSearched++;
+                return DrawScore;
+            }
 
             var moves = generator.GenerateLegalMoves(boardState);
             if (pvMoves.Length > 0)
@@ -95,6 +108,7 @@ namespace Charlie3
 
             if (!moves.Any())
             {
+                nodesSearched++;
                 if (boardState.IsInCheck(boardState.ToMove))
                     return -MateScore;
                 else return DrawScore;

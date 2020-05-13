@@ -15,8 +15,6 @@ namespace Charlie3
         private static readonly MoveGenerator generator = new MoveGenerator();
         private static readonly Search searcher = new Search();
 
-        private static Stopwatch sw;
-
         private static void Main(string[] args)
         {
             searcher.BestMoveChanged += Searcher_BestMoveChanged;
@@ -66,7 +64,6 @@ namespace Charlie3
 
                 if (input.StartsWith("go"))
                 {
-                    sw = Stopwatch.StartNew();
                     var @params = input.Split(' ');
                     MoveTimeInfo timeInfo = new MoveTimeInfo(0, 0, true);
 
@@ -88,7 +85,6 @@ namespace Charlie3
 
         private static void Searcher_BestMoveFound(object sender, Move bestMove)
         {
-            sw.Stop();
             Console.WriteLine("bestmove " + bestMove.ToString());
             File.AppendAllLines("inputs.txt", new[] { "[BEST MOVE]: " + bestMove.ToString() });
         }
@@ -97,7 +93,8 @@ namespace Charlie3
         {
             var sb = new StringBuilder("info");
             sb.Append(" depth " + moveInfo.Depth);
-            sb.Append(" time " + sw.ElapsedMilliseconds);
+            sb.Append(" time " + moveInfo.Time);
+            sb.Append(" nodes " + moveInfo.Nodes);
             sb.Append(" pv " + string.Join(' ', moveInfo.Moves.Select(mi => mi.ToString())));
             if (moveInfo.IsMate)
                 sb.Append(" score mate " + (moveInfo.Evaluation < 0 ? "-" : "") + ((moveInfo.Depth + 1) / 2));
