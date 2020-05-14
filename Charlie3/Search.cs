@@ -27,7 +27,7 @@ namespace Charlie3
 
         public Search() => timer.Elapsed += (s, e) => cancel = true;
 
-        public async Task Start(BoardState currentBoard, MoveTimeInfo timeInfo)
+        public async Task Start(BoardState currentBoard, MoveTimeInfo timeInfo, int depthLimit)
         {
             cancel = false;
             nodesSearched = 0;
@@ -73,6 +73,7 @@ namespace Charlie3
                 depth++;
 
                 if (!timeInfo.IsAnalysis && sw.ElapsedMilliseconds * 4 > timeInfo.IdealTime) break;
+                if (depthLimit > 0 && depth > depthLimit) break;
             }
 
             Stop();

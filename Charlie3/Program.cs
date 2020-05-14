@@ -74,19 +74,21 @@ namespace Charlie3
                 {
                     var @params = input.Split(' ');
                     MoveTimeInfo timeInfo = new MoveTimeInfo(0, 0, true);
+                    int targetDepth = -1;
 
-                    if (@params.Length >= 5)
+                    if (@params.Length >= 3 && @params[1] == "depth")
+                        targetDepth = int.Parse(@params[2]);
+
+                    else if (@params.Length >= 5 && @params[1] == "wtime" && @params[3] == "btime")
                     {
                         int whiteTime = int.Parse(@params[2]);
                         int blackTime = int.Parse(@params[4]);
 
-                        if (boardState.ToMove == PieceColour.White && @params[1] == "wtime")
-                            timeInfo = new MoveTimeInfo(whiteTime / 30, whiteTime / 20, false);
-                        else if (boardState.ToMove == PieceColour.Black && @params[3] == "btime")
-                            timeInfo = new MoveTimeInfo(blackTime / 30, blackTime / 20, false);
+                        int timeAvailable = boardState.ToMove == PieceColour.White ? whiteTime : blackTime;
+                        timeInfo = new MoveTimeInfo(timeAvailable / 30, timeAvailable / 20, false);
                     }
 
-                    Task.Run(async () => await searcher.Start(boardState, timeInfo));
+                    Task.Run(async () => await searcher.Start(boardState, timeInfo, targetDepth));
                 }
             }
         }
