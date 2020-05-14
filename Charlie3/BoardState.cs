@@ -97,19 +97,8 @@ namespace Charlie3
         private ulong GetEnPassantFromFen(char enPassantFile, bool whiteToMove)
         {
             var rank = 8 * (whiteToMove ? 3 : 6);
-
-            return enPassantFile switch
-            {
-                'a' => 1ul << (rank - 1),
-                'b' => 1ul << (rank - 2),
-                'c' => 1ul << (rank - 3),
-                'd' => 1ul << (rank - 4),
-                'e' => 1ul << (rank - 5),
-                'f' => 1ul << (rank - 6),
-                'g' => 1ul << (rank - 7),
-                'h' => 1ul << (rank - 8),
-                _ => 0,
-            };
+            var file = enPassantFile - 'a';
+            return 1ul << (rank - file - 1);
         }
 
         private static byte GetCastlingRulesFromFen(string fenCastling)
