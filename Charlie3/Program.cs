@@ -1,7 +1,6 @@
 ﻿using Charlie3.Enums;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -15,16 +14,16 @@ namespace Charlie3
         private static readonly MoveGenerator generator = new MoveGenerator();
         private static readonly Search searcher = new Search();
 
-        private static void Main(string[] args)
+        private static async Task Main(string[] args)
         {
             searcher.BestMoveChanged += Searcher_BestMoveChanged;
-            searcher.BestMoveFound += Searcher_BestMoveFound;
+            searcher.SearchComplete += Searcher_SearchComplete;
 
             while (true)
             {
                 var input = Console.ReadLine();
-
                 File.AppendAllLines("inputs.txt", new[] { input });
+                var @params = input.Split(' ');
 
                 switch (input)
                 {
@@ -43,9 +42,8 @@ namespace Charlie3
                         return;
                 }
 
-                if (input.StartsWith("position"))
+                if (@params[0] == "position")
                 {
-                    var @params = input.Split(' ');
                     var movesIndicatorIndex = 0;
 
                     if (@params.Length > 1 && @params[1] == "startpos")
@@ -70,9 +68,8 @@ namespace Charlie3
                     }
                 }
 
-                if (input.StartsWith("go"))
+                if (@params[0] == "go")
                 {
-                    var @params = input.Split(' ');
                     MoveTimeInfo timeInfo = new MoveTimeInfo(0, 0, true);
                     int targetDepth = -1;
 
@@ -88,15 +85,26 @@ namespace Charlie3
                         timeInfo = new MoveTimeInfo(timeAvailable / 30, timeAvailable / 20, false);
                     }
 
-                    Task.Run(async () => await searcher.Start(boardState, timeInfo, targetDepth));
+                    await searcher.Start(boardState, timeInfo, targetDepth);
+                }
+
+                if (@params[0] == "bench")
+                {
+                    int targetDepth = 3;
+
+                    if (@params.Length >= 2 && @params[1] == "depth")
+                        targetDepth = int.Parse(@params[2]);
+
+                    Bench bench = new Bench();
+                    await bench.BenchTest(searcher, targetDepth);
                 }
             }
         }
 
-        private static void Searcher_BestMoveFound(object sender, Move bestMove)
+        private static void Searcher_SearchComplete(object sender, SearchResults results)
         {
-            Console.WriteLine("bestmove " + bestMove.ToString());
-            File.AppendAllLines("inputs.txt", new[] { "[BEST MOVE]: " + bestMove.ToString() });
+            Console.WriteLine("bestmove " + results.BestMove.ToString());
+            File.AppendAllLines("inputs.txt", new[] { "[BEST MOVE]: " + results.BestMove.ToString() });
         }
 
         private static void Searcher_BestMoveChanged(object sender, MoveInfo moveInfo)

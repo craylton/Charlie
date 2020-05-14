@@ -23,7 +23,7 @@ namespace Charlie3
         private ulong nodesSearched;
 
         public event EventHandler<MoveInfo> BestMoveChanged;
-        public event EventHandler<Move> BestMoveFound;
+        public event EventHandler<SearchResults> SearchComplete;
 
         public Search() => timer.Elapsed += (s, e) => cancel = true;
 
@@ -65,8 +65,8 @@ namespace Charlie3
                 prevPv = pv.Reverse().TakeWhile(move => move.IsValid()).ToArray();
                 bestMove = prevPv[0];
 
-                var time = Convert.ToUInt32(sw.ElapsedMilliseconds);
-                BestMoveChanged?.Invoke(this, new MoveInfo(depth, prevPv, eval, false, time, nodesSearched));
+                var moveInfo = new MoveInfo(depth, prevPv, eval, false, sw.ElapsedMilliseconds, nodesSearched);
+                BestMoveChanged?.Invoke(this, moveInfo);
 
                 alpha = eval - 100;
                 beta = eval + 100;
@@ -76,8 +76,8 @@ namespace Charlie3
                 if (depthLimit > 0 && depth > depthLimit) break;
             }
 
+            SearchComplete?.Invoke(this, new SearchResults(bestMove, nodesSearched, sw.ElapsedMilliseconds));
             Stop();
-            BestMoveFound?.Invoke(this, bestMove);
         }
 
         public void Stop()
