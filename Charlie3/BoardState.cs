@@ -20,10 +20,12 @@ namespace Charlie3
         public PieceColour ToMove { get; }
 
         public BoardState() : this(
-                new List<int>(),
-                BitBoard.GetDefault(),
-                PieceColour.White,
-                0b_00001111, 0, 0)
+            new List<int>(),
+            BitBoard.GetDefault(),
+            PieceColour.White,
+            0b_00001111,
+            0,
+            0)
         {
         }
 
@@ -62,6 +64,74 @@ namespace Charlie3
                 whiteEnPassant,
                 blackEnPassant)
         {
+        }
+
+        public BoardState(string[] fenElements)
+        {
+            var pieces = fenElements[0];
+            var toMove = fenElements[1];
+            var castlingRules = fenElements[2];
+            var enPassant = fenElements[3];
+            var fiftyMoveRule = fenElements[4];
+            var numberOfMoves = fenElements[5];
+
+            BitBoard = new BitBoard(pieces);
+            CastleRules = GetCastlingRulesFromFen(castlingRules);
+            ToMove = toMove == "w" ? PieceColour.White : PieceColour.Black;
+
+            if (enPassant == "-")
+            {
+                WhiteEnPassant = BlackEnPassant = 0;
+            }
+            else
+            {
+                if (ToMove == PieceColour.White)
+                    WhiteEnPassant = GetEnPassantFromFen(enPassant[0], true);
+                else
+                    BlackEnPassant = GetEnPassantFromFen(enPassant[0], false);
+            }
+
+            this.previousStates = new List<int>();
+        }
+
+        private ulong GetEnPassantFromFen(char enPassantFile, bool whiteToMove)
+        {
+            var rank = 8 * (whiteToMove ? 3 : 6);
+
+            return enPassantFile switch
+            {
+                'a' => 1ul << (rank - 1),
+                'b' => 1ul << (rank - 2),
+                'c' => 1ul << (rank - 3),
+                'd' => 1ul << (rank - 4),
+                'e' => 1ul << (rank - 5),
+                'f' => 1ul << (rank - 6),
+                'g' => 1ul << (rank - 7),
+                'h' => 1ul << (rank - 8),
+                _ => 0,
+            };
+        }
+
+        private static byte GetCastlingRulesFromFen(string fenCastling)
+        {
+            byte castlingRules = 0;
+
+            if (fenCastling != "-")
+            {
+                foreach (char c in fenCastling)
+                {
+                    if (c == 'K')
+                        castlingRules |= 0b0000_0001;
+                    if (c == 'Q')
+                        castlingRules |= 0b0000_0010;
+                    if (c == 'k')
+                        castlingRules |= 0b0000_0100;
+                    if (c == 'q')
+                        castlingRules |= 0b0000_1000;
+                }
+            }
+
+            return castlingRules;
         }
 
         public BoardState MakeMove(Move move)

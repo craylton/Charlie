@@ -169,6 +169,67 @@ namespace Charlie3
             if ((oldBb.BlackPawn & move.FromCell) != 0) BlackPawn |= move.ToCell;
         }
 
+        public BitBoard(string fenPieces) : this()
+        {
+            int cell = 0;
+
+            for (int i = 0; i < fenPieces.Length; i++)
+            {
+                if (fenPieces[i] == '/')
+                    continue;
+
+                if (int.TryParse(fenPieces[i].ToString(), out int spaces))
+                {
+                    cell += spaces;
+                    continue;
+                }
+
+                ulong currentCell = 1ul << (cell + 7 - 2 * (cell % 8));
+
+                switch (fenPieces[i])
+                {
+                    case 'p':
+                        BlackPawn |= currentCell;
+                        break;
+                    case 'P':
+                        WhitePawn |= currentCell;
+                        break;
+                    case 'n':
+                        BlackKnight |= currentCell;
+                        break;
+                    case 'N':
+                        WhiteKnight |= currentCell;
+                        break;
+                    case 'b':
+                        BlackBishop |= currentCell;
+                        break;
+                    case 'B':
+                        WhiteBishop |= currentCell;
+                        break;
+                    case 'r':
+                        BlackRook |= currentCell;
+                        break;
+                    case 'R':
+                        WhiteRook |= currentCell;
+                        break;
+                    case 'q':
+                        BlackQueen |= currentCell;
+                        break;
+                    case 'Q':
+                        WhiteQueen |= currentCell;
+                        break;
+                    case 'k':
+                        BlackKing |= currentCell;
+                        break;
+                    case 'K':
+                        WhiteKing |= currentCell;
+                        break;
+                }
+
+                cell++;
+            }
+        }
+
         public static BitBoard GetDefault() => new BitBoard(
             new[] { DefaultWhiteKing, DefaultBlackKing },
             new[] { DefaultWhiteQueen, DefaultBlackQueen },

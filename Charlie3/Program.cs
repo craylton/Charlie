@@ -46,18 +46,26 @@ namespace Charlie3
                 if (input.StartsWith("position"))
                 {
                     var @params = input.Split(' ');
+                    var movesIndicatorIndex = 0;
+
                     if (@params.Length > 1 && @params[1] == "startpos")
                     {
                         boardState = new BoardState();
+                        movesIndicatorIndex = 2;
+                    }
+                    else if (@params.Length >= 8 && @params[1] == "fen")
+                    {
+                        boardState = new BoardState(@params[2..8]);
+                        movesIndicatorIndex = 8;
+                    }
 
-                        if (@params.Length > 3 && @params[2] == "moves")
+                    if (@params.Length > movesIndicatorIndex + 1 && @params[movesIndicatorIndex] == "moves")
+                    {
+                        foreach (var moveInput in @params[(movesIndicatorIndex + 1)..])
                         {
-                            for (int i = 3; i < @params.Length; i++)
-                            {
-                                List<Move> moves = generator.GenerateLegalMoves(boardState);
-                                Move move = Move.FromString(moves, @params[i]);
-                                boardState = boardState.MakeMove(move);
-                            }
+                            List<Move> moves = generator.GenerateLegalMoves(boardState);
+                            Move move = Move.FromString(moves, moveInput);
+                            boardState = boardState.MakeMove(move);
                         }
                     }
                 }
