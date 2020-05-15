@@ -72,22 +72,28 @@ namespace Charlie
 
                 if (@params[0] == "go")
                 {
-                    var searchTime = new SearchTime(0, 0, true);
-                    int targetDepth = -1;
+                    SearchTime searchTime = default;
+                    int targetDepth = default;
+                    var searchType = SearchType.Infinite;
 
                     if (@params.Length >= 3 && @params[1] == "depth")
+                    {
+                        searchType = SearchType.Depth;
                         targetDepth = int.Parse(@params[2]);
+                    }
 
                     else if (@params.Length >= 5 && @params[1] == "wtime" && @params[3] == "btime")
                     {
+                        searchType = SearchType.Time;
                         int whiteTime = int.Parse(@params[2]);
                         int blackTime = int.Parse(@params[4]);
 
                         int timeAvailable = boardState.ToMove == PieceColour.White ? whiteTime : blackTime;
-                        searchTime = new SearchTime(timeAvailable / 30, timeAvailable / 20, false);
+                        searchTime = new SearchTime(timeAvailable / 30, timeAvailable / 20);
                     }
 
-                    await searcher.Start(boardState, searchTime, targetDepth);
+                    var searchParameters = new SearchParameters(searchType, searchTime, targetDepth);
+                    _ = Task.Run(async () => await searcher.Start(boardState, searchParameters));
                 }
 
                 if (@params[0] == "bench")

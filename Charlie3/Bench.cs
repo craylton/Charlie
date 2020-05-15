@@ -62,12 +62,12 @@ namespace Charlie
         public async Task BenchTest(Searcher search, int targetDepth)
         {
             search.SearchComplete += Searcher_SearchComplete;
-            var searchTime = new SearchTime(0, 0, true);
+            var searchParameters = new SearchParameters(SearchType.Depth, default, targetDepth);
 
             foreach (string fen in TestFens)
             {
                 var boardState = new BoardState(fen.Split(' '));
-                await search.Start(boardState, searchTime, targetDepth);
+                await search.Start(boardState, searchParameters);
             }
 
             Console.WriteLine("Bench test complete");

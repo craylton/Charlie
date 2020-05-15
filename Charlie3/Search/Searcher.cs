@@ -30,15 +30,15 @@ namespace Charlie.Search
 
         public Searcher() => timer.Elapsed += (s, e) => cancel = true;
 
-        public async Task Start(BoardState currentBoard, SearchTime searchTime, int depthLimit)
+        public async Task Start(BoardState currentBoard, SearchParameters searchParameters)
         {
             cancel = false;
             nodesSearched = 0;
             sw.Start();
 
-            if (!searchTime.IsAnalysis)
+            if (searchParameters.SearchType == SearchType.Time)
             {
-                timer.Interval = searchTime.MaxTime;
+                timer.Interval = searchParameters.SearchTime.MaxTime;
                 timer.Start();
             }
 
@@ -75,8 +75,13 @@ namespace Charlie.Search
                 beta = eval + 100;
                 depth++;
 
-                if (!searchTime.IsAnalysis && sw.ElapsedMilliseconds * 4 > searchTime.IdealTime) break;
-                if (depthLimit > 0 && depth > depthLimit) break;
+                if (searchParameters.SearchType == SearchType.Time
+                    && sw.ElapsedMilliseconds * 4 > searchParameters.SearchTime.IdealTime)
+                    break;
+
+                if (searchParameters.SearchType == SearchType.Depth
+                    && depth > searchParameters.DepthLimit)
+                    break;
             }
 
             SearchComplete?.Invoke(this, new SearchResults(bestMove, nodesSearched, sw.ElapsedMilliseconds));
