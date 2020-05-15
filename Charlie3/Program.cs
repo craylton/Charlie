@@ -15,11 +15,13 @@ namespace Charlie
         private static BoardState boardState;
         private static readonly MoveGenerator generator = new MoveGenerator();
         private static readonly Searcher searcher = new Searcher();
+        private static readonly Bench bench = new Bench();
 
         private static async Task Main(string[] args)
         {
             searcher.BestMoveChanged += Searcher_BestMoveChanged;
             searcher.SearchComplete += Searcher_SearchComplete;
+            bench.BenchComplete += Bench_BenchComplete;
 
             while (true)
             {
@@ -103,7 +105,6 @@ namespace Charlie
                     if (@params.Length >= 2 && @params[1] == "depth")
                         targetDepth = int.Parse(@params[2]);
 
-                    var bench = new Bench();
                     await bench.BenchTest(searcher, targetDepth);
                 }
             }
@@ -128,6 +129,14 @@ namespace Charlie
                 sb.Append(" score cp " + moveInfo.Evaluation);
 
             Console.WriteLine(sb.ToString());
+        }
+
+        private static void Bench_BenchComplete(object sender, BenchResults results)
+        {
+            Console.WriteLine("Bench test complete");
+            Console.WriteLine("Nodes searched: " + results.NodesSearched);
+            Console.WriteLine("Time (ms): " + results.BenchTimeMs);
+            Console.WriteLine("Nodes per second: " + results.NodesPerSecond);
         }
     }
 }

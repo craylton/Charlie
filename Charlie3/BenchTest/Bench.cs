@@ -56,13 +56,17 @@ namespace Charlie
             "8/R7/2q5/8/6k1/8/1P5p/K6R w - - 0 124", // Draw
         };
 
-        private ulong nodesSearched = 0;
-        private long benchTimeMs = 0;
+        private ulong nodesSearched;
+        private ulong benchTimeMs;
+
+        public event EventHandler<BenchResults> BenchComplete;
 
         public async Task BenchTest(Searcher search, int targetDepth)
         {
             search.SearchComplete += Searcher_SearchComplete;
             var searchParameters = new SearchParameters(SearchType.Depth, default, targetDepth);
+            nodesSearched = 0;
+            benchTimeMs = 0;
 
             foreach (string fen in TestFens)
             {
@@ -70,18 +74,14 @@ namespace Charlie
                 await search.Start(boardState, searchParameters);
             }
 
-            Console.WriteLine("Bench test complete");
-            Console.WriteLine("Nodes searched: " + nodesSearched);
-            Console.WriteLine("Time (ms): " + benchTimeMs);
-            Console.WriteLine("Nodes per second: " + 1000 * nodesSearched / (ulong)benchTimeMs);
-
+            BenchComplete?.Invoke(this, new BenchResults(nodesSearched, benchTimeMs));
             search.SearchComplete -= Searcher_SearchComplete;
         }
 
         private void Searcher_SearchComplete(object sender, SearchResults results)
         {
             nodesSearched += results.NodesSearched;
-            benchTimeMs += results.TimeMs;
+            benchTimeMs += (ulong)results.TimeMs;
         }
     }
 }
