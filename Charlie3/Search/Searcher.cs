@@ -47,7 +47,7 @@ namespace Charlie.Search
             int eval = DrawScore, depth = 1;
             int alpha = NegativeInfinityScore, beta = InfinityScore;
 
-            while (!cancel)
+            while (true)
             {
                 pv = new Move[depth];
                 eval = await AlphaBeta(currentBoard, alpha, beta, depth, 0, pv, prevPv);
@@ -56,12 +56,12 @@ namespace Charlie.Search
 
                 if (eval <= alpha)
                 {
-                    alpha = NegativeInfinityScore;
+                    alpha -= 100;
                     continue;
                 }
                 else if (eval >= beta)
                 {
-                    beta = InfinityScore;
+                    beta += 100;
                     continue;
                 }
 
@@ -72,8 +72,8 @@ namespace Charlie.Search
                 var moveInfo = new MoveInfo(depth, prevPv, eval, isMate, sw.ElapsedMilliseconds, nodesSearched);
                 BestMoveChanged?.Invoke(this, moveInfo);
 
-                alpha = eval - 100;
-                beta = eval + 100;
+                alpha = eval - 30;
+                beta = eval + 30;
                 depth++;
 
                 if (searchParameters.SearchType == SearchType.Time)
@@ -84,6 +84,9 @@ namespace Charlie.Search
 
                 if (searchParameters.SearchType == SearchType.Depth
                     && depth > searchParameters.DepthLimit)
+                    break;
+
+                if (cancel)
                     break;
             }
 
