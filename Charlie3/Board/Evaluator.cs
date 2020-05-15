@@ -125,14 +125,14 @@
             bool isOpening = whiteMaterial + blackMaterial >= 6200;
             bool isEndgame = whiteMaterial + blackMaterial <= 3600;
 
-            var unoccupiedBb = ~board.BitBoard.Occupied;
+            ulong unoccupiedBb = ~board.BitBoard.Occupied;
 
             if (board.IsInPseudoCheck(PieceColour.White)) whiteScore += 25;
             if (board.IsInPseudoCheck(PieceColour.Black)) blackScore += 25;
 
             for (int i = 0; i < 64; i++)
             {
-                var thisSquare = 1ul << i;
+                ulong thisSquare = 1ul << i;
 
                 if (board.IsUnderAttack(thisSquare, PieceColour.White)) whiteAttacks |= thisSquare;
                 if (board.IsUnderAttack(thisSquare, PieceColour.Black)) blackAttacks |= thisSquare;
@@ -167,8 +167,8 @@
                 }
             }
 
-            var whiteTerritory = whiteAttacks & ~blackAttacks;
-            var blackTerritory = blackAttacks & ~whiteAttacks;
+            ulong whiteTerritory = whiteAttacks & ~blackAttacks;
+            ulong blackTerritory = blackAttacks & ~whiteAttacks;
 
             whiteScore += whiteAttacks.BitCount() * 5 + whiteTerritory.BitCount() * 10;
             blackScore += blackAttacks.BitCount() * 5 + blackTerritory.BitCount() * 10;

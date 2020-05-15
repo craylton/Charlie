@@ -68,12 +68,12 @@ namespace Charlie.Board
 
         public BoardState(string[] fenElements)
         {
-            var pieces = fenElements[0];
-            var toMove = fenElements[1];
-            var castlingRules = fenElements[2];
-            var enPassant = fenElements[3];
-            var fiftyMoveRule = fenElements[4];
-            var numberOfMoves = fenElements[5];
+            string pieces = fenElements[0];
+            string toMove = fenElements[1];
+            string castlingRules = fenElements[2];
+            string enPassant = fenElements[3];
+            string fiftyMoveRule = fenElements[4];
+            string numberOfMoves = fenElements[5];
 
             BitBoard = new BitBoard(pieces);
             CastleRules = GetCastlingRulesFromFen(castlingRules);
@@ -91,13 +91,13 @@ namespace Charlie.Board
                     BlackEnPassant = GetEnPassantFromFen(enPassant[0], false);
             }
 
-            this.previousStates = new List<int>();
+            previousStates = new List<int>();
         }
 
         private ulong GetEnPassantFromFen(char enPassantFile, bool whiteToMove)
         {
-            var rank = 8 * (whiteToMove ? 3 : 6);
-            var file = enPassantFile - 'a';
+            int rank = 8 * (whiteToMove ? 3 : 6);
+            int file = enPassantFile - 'a';
             return 1ul << (rank - file - 1);
         }
 
@@ -109,14 +109,10 @@ namespace Charlie.Board
             {
                 foreach (char c in fenCastling)
                 {
-                    if (c == 'K')
-                        castlingRules |= 0b0000_0001;
-                    if (c == 'Q')
-                        castlingRules |= 0b0000_0010;
-                    if (c == 'k')
-                        castlingRules |= 0b0000_0100;
-                    if (c == 'q')
-                        castlingRules |= 0b0000_1000;
+                    if (c == 'K') castlingRules |= 0b0000_0001;
+                    if (c == 'Q') castlingRules |= 0b0000_0010;
+                    if (c == 'k') castlingRules |= 0b0000_0100;
+                    if (c == 'q') castlingRules |= 0b0000_1000;
                 }
             }
 
@@ -127,6 +123,7 @@ namespace Charlie.Board
         {
             // Check if en passant will be possible next move
             ulong whiteEP = 0, blackEP = 0;
+
             if (move.IsDoublePush)
             {
                 // if white pushed
@@ -138,6 +135,7 @@ namespace Charlie.Board
 
             // Check if castling rules have changed
             byte castleRules = CastleRules;
+
             if ((BitBoard.WhiteRook & move.FromCell & Chessboard.SquareH1) != 0)
                 castleRules &= unchecked((byte)~0b_00000001);
 
@@ -169,10 +167,17 @@ namespace Charlie.Board
         internal bool IsThreeMoveRepetition()
         {
             int count = 0;
-            var thisHash = GetHashCode();
-            foreach (var state in previousStates)
+            int thisHash = GetHashCode();
+
+            foreach (int state in previousStates)
             {
-                if (state.Equals(thisHash) && ++count == 3) return true;
+                if (state.Equals(thisHash))
+                {
+                    count++;
+
+                    if (count == 3)
+                        return true;
+                }
             }
 
             return false;
@@ -193,7 +198,7 @@ namespace Charlie.Board
                 if (IsUnderImmediateAttack(BitBoard.WhiteKing, BitBoard.BlackKing, attacker)) return true;
                 if (IsUnderKnightAttack(BitBoard.WhiteKing, BitBoard.BlackKnight)) return true;
 
-                var cellIndex = BitBoard.WhiteKing.CountTrailingZeroes();
+                int cellIndex = BitBoard.WhiteKing.CountTrailingZeroes();
 
                 if ((Magics.BishopAttacks[cellIndex] & (BitBoard.BlackBishop | BitBoard.BlackQueen)) != 0) return true;
                 if ((Magics.RookAttacks[cellIndex] & (BitBoard.BlackRook | BitBoard.BlackQueen)) != 0) return true;
@@ -203,7 +208,7 @@ namespace Charlie.Board
                 if (IsUnderImmediateAttack(BitBoard.BlackKing, BitBoard.WhiteKing, attacker)) return true;
                 if (IsUnderKnightAttack(BitBoard.BlackKing, BitBoard.WhiteKnight)) return true;
 
-                var cellIndex = BitBoard.BlackKing.CountTrailingZeroes();
+                int cellIndex = BitBoard.BlackKing.CountTrailingZeroes();
 
                 if ((Magics.BishopAttacks[cellIndex] & (BitBoard.WhiteBishop | BitBoard.WhiteQueen)) != 0) return true;
                 if ((Magics.RookAttacks[cellIndex] & (BitBoard.WhiteRook | BitBoard.WhiteQueen)) != 0) return true;
@@ -262,7 +267,8 @@ namespace Charlie.Board
 
         private bool IsUnderRayAttack(ulong cell, ulong theirQueen, ulong theirRook, ulong theirBishop)
         {
-            var occupiedBb = BitBoard.Occupied;
+            ulong occupiedBb = BitBoard.Occupied;
+
             // scan up
             int distance = 0;
             while (((cell >> distance) & ~Chessboard.Rank8) != 0)
@@ -340,7 +346,7 @@ namespace Charlie.Board
 
         private bool IsUnderKnightAttack(ulong cell, ulong theirKnight)
         {
-            var cellIndex = cell.CountTrailingZeroes();
+            int cellIndex = cell.CountTrailingZeroes();
             return (Magics.KnightAttacks[cellIndex] & theirKnight) != 0;
         }
 

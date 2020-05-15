@@ -58,7 +58,7 @@ namespace Charlie.Moves
 
             for (int i = 0; i < 64; i++)
             {
-                var knight = knights & (1ul << i);
+                ulong knight = knights & (1ul << i);
                 if (knight == 0) continue;
 
                 bool up = (knight & ~Chessboard.Rank8) != 0,
@@ -99,7 +99,7 @@ namespace Charlie.Moves
 
             for (int i = 0; i < 64; i++)
             {
-                var rook = rooks & (1ul << i);
+                ulong rook = rooks & (1ul << i);
                 if (rook == 0) continue;
 
                 // scan up
@@ -107,7 +107,7 @@ namespace Charlie.Moves
                 while (((rook >> distance) & ~Chessboard.Rank8) != 0)
                 {
                     distance += 8;
-                    var newSq = rook >> distance;
+                    ulong newSq = rook >> distance;
                     if ((newSq & ~friendlyPieces) != 0) moves.Add(new Move(rook, newSq));
                     if ((newSq & board.BitBoard.Occupied) != 0) break;
                 }
@@ -117,7 +117,7 @@ namespace Charlie.Moves
                 while (((rook << distance) & ~Chessboard.Rank1) != 0)
                 {
                     distance += 8;
-                    var newSq = rook << distance;
+                    ulong newSq = rook << distance;
                     if ((newSq & ~friendlyPieces) != 0) moves.Add(new Move(rook, newSq));
                     if ((newSq & board.BitBoard.Occupied) != 0) break;
                 }
@@ -127,7 +127,7 @@ namespace Charlie.Moves
                 while (((rook >> distance) & ~Chessboard.HFile) != 0)
                 {
                     distance++;
-                    var newSq = rook >> distance;
+                    ulong newSq = rook >> distance;
                     if ((newSq & ~friendlyPieces) != 0) moves.Add(new Move(rook, newSq));
                     if ((newSq & board.BitBoard.Occupied) != 0) break;
                 }
@@ -137,7 +137,7 @@ namespace Charlie.Moves
                 while (((rook << distance) & ~Chessboard.AFile) != 0)
                 {
                     distance++;
-                    var newSq = rook << distance;
+                    ulong newSq = rook << distance;
                     if ((newSq & ~friendlyPieces) != 0) moves.Add(new Move(rook, newSq));
                     if ((newSq & board.BitBoard.Occupied) != 0) break;
                 }
@@ -152,7 +152,7 @@ namespace Charlie.Moves
 
             for (int i = 0; i < 64; i++)
             {
-                var bishop = bishops & (1ul << i);
+                ulong bishop = bishops & (1ul << i);
                 if (bishop == 0) continue;
 
                 // scan up right
@@ -160,7 +160,7 @@ namespace Charlie.Moves
                 while (((bishop >> distance) & ~Chessboard.Rank8 & ~Chessboard.HFile) != 0)
                 {
                     distance += 9;
-                    var newSq = bishop >> distance;
+                    ulong newSq = bishop >> distance;
                     if ((newSq & ~friendlyPieces) != 0) moves.Add(new Move(bishop, newSq));
                     if ((newSq & board.BitBoard.Occupied) != 0) break;
                 }
@@ -170,7 +170,7 @@ namespace Charlie.Moves
                 while (((bishop >> distance) & ~Chessboard.Rank8 & ~Chessboard.AFile) != 0)
                 {
                     distance += 7;
-                    var newSq = bishop >> distance;
+                    ulong newSq = bishop >> distance;
                     if ((newSq & ~friendlyPieces) != 0) moves.Add(new Move(bishop, newSq));
                     if ((newSq & board.BitBoard.Occupied) != 0) break;
                 }
@@ -180,7 +180,7 @@ namespace Charlie.Moves
                 while (((bishop << distance) & ~Chessboard.Rank1 & ~Chessboard.HFile) != 0)
                 {
                     distance += 7;
-                    var newSq = bishop << distance;
+                    ulong newSq = bishop << distance;
                     if ((newSq & ~friendlyPieces) != 0) moves.Add(new Move(bishop, newSq));
                     if ((newSq & board.BitBoard.Occupied) != 0) break;
                 }
@@ -190,7 +190,7 @@ namespace Charlie.Moves
                 while (((bishop << distance) & ~Chessboard.Rank1 & ~Chessboard.AFile) != 0)
                 {
                     distance += 9;
-                    var newSq = bishop << distance;
+                    ulong newSq = bishop << distance;
                     if ((newSq & ~friendlyPieces) != 0) moves.Add(new Move(bishop, newSq));
                     if ((newSq & board.BitBoard.Occupied) != 0) break;
                 }
@@ -298,14 +298,14 @@ namespace Charlie.Moves
         {
             var moves = new List<Move>();
 
-            var occupiedBb = board.BitBoard.Occupied;
-            var blackPiecesBb = board.BitBoard.BlackPieces;
-            var whitePiecesBb = board.BitBoard.WhitePieces;
+            ulong occupiedBb = board.BitBoard.Occupied;
+            ulong blackPiecesBb = board.BitBoard.BlackPieces;
+            ulong whitePiecesBb = board.BitBoard.WhitePieces;
 
             for (int i = 0; i < 64; i++)
             {
                 ulong b = (ulong)1 << i;
-                var pawn = pawns & b;
+                ulong pawn = pawns & b;
 
                 if (board.ToMove == PieceColour.White)
                 {

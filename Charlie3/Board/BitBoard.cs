@@ -18,6 +18,29 @@ namespace Charlie.Board
         private const ulong DefaultWhitePawn = Chessboard.Rank2;
         private const ulong DefaultBlackPawn = Chessboard.Rank7;
 
+        public ulong WhiteKing { get; }
+        public ulong BlackKing { get; }
+
+        public ulong WhiteQueen { get; }
+        public ulong BlackQueen { get; }
+
+        public ulong WhiteRook { get; }
+        public ulong BlackRook { get; }
+
+        public ulong WhiteBishop { get; }
+        public ulong BlackBishop { get; }
+
+        public ulong WhiteKnight { get; }
+        public ulong BlackKnight { get; }
+
+        public ulong WhitePawn { get; }
+        public ulong BlackPawn { get; }
+
+        public ulong WhitePieces => WhiteKing | WhiteQueen | WhiteRook | WhiteBishop | WhiteKnight | WhitePawn;
+        public ulong BlackPieces => BlackKing | BlackQueen | BlackRook | BlackBishop | BlackKnight | BlackPawn;
+
+        public ulong Occupied => WhitePieces | BlackPieces;
+
         private BitBoard(ulong[] kings, ulong[] queens, ulong[] rooks, ulong[] bishops, ulong[] knights, ulong[] pawns)
         {
             WhiteKing = kings[0];
@@ -84,7 +107,7 @@ namespace Charlie.Board
                 return;
             }
 
-            var squaresToKeep = ~move.FromCell & ~move.ToCell;
+            ulong squaresToKeep = ~move.FromCell & ~move.ToCell;
 
             // Remove all pieces from the 'From' square and the 'To' square
             WhiteKing &= squaresToKeep;
@@ -123,6 +146,7 @@ namespace Charlie.Board
             if (move.PromotionType != PromotionType.None)
             {
                 bool whitePromoted = (move.ToCell & Chessboard.Rank8) != 0;
+
                 switch (move.PromotionType)
                 {
                     case PromotionType.Queen when whitePromoted:
@@ -171,7 +195,7 @@ namespace Charlie.Board
 
         public BitBoard(string fenPieces) : this()
         {
-            int cell = 0;
+            var cell = 0;
 
             for (int i = 0; i < fenPieces.Length; i++)
             {
@@ -276,28 +300,5 @@ namespace Charlie.Board
             hash.Add(Occupied);
             return hash.ToHashCode();
         }
-
-        public ulong WhiteKing { get; }
-        public ulong BlackKing { get; }
-
-        public ulong WhiteQueen { get; }
-        public ulong BlackQueen { get; }
-
-        public ulong WhiteRook { get; }
-        public ulong BlackRook { get; }
-
-        public ulong WhiteBishop { get; }
-        public ulong BlackBishop { get; }
-
-        public ulong WhiteKnight { get; }
-        public ulong BlackKnight { get; }
-
-        public ulong WhitePawn { get; }
-        public ulong BlackPawn { get; }
-
-        public ulong WhitePieces => WhiteKing | WhiteQueen | WhiteRook | WhiteBishop | WhiteKnight | WhitePawn;
-        public ulong BlackPieces => BlackKing | BlackQueen | BlackRook | BlackBishop | BlackKnight | BlackPawn;
-
-        public ulong Occupied => WhitePieces | BlackPieces;
     }
 }

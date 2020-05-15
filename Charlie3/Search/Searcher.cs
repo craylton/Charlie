@@ -1,6 +1,7 @@
 ﻿using Charlie.Board;
 using Charlie.Moves;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -91,7 +92,7 @@ namespace Charlie.Search
 
         private async Task<int> AlphaBeta(BoardState boardState, int alpha, int beta, int depth, Move[] pv, Move[] pvMoves)
         {
-            bool foundPv = false;
+            var foundPv = false;
 
             if (depth == 0)
             {
@@ -105,7 +106,7 @@ namespace Charlie.Search
                 return DrawScore;
             }
 
-            var moves = generator.GenerateLegalMoves(boardState);
+            List<Move> moves = generator.GenerateLegalMoves(boardState);
             if (pvMoves.Length > 0)
                 moves.MoveToFront(pvMoves[0]);
 
@@ -117,14 +118,14 @@ namespace Charlie.Search
                 else return DrawScore;
             }
 
-            foreach (var move in moves)
+            foreach (Move move in moves)
             {
                 bool isPvMove = pvMoves.Length > 0 && pvMoves[0].Equals(move);
                 Move[] childPvMoves = isPvMove ? pvMoves[1..] : new Move[0];
-                Move[] pvBuffer = new Move[depth - 1];
+                var pvBuffer = new Move[depth - 1];
 
                 int eval = DrawScore;
-                var newBoardState = boardState.MakeMove(move);
+                BoardState newBoardState = boardState.MakeMove(move);
 
                 if (foundPv)
                 {
@@ -156,17 +157,17 @@ namespace Charlie.Search
 
         private async Task<int> Quiesce(BoardState boardState, int alpha, int beta)
         {
-            var eval = evaluator.Evaluate(boardState);
+            int eval = evaluator.Evaluate(boardState);
 
             if (eval >= beta) return beta;
             if (eval > alpha) alpha = eval;
 
-            var moves = generator.GenerateLegalMoves(boardState)
-                                 .Where(move => move.IsCapture(boardState));
+            IEnumerable<Move> moves = generator.GenerateLegalMoves(boardState)
+                                               .Where(move => move.IsCapture(boardState));
 
-            foreach (var move in moves)
+            foreach (Move move in moves)
             {
-                var newBoardState = boardState.MakeMove(move); ;
+                BoardState newBoardState = boardState.MakeMove(move); ;
 
                 eval = -await Quiesce(newBoardState, -beta, -alpha);
 

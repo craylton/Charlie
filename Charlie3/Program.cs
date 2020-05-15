@@ -23,9 +23,9 @@ namespace Charlie
 
             while (true)
             {
-                var input = Console.ReadLine();
+                string input = Console.ReadLine();
                 File.AppendAllLines("inputs.txt", new[] { input });
-                var @params = input.Split(' ');
+                string[] @params = input.Split(' ');
 
                 switch (input)
                 {
@@ -61,7 +61,7 @@ namespace Charlie
 
                     if (@params.Length > movesIndicatorIndex + 1 && @params[movesIndicatorIndex] == "moves")
                     {
-                        foreach (var moveInput in @params[(movesIndicatorIndex + 1)..])
+                        foreach (string moveInput in @params[(movesIndicatorIndex + 1)..])
                         {
                             List<Move> moves = generator.GenerateLegalMoves(boardState);
                             Move move = Move.FromString(moves, moveInput);
@@ -97,7 +97,7 @@ namespace Charlie
                     if (@params.Length >= 2 && @params[1] == "depth")
                         targetDepth = int.Parse(@params[2]);
 
-                    Bench bench = new Bench();
+                    var bench = new Bench();
                     await bench.BenchTest(searcher, targetDepth);
                 }
             }

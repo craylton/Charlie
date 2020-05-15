@@ -7,8 +7,6 @@ namespace Charlie.Moves
 {
     public readonly struct Move
     {
-        private static readonly char[] promotionSuffixes = new[] { '?', 'N', 'B', 'R', 'Q' };
-
         public ulong FromCell { get; }
 
         public ulong ToCell { get; }
@@ -38,13 +36,13 @@ namespace Charlie.Moves
 
         public override string ToString()
         {
-            var from = Chessboard.CellNames[FromCell.CountLeadingZeros()];
-            var to = Chessboard.CellNames[ToCell.CountLeadingZeros()];
+            string from = Chessboard.CellNames[FromCell.CountLeadingZeros()];
+            string to = Chessboard.CellNames[ToCell.CountLeadingZeros()];
 
             var promotion = string.Empty;
 
             if (PromotionType != PromotionType.None)
-                promotion = "=" + promotionSuffixes[(int)PromotionType];
+                promotion = "=" + PromotionType.GetSuffix();
 
             return $"{from}-{to}{promotion}";
         }
@@ -55,6 +53,7 @@ namespace Charlie.Moves
             var to = new string(new string(move.Take(4).ToArray()).TakeLast(2).ToArray());
 
             ulong fromCell = 0, toCell = 0;
+
             for (int i = 0; i < Chessboard.CellNames.Length; i++)
             {
                 if (from.ToUpper() == Chessboard.CellNames[i].ToUpper())
@@ -64,13 +63,13 @@ namespace Charlie.Moves
                     toCell = 1ul << (63 - i);
             }
 
-            var matches = possibleMoves.Where(m => m.FromCell == fromCell && m.ToCell == toCell);
+            IEnumerable<Move> matches = possibleMoves.Where(m => m.FromCell == fromCell && m.ToCell == toCell);
 
             // If it was a pawn promotion, there will be multiple matching moves
             if (matches.Count() > 1 && move.Length == 5)
             {
-                var promotion = move[4].ToString().ToUpper();
-                return matches.FirstOrDefault(m => promotionSuffixes[(int)m.PromotionType].ToString().ToUpper() == promotion);
+                string promotion = move[4].ToString().ToUpper();
+                return matches.FirstOrDefault(m => m.PromotionType.GetSuffix().ToUpper() == promotion);
             }
 
             return matches.FirstOrDefault();
