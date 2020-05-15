@@ -1,6 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using Charlie.Board;
+using System.Collections.Generic;
 
-namespace Charlie
+namespace Charlie.Moves
 {
     public class MoveGenerator
     {

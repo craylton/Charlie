@@ -1,4 +1,4 @@
-﻿namespace Charlie
+﻿namespace Charlie.Board
 {
     public class Evaluator
     {

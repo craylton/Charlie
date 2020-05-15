@@ -1,6 +1,7 @@
-﻿using System;
+﻿using Charlie.Moves;
+using System;
 
-namespace Charlie
+namespace Charlie.Board
 {
     public readonly struct BitBoard
     {

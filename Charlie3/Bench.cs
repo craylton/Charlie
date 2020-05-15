@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Charlie.Board;
+using Charlie.Search;
+using System;
 using System.Threading.Tasks;
 
 namespace Charlie
@@ -57,7 +59,7 @@ namespace Charlie
         private ulong nodesSearched = 0;
         private long benchTimeMs = 0;
 
-        public async Task BenchTest(Search search, int targetDepth)
+        public async Task BenchTest(Searcher search, int targetDepth)
         {
             search.SearchComplete += Searcher_SearchComplete;
             var searchTime = new SearchTime(0, 0, true);

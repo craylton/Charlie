@@ -1,4 +1,4 @@
-﻿namespace Charlie
+﻿namespace Charlie.Search
 {
     public readonly struct SearchTime
     {

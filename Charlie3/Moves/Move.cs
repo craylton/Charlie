@@ -1,8 +1,9 @@
-﻿using System;
+﻿using Charlie.Board;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Charlie
+namespace Charlie.Moves
 {
     public readonly struct Move
     {

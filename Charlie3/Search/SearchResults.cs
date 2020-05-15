@@ -1,4 +1,6 @@
-﻿namespace Charlie
+﻿using Charlie.Moves;
+
+namespace Charlie.Search
 {
     public readonly struct SearchResults
     {

@@ -1,7 +1,8 @@
-﻿using System;
+﻿using Charlie.Moves;
+using System;
 using System.Collections.Generic;
 
-namespace Charlie
+namespace Charlie.Board
 {
     public class BoardState
     {

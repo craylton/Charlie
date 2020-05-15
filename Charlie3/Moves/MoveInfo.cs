@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Charlie
+namespace Charlie.Moves
 {
     public readonly struct MoveInfo
     {

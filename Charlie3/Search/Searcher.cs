@@ -1,12 +1,14 @@
-﻿using System;
+﻿using Charlie.Board;
+using Charlie.Moves;
+using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Timers;
 
-namespace Charlie
+namespace Charlie.Search
 {
-    public class Search
+    public class Searcher
     {
         private bool cancel;
         private readonly Timer timer = new Timer() { AutoReset = false };
@@ -25,7 +27,7 @@ namespace Charlie
         public event EventHandler<MoveInfo> BestMoveChanged;
         public event EventHandler<SearchResults> SearchComplete;
 
-        public Search() => timer.Elapsed += (s, e) => cancel = true;
+        public Searcher() => timer.Elapsed += (s, e) => cancel = true;
 
         public async Task Start(BoardState currentBoard, SearchTime searchTime, int depthLimit)
         {

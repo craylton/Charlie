@@ -1,4 +1,7 @@
-﻿using System;
+﻿using Charlie.Board;
+using Charlie.Moves;
+using Charlie.Search;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -11,7 +14,7 @@ namespace Charlie
     {
         private static BoardState boardState;
         private static readonly MoveGenerator generator = new MoveGenerator();
-        private static readonly Search searcher = new Search();
+        private static readonly Searcher searcher = new Searcher();
 
         private static async Task Main(string[] args)
         {
