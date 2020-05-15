@@ -1,12 +1,12 @@
-﻿namespace Charlie3
+﻿namespace Charlie
 {
-    public readonly struct MoveTimeInfo
+    public readonly struct SearchTime
     {
         public int IdealTime { get; }
         public int MaxTime { get; }
         public bool IsAnalysis { get; }
 
-        public MoveTimeInfo(int idealTime, int maxTime, bool isAnalysis) =>
+        public SearchTime(int idealTime, int maxTime, bool isAnalysis) =>
             (IdealTime, MaxTime, IsAnalysis) = (idealTime, maxTime, isAnalysis);
     }
 }

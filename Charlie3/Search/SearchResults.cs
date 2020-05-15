@@ -1,4 +1,4 @@
-﻿namespace Charlie3
+﻿namespace Charlie
 {
     public readonly struct SearchResults
     {

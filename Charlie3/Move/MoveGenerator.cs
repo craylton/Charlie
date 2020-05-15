@@ -1,7 +1,6 @@
-﻿using Charlie3.Enums;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
-namespace Charlie3
+namespace Charlie
 {
     public class MoveGenerator
     {
@@ -61,14 +60,14 @@ namespace Charlie3
                 var knight = knights & (1ul << i);
                 if (knight == 0) continue;
 
-                bool up = (knight & ~ChessBoard.Rank8) != 0,
-                down = (knight & ~ChessBoard.Rank1) != 0,
-                right = (knight & ~ChessBoard.HFile) != 0,
-                left = (knight & ~ChessBoard.AFile) != 0,
-                up2 = (knight & ~(ChessBoard.Rank7 | ChessBoard.Rank8)) != 0,
-                down2 = (knight & ~(ChessBoard.Rank1 | ChessBoard.Rank2)) != 0,
-                right2 = (knight & ~(ChessBoard.GFile | ChessBoard.HFile)) != 0,
-                left2 = (knight & ~(ChessBoard.AFile | ChessBoard.BFile)) != 0;
+                bool up = (knight & ~Chessboard.Rank8) != 0,
+                down = (knight & ~Chessboard.Rank1) != 0,
+                right = (knight & ~Chessboard.HFile) != 0,
+                left = (knight & ~Chessboard.AFile) != 0,
+                up2 = (knight & ~(Chessboard.Rank7 | Chessboard.Rank8)) != 0,
+                down2 = (knight & ~(Chessboard.Rank1 | Chessboard.Rank2)) != 0,
+                right2 = (knight & ~(Chessboard.GFile | Chessboard.HFile)) != 0,
+                left2 = (knight & ~(Chessboard.AFile | Chessboard.BFile)) != 0;
 
                 if (up2 && right && ((knight >> 17) & ~friendlyPieces) != 0) moves.Add(new Move(knight, knight >> 17));
                 if (up && right2 && ((knight >> 10) & ~friendlyPieces) != 0) moves.Add(new Move(knight, knight >> 10));
@@ -104,7 +103,7 @@ namespace Charlie3
 
                 // scan up
                 int distance = 0;
-                while (((rook >> distance) & ~ChessBoard.Rank8) != 0)
+                while (((rook >> distance) & ~Chessboard.Rank8) != 0)
                 {
                     distance += 8;
                     var newSq = rook >> distance;
@@ -114,7 +113,7 @@ namespace Charlie3
 
                 // scan down
                 distance = 0;
-                while (((rook << distance) & ~ChessBoard.Rank1) != 0)
+                while (((rook << distance) & ~Chessboard.Rank1) != 0)
                 {
                     distance += 8;
                     var newSq = rook << distance;
@@ -124,7 +123,7 @@ namespace Charlie3
 
                 // scan right
                 distance = 0;
-                while (((rook >> distance) & ~ChessBoard.HFile) != 0)
+                while (((rook >> distance) & ~Chessboard.HFile) != 0)
                 {
                     distance++;
                     var newSq = rook >> distance;
@@ -134,7 +133,7 @@ namespace Charlie3
 
                 // scan left
                 distance = 0;
-                while (((rook << distance) & ~ChessBoard.AFile) != 0)
+                while (((rook << distance) & ~Chessboard.AFile) != 0)
                 {
                     distance++;
                     var newSq = rook << distance;
@@ -157,7 +156,7 @@ namespace Charlie3
 
                 // scan up right
                 int distance = 0;
-                while (((bishop >> distance) & ~ChessBoard.Rank8 & ~ChessBoard.HFile) != 0)
+                while (((bishop >> distance) & ~Chessboard.Rank8 & ~Chessboard.HFile) != 0)
                 {
                     distance += 9;
                     var newSq = bishop >> distance;
@@ -167,7 +166,7 @@ namespace Charlie3
 
                 // scan up left
                 distance = 0;
-                while (((bishop >> distance) & ~ChessBoard.Rank8 & ~ChessBoard.AFile) != 0)
+                while (((bishop >> distance) & ~Chessboard.Rank8 & ~Chessboard.AFile) != 0)
                 {
                     distance += 7;
                     var newSq = bishop >> distance;
@@ -177,7 +176,7 @@ namespace Charlie3
 
                 // scan down right
                 distance = 0;
-                while (((bishop << distance) & ~ChessBoard.Rank1 & ~ChessBoard.HFile) != 0)
+                while (((bishop << distance) & ~Chessboard.Rank1 & ~Chessboard.HFile) != 0)
                 {
                     distance += 7;
                     var newSq = bishop << distance;
@@ -187,7 +186,7 @@ namespace Charlie3
 
                 // scan down left
                 distance = 0;
-                while (((bishop << distance) & ~ChessBoard.Rank1 & ~ChessBoard.AFile) != 0)
+                while (((bishop << distance) & ~Chessboard.Rank1 & ~Chessboard.AFile) != 0)
                 {
                     distance += 9;
                     var newSq = bishop << distance;
@@ -203,10 +202,10 @@ namespace Charlie3
         {
             var moves = new List<Move>();
 
-            bool up = (king & ~ChessBoard.Rank8) != 0,
-            down = (king & ~ChessBoard.Rank1) != 0,
-            right = (king & ~ChessBoard.HFile) != 0,
-            left = (king & ~ChessBoard.AFile) != 0;
+            bool up = (king & ~Chessboard.Rank8) != 0,
+            down = (king & ~Chessboard.Rank1) != 0,
+            right = (king & ~Chessboard.HFile) != 0,
+            left = (king & ~Chessboard.AFile) != 0;
 
             // if can move up
             if (up && ((king >> 8) & ~friendlyPieces) != 0)
@@ -244,50 +243,50 @@ namespace Charlie3
             {
                 // If can short castle
                 if ((board.CastleRules & 0b0001) != 0 &&
-                    (board.BitBoard.Occupied & (ChessBoard.SquareF1 | ChessBoard.SquareG1)) == 0 &&
-                    (board.BitBoard.WhiteRook & ChessBoard.SquareH1) != 0 &&
+                    (board.BitBoard.Occupied & (Chessboard.SquareF1 | Chessboard.SquareG1)) == 0 &&
+                    (board.BitBoard.WhiteRook & Chessboard.SquareH1) != 0 &&
                     !board.IsInCheck(PieceColour.White) &&
                     !board.IsUnderAttack(king >> 1, PieceColour.Black) &&
                     !board.IsUnderAttack(king >> 2, PieceColour.Black))
                 {
-                    moves.Add(new Move(king, ChessBoard.SquareG1, false, true, false, PromotionType.None));
+                    moves.Add(new Move(king, Chessboard.SquareG1, false, true, false, PromotionType.None));
                 }
 
                 // If can long castle
                 if ((board.CastleRules & 0b0010) != 0 &&
-                    (board.BitBoard.Occupied & (ChessBoard.SquareB1 | ChessBoard.SquareC1 | ChessBoard.SquareD1)) == 0 &&
-                    (board.BitBoard.WhiteRook & ChessBoard.SquareA1) != 0 &&
+                    (board.BitBoard.Occupied & (Chessboard.SquareB1 | Chessboard.SquareC1 | Chessboard.SquareD1)) == 0 &&
+                    (board.BitBoard.WhiteRook & Chessboard.SquareA1) != 0 &&
                     !board.IsInCheck(PieceColour.White) &&
                     !board.IsUnderAttack(king << 1, PieceColour.Black) &&
                     !board.IsUnderAttack(king << 2, PieceColour.Black) &&
                     !board.IsUnderAttack(king << 3, PieceColour.Black))
                 {
-                    moves.Add(new Move(king, ChessBoard.SquareC1, false, true, false, PromotionType.None));
+                    moves.Add(new Move(king, Chessboard.SquareC1, false, true, false, PromotionType.None));
                 }
             }
             else
             {
                 // If can short castle
                 if ((board.CastleRules & 0b0100) != 0 &&
-                    (board.BitBoard.Occupied & (ChessBoard.SquareF8 | ChessBoard.SquareG8)) == 0 &&
-                    (board.BitBoard.BlackRook & ChessBoard.SquareH8) != 0 &&
+                    (board.BitBoard.Occupied & (Chessboard.SquareF8 | Chessboard.SquareG8)) == 0 &&
+                    (board.BitBoard.BlackRook & Chessboard.SquareH8) != 0 &&
                     !board.IsInCheck(PieceColour.Black) &&
                     !board.IsUnderAttack(king >> 1, PieceColour.White) &&
                     !board.IsUnderAttack(king >> 2, PieceColour.White))
                 {
-                    moves.Add(new Move(king, ChessBoard.SquareG8, false, true, false, PromotionType.None));
+                    moves.Add(new Move(king, Chessboard.SquareG8, false, true, false, PromotionType.None));
                 }
 
                 // If can long castle
                 if ((board.CastleRules & 0b1000) != 0 &&
-                    (board.BitBoard.Occupied & (ChessBoard.SquareB8 | ChessBoard.SquareC8 | ChessBoard.SquareD8)) == 0 &&
-                    (board.BitBoard.BlackRook & ChessBoard.SquareA8) != 0 &&
+                    (board.BitBoard.Occupied & (Chessboard.SquareB8 | Chessboard.SquareC8 | Chessboard.SquareD8)) == 0 &&
+                    (board.BitBoard.BlackRook & Chessboard.SquareA8) != 0 &&
                     !board.IsInCheck(PieceColour.Black) &&
                     !board.IsUnderAttack(king << 1, PieceColour.White) &&
                     !board.IsUnderAttack(king << 2, PieceColour.White) &&
                     !board.IsUnderAttack(king << 3, PieceColour.White))
                 {
-                    moves.Add(new Move(king, ChessBoard.SquareC8, false, true, false, PromotionType.None));
+                    moves.Add(new Move(king, Chessboard.SquareC8, false, true, false, PromotionType.None));
                 }
             }
 
@@ -313,7 +312,7 @@ namespace Charlie3
                     if (((pawn >> 8) & ~occupiedBb) != 0)
                     {
                         // if moving forward will make it promote
-                        if ((pawn & ChessBoard.Rank7) != 0)
+                        if ((pawn & Chessboard.Rank7) != 0)
                         {
                             moves.Add(new Move(pawn, pawn >> 8, false, false, false, PromotionType.Queen));
                             moves.Add(new Move(pawn, pawn >> 8, false, false, false, PromotionType.Rook));
@@ -325,7 +324,7 @@ namespace Charlie3
                             moves.Add(new Move(pawn, pawn >> 8));
 
                             // if the pawn can move a second space
-                            if (((pawn >> 16) & ChessBoard.Rank4 & ~occupiedBb) != 0)
+                            if (((pawn >> 16) & Chessboard.Rank4 & ~occupiedBb) != 0)
                             {
                                 moves.Add(new Move(pawn, pawn >> 16, false, false, true, PromotionType.None));
                             }
@@ -333,10 +332,10 @@ namespace Charlie3
                     }
 
                     // if the pawn can take to the left
-                    if (((pawn >> 7) & blackPiecesBb & ~ChessBoard.HFile) != 0)
+                    if (((pawn >> 7) & blackPiecesBb & ~Chessboard.HFile) != 0)
                     {
                         // if moving forward will make it promote
-                        if ((pawn & ChessBoard.Rank7) != 0)
+                        if ((pawn & Chessboard.Rank7) != 0)
                         {
                             moves.Add(new Move(pawn, pawn >> 7, false, false, false, PromotionType.Queen));
                             moves.Add(new Move(pawn, pawn >> 7, false, false, false, PromotionType.Rook));
@@ -350,10 +349,10 @@ namespace Charlie3
                     }
 
                     // if the pawn can take to the right
-                    if (((pawn >> 9) & blackPiecesBb & ~ChessBoard.AFile) != 0)
+                    if (((pawn >> 9) & blackPiecesBb & ~Chessboard.AFile) != 0)
                     {
                         // if moving forward will make it promote
-                        if ((pawn & ChessBoard.Rank7) != 0)
+                        if ((pawn & Chessboard.Rank7) != 0)
                         {
                             moves.Add(new Move(pawn, pawn >> 9, false, false, false, PromotionType.Queen));
                             moves.Add(new Move(pawn, pawn >> 9, false, false, false, PromotionType.Rook));
@@ -367,13 +366,13 @@ namespace Charlie3
                     }
 
                     // if can take en passant to the left
-                    if (((pawn >> 7) & board.WhiteEnPassant & ~ChessBoard.HFile) != 0)
+                    if (((pawn >> 7) & board.WhiteEnPassant & ~Chessboard.HFile) != 0)
                     {
                         moves.Add(new Move(pawn, pawn >> 7, true, false, false, PromotionType.None));
                     }
 
                     // if can take en passant to the right
-                    if (((pawn >> 9) & board.WhiteEnPassant & ~ChessBoard.AFile) != 0)
+                    if (((pawn >> 9) & board.WhiteEnPassant & ~Chessboard.AFile) != 0)
                     {
                         moves.Add(new Move(pawn, pawn >> 9, true, false, false, PromotionType.None));
                     }
@@ -384,7 +383,7 @@ namespace Charlie3
                     if (((pawn << 8) & ~occupiedBb) != 0)
                     {
                         // if moving forward will make it promote
-                        if ((pawn & ChessBoard.Rank2) != 0)
+                        if ((pawn & Chessboard.Rank2) != 0)
                         {
                             moves.Add(new Move(pawn, pawn << 8, false, false, false, PromotionType.Queen));
                             moves.Add(new Move(pawn, pawn << 8, false, false, false, PromotionType.Rook));
@@ -396,7 +395,7 @@ namespace Charlie3
                             moves.Add(new Move(pawn, pawn << 8));
 
                             // if the pawn can move a second space
-                            if (((pawn << 16) & ChessBoard.Rank5 & ~occupiedBb) != 0)
+                            if (((pawn << 16) & Chessboard.Rank5 & ~occupiedBb) != 0)
                             {
                                 moves.Add(new Move(pawn, pawn << 16, false, false, true, PromotionType.None));
                             }
@@ -404,10 +403,10 @@ namespace Charlie3
                     }
 
                     // if the pawn can take to the left
-                    if (((pawn << 9) & whitePiecesBb & ~ChessBoard.HFile) != 0)
+                    if (((pawn << 9) & whitePiecesBb & ~Chessboard.HFile) != 0)
                     {
                         // if moving forward will make it promote
-                        if ((pawn & ChessBoard.Rank2) != 0)
+                        if ((pawn & Chessboard.Rank2) != 0)
                         {
                             moves.Add(new Move(pawn, pawn << 9, false, false, false, PromotionType.Queen));
                             moves.Add(new Move(pawn, pawn << 9, false, false, false, PromotionType.Rook));
@@ -421,10 +420,10 @@ namespace Charlie3
                     }
 
                     // if the pawn can take to the right
-                    if (((pawn << 7) & whitePiecesBb & ~ChessBoard.AFile) != 0)
+                    if (((pawn << 7) & whitePiecesBb & ~Chessboard.AFile) != 0)
                     {
                         // if moving forward will make it promote
-                        if ((pawn & ChessBoard.Rank2) != 0)
+                        if ((pawn & Chessboard.Rank2) != 0)
                         {
                             moves.Add(new Move(pawn, pawn << 7, false, false, false, PromotionType.Queen));
                             moves.Add(new Move(pawn, pawn << 7, false, false, false, PromotionType.Rook));
@@ -438,13 +437,13 @@ namespace Charlie3
                     }
 
                     // if can take en passant to the left
-                    if (((pawn << 9) & board.BlackEnPassant & ~ChessBoard.HFile) != 0)
+                    if (((pawn << 9) & board.BlackEnPassant & ~Chessboard.HFile) != 0)
                     {
                         moves.Add(new Move(pawn, pawn << 9, true, false, false, PromotionType.None));
                     }
 
                     // if can take en passant to the right
-                    if (((pawn << 7) & board.BlackEnPassant & ~ChessBoard.AFile) != 0)
+                    if (((pawn << 7) & board.BlackEnPassant & ~Chessboard.AFile) != 0)
                     {
                         moves.Add(new Move(pawn, pawn << 7, true, false, false, PromotionType.None));
                     }

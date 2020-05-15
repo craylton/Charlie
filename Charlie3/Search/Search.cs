@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Timers;
 
-namespace Charlie3
+namespace Charlie
 {
     public class Search
     {
@@ -27,15 +27,15 @@ namespace Charlie3
 
         public Search() => timer.Elapsed += (s, e) => cancel = true;
 
-        public async Task Start(BoardState currentBoard, MoveTimeInfo timeInfo, int depthLimit)
+        public async Task Start(BoardState currentBoard, SearchTime searchTime, int depthLimit)
         {
             cancel = false;
             nodesSearched = 0;
             sw.Start();
 
-            if (!timeInfo.IsAnalysis)
+            if (!searchTime.IsAnalysis)
             {
-                timer.Interval = timeInfo.MaxTime;
+                timer.Interval = searchTime.MaxTime;
                 timer.Start();
             }
 
@@ -72,7 +72,7 @@ namespace Charlie3
                 beta = eval + 100;
                 depth++;
 
-                if (!timeInfo.IsAnalysis && sw.ElapsedMilliseconds * 4 > timeInfo.IdealTime) break;
+                if (!searchTime.IsAnalysis && sw.ElapsedMilliseconds * 4 > searchTime.IdealTime) break;
                 if (depthLimit > 0 && depth > depthLimit) break;
             }
 

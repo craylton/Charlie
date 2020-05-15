@@ -1,4 +1,4 @@
-﻿namespace Charlie3.Enums
+﻿namespace Charlie
 {
     public enum PromotionType
     {

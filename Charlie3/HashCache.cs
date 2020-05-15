@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace Charlie3
+namespace Charlie
 {
     public static class HashCache
     {

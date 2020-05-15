@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace Charlie3
+namespace Charlie
 {
     public class Bench
     {
@@ -60,12 +60,12 @@ namespace Charlie3
         public async Task BenchTest(Search search, int targetDepth)
         {
             search.SearchComplete += Searcher_SearchComplete;
-            var timeInfo = new MoveTimeInfo(0, 0, true);
+            var searchTime = new SearchTime(0, 0, true);
 
             foreach (string fen in TestFens)
             {
                 var boardState = new BoardState(fen.Split(' '));
-                await search.Start(boardState, timeInfo, targetDepth);
+                await search.Start(boardState, searchTime, targetDepth);
             }
 
             Console.WriteLine("Bench test complete");

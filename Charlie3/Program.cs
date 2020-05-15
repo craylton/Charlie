@@ -1,12 +1,11 @@
-﻿using Charlie3.Enums;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Charlie3
+namespace Charlie
 {
     public static class Program
     {
@@ -70,7 +69,7 @@ namespace Charlie3
 
                 if (@params[0] == "go")
                 {
-                    MoveTimeInfo timeInfo = new MoveTimeInfo(0, 0, true);
+                    var searchTime = new SearchTime(0, 0, true);
                     int targetDepth = -1;
 
                     if (@params.Length >= 3 && @params[1] == "depth")
@@ -82,10 +81,10 @@ namespace Charlie3
                         int blackTime = int.Parse(@params[4]);
 
                         int timeAvailable = boardState.ToMove == PieceColour.White ? whiteTime : blackTime;
-                        timeInfo = new MoveTimeInfo(timeAvailable / 30, timeAvailable / 20, false);
+                        searchTime = new SearchTime(timeAvailable / 30, timeAvailable / 20, false);
                     }
 
-                    await searcher.Start(boardState, timeInfo, targetDepth);
+                    await searcher.Start(boardState, searchTime, targetDepth);
                 }
 
                 if (@params[0] == "bench")

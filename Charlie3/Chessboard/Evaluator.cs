@@ -1,6 +1,4 @@
-﻿using Charlie3.Enums;
-
-namespace Charlie3
+﻿namespace Charlie
 {
     public class Evaluator
     {
@@ -193,30 +191,30 @@ namespace Charlie3
                 blackScore -= (whiteTerritory & board.BitBoard.BlackQueen).BitCount() * queen / 2;
             }
 
-            for (int i = 0; i < ChessBoard.Files.Length; i++)
+            for (int i = 0; i < Chessboard.Files.Length; i++)
             {
                 // Check for isolated pawns
-                if ((board.BitBoard.WhitePawn & ChessBoard.Files[i]) != 0)
+                if ((board.BitBoard.WhitePawn & Chessboard.Files[i]) != 0)
                 {
-                    bool isPawnToLeft = i != 0 && (board.BitBoard.WhitePawn & ChessBoard.Files[i - 1]) != 0;
-                    bool IsPawnToRight = i != ChessBoard.Files.Length - 1 &&
-                                        (board.BitBoard.WhitePawn & ChessBoard.Files[i + 1]) != 0;
+                    bool isPawnToLeft = i != 0 && (board.BitBoard.WhitePawn & Chessboard.Files[i - 1]) != 0;
+                    bool IsPawnToRight = i != Chessboard.Files.Length - 1 &&
+                                        (board.BitBoard.WhitePawn & Chessboard.Files[i + 1]) != 0;
 
                     if (!isPawnToLeft && !IsPawnToRight) whiteScore -= 20;
                 }
 
-                if ((board.BitBoard.BlackPawn & ChessBoard.Files[i]) != 0)
+                if ((board.BitBoard.BlackPawn & Chessboard.Files[i]) != 0)
                 {
-                    bool isPawnToLeft = i != 0 && (board.BitBoard.BlackPawn & ChessBoard.Files[i - 1]) != 0;
-                    bool IsPawnToRight = i != ChessBoard.Files.Length - 1 &&
-                                        (board.BitBoard.BlackPawn & ChessBoard.Files[i + 1]) != 0;
+                    bool isPawnToLeft = i != 0 && (board.BitBoard.BlackPawn & Chessboard.Files[i - 1]) != 0;
+                    bool IsPawnToRight = i != Chessboard.Files.Length - 1 &&
+                                        (board.BitBoard.BlackPawn & Chessboard.Files[i + 1]) != 0;
 
                     if (!isPawnToLeft && !IsPawnToRight) blackScore -= 20;
                 }
 
                 // Check for doubled pawns
-                if ((board.BitBoard.WhitePawn & ChessBoard.Files[i]).BitCount() > 1) whiteScore -= 20;
-                if ((board.BitBoard.BlackPawn & ChessBoard.Files[i]).BitCount() > 1) blackScore -= 20;
+                if ((board.BitBoard.WhitePawn & Chessboard.Files[i]).BitCount() > 1) whiteScore -= 20;
+                if ((board.BitBoard.BlackPawn & Chessboard.Files[i]).BitCount() > 1) blackScore -= 20;
             }
 
             return (whiteScore - blackScore) * (board.ToMove == PieceColour.White ? 1 : -1);

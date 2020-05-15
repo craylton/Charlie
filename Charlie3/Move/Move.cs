@@ -1,12 +1,13 @@
-﻿using Charlie3.Enums;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Charlie3
+namespace Charlie
 {
     public readonly struct Move
     {
+        private static readonly char[] promotionSuffixes = new[] { '?', 'N', 'B', 'R', 'Q' };
+
         public ulong FromCell { get; }
 
         public ulong ToCell { get; }
@@ -36,13 +37,13 @@ namespace Charlie3
 
         public override string ToString()
         {
-            var from = Utils.CellNames[FromCell.CountLeadingZeros()];
-            var to = Utils.CellNames[ToCell.CountLeadingZeros()];
+            var from = Chessboard.CellNames[FromCell.CountLeadingZeros()];
+            var to = Chessboard.CellNames[ToCell.CountLeadingZeros()];
 
             var promotion = string.Empty;
 
             if (PromotionType != PromotionType.None)
-                promotion = "=" + Utils.PromotionSuffixes[(int)PromotionType];
+                promotion = "=" + promotionSuffixes[(int)PromotionType];
 
             return $"{from}-{to}{promotion}";
         }
@@ -53,12 +54,12 @@ namespace Charlie3
             var to = new string(new string(move.Take(4).ToArray()).TakeLast(2).ToArray());
 
             ulong fromCell = 0, toCell = 0;
-            for (int i = 0; i < Utils.CellNames.Length; i++)
+            for (int i = 0; i < Chessboard.CellNames.Length; i++)
             {
-                if (from.ToUpper() == Utils.CellNames[i].ToUpper())
+                if (from.ToUpper() == Chessboard.CellNames[i].ToUpper())
                     fromCell = 1ul << (63 - i);
 
-                if (to.ToUpper() == Utils.CellNames[i].ToUpper())
+                if (to.ToUpper() == Chessboard.CellNames[i].ToUpper())
                     toCell = 1ul << (63 - i);
             }
 
@@ -68,7 +69,7 @@ namespace Charlie3
             if (matches.Count() > 1 && move.Length == 5)
             {
                 var promotion = move[4].ToString().ToUpper();
-                return matches.FirstOrDefault(m => Utils.PromotionSuffixes[(int)m.PromotionType].ToString().ToUpper() == promotion);
+                return matches.FirstOrDefault(m => promotionSuffixes[(int)m.PromotionType].ToString().ToUpper() == promotion);
             }
 
             return matches.FirstOrDefault();

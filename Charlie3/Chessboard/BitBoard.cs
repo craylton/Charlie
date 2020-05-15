@@ -1,22 +1,21 @@
-﻿using Charlie3.Enums;
-using System;
+﻿using System;
 
-namespace Charlie3
+namespace Charlie
 {
     public readonly struct BitBoard
     {
-        private const ulong DefaultWhiteKing = ChessBoard.SquareE1;
-        private const ulong DefaultBlackKing = ChessBoard.SquareE8;
-        private const ulong DefaultWhiteQueen = ChessBoard.SquareD1;
-        private const ulong DefaultBlackQueen = ChessBoard.SquareD8;
-        private const ulong DefaultWhiteRook = ChessBoard.SquareA1 | ChessBoard.SquareH1;
-        private const ulong DefaultBlackRook = ChessBoard.SquareA8 | ChessBoard.SquareH8;
-        private const ulong DefaultWhiteBishop = ChessBoard.SquareC1 | ChessBoard.SquareF1;
-        private const ulong DefaultBlackBishop = ChessBoard.SquareC8 | ChessBoard.SquareF8;
-        private const ulong DefaultWhiteKnight = ChessBoard.SquareB1 | ChessBoard.SquareG1;
-        private const ulong DefaultBlackKnight = ChessBoard.SquareB8 | ChessBoard.SquareG8;
-        private const ulong DefaultWhitePawn = ChessBoard.Rank2;
-        private const ulong DefaultBlackPawn = ChessBoard.Rank7;
+        private const ulong DefaultWhiteKing = Chessboard.SquareE1;
+        private const ulong DefaultBlackKing = Chessboard.SquareE8;
+        private const ulong DefaultWhiteQueen = Chessboard.SquareD1;
+        private const ulong DefaultBlackQueen = Chessboard.SquareD8;
+        private const ulong DefaultWhiteRook = Chessboard.SquareA1 | Chessboard.SquareH1;
+        private const ulong DefaultBlackRook = Chessboard.SquareA8 | Chessboard.SquareH8;
+        private const ulong DefaultWhiteBishop = Chessboard.SquareC1 | Chessboard.SquareF1;
+        private const ulong DefaultBlackBishop = Chessboard.SquareC8 | Chessboard.SquareF8;
+        private const ulong DefaultWhiteKnight = Chessboard.SquareB1 | Chessboard.SquareG1;
+        private const ulong DefaultBlackKnight = Chessboard.SquareB8 | Chessboard.SquareG8;
+        private const ulong DefaultWhitePawn = Chessboard.Rank2;
+        private const ulong DefaultBlackPawn = Chessboard.Rank7;
 
         private BitBoard(ulong[] kings, ulong[] queens, ulong[] rooks, ulong[] bishops, ulong[] knights, ulong[] pawns)
         {
@@ -53,32 +52,32 @@ namespace Charlie3
             if (move.IsCastle)
             {
                 // White long castle
-                if (move.ToCell == ChessBoard.SquareC1)
+                if (move.ToCell == Chessboard.SquareC1)
                 {
                     WhiteKing = move.ToCell;
-                    WhiteRook &= ~ChessBoard.SquareA1;
-                    WhiteRook |= ChessBoard.SquareD1;
+                    WhiteRook &= ~Chessboard.SquareA1;
+                    WhiteRook |= Chessboard.SquareD1;
                 }
                 // White short castle
-                else if (move.ToCell == ChessBoard.SquareG1)
+                else if (move.ToCell == Chessboard.SquareG1)
                 {
                     WhiteKing = move.ToCell;
-                    WhiteRook &= ~ChessBoard.SquareH1;
-                    WhiteRook |= ChessBoard.SquareF1;
+                    WhiteRook &= ~Chessboard.SquareH1;
+                    WhiteRook |= Chessboard.SquareF1;
                 }
                 // Black long castle
-                else if (move.ToCell == ChessBoard.SquareC8)
+                else if (move.ToCell == Chessboard.SquareC8)
                 {
                     BlackKing = move.ToCell;
-                    BlackRook &= ~ChessBoard.SquareA8;
-                    BlackRook |= ChessBoard.SquareD8;
+                    BlackRook &= ~Chessboard.SquareA8;
+                    BlackRook |= Chessboard.SquareD8;
                 }
                 // Black short castle
-                else if (move.ToCell == ChessBoard.SquareG8)
+                else if (move.ToCell == Chessboard.SquareG8)
                 {
                     BlackKing = move.ToCell;
-                    BlackRook &= ~ChessBoard.SquareH8;
-                    BlackRook |= ChessBoard.SquareF8;
+                    BlackRook &= ~Chessboard.SquareH8;
+                    BlackRook |= Chessboard.SquareF8;
                 }
 
                 return;
@@ -122,7 +121,7 @@ namespace Charlie3
             // If promotion, we need to make sure the piece on the new square is the correct type
             if (move.PromotionType != PromotionType.None)
             {
-                bool whitePromoted = (move.ToCell & ChessBoard.Rank8) != 0;
+                bool whitePromoted = (move.ToCell & Chessboard.Rank8) != 0;
                 switch (move.PromotionType)
                 {
                     case PromotionType.Queen when whitePromoted:
