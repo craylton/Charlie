@@ -1,10 +1,9 @@
-﻿using System.Collections.Generic;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using System.Security;
 
 namespace Charlie
 {
-    public static class Extensions
+    public static class ULongExtensions
     {
         /// <summary>
         /// Count the number of bits set to 1 in a ulong
@@ -42,12 +41,5 @@ namespace Charlie
         [DllImport("ntdll"), SuppressUnmanagedCodeSecurity]
         private static extern int RtlFindLeastSignificantBit(ulong ul);
 
-        public static void MoveToFront<T>(this List<T> list, T item)
-        {
-            if (!list.Contains(item)) return;
-
-            list.Remove(item);
-            list.Insert(0, item);
-        }
     }
 }
