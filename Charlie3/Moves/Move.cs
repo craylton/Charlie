@@ -77,6 +77,9 @@ namespace Charlie.Moves
 
         public bool IsCapture(BoardState board) => (board.BitBoard.Occupied & ToCell) != 0;
 
+        public bool IsCaptureOrPromotion(BoardState board) =>
+            IsCapture(board) || PromotionType != PromotionType.None;
+
         public bool IsValid() => !Equals(default(Move));
 
         public override bool Equals(object obj) =>

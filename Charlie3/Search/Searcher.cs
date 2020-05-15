@@ -176,7 +176,7 @@ namespace Charlie.Search
             if (eval > alpha) alpha = eval;
 
             IEnumerable<Move> moves = generator.GenerateLegalMoves(boardState)
-                                               .Where(move => move.IsCapture(boardState));
+                                               .Where(move => move.IsCaptureOrPromotion(boardState));
 
             foreach (Move move in moves)
             {
