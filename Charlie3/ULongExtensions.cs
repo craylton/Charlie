@@ -1,13 +1,7 @@
-﻿using System.Runtime.InteropServices;
-using System.Security;
-
-namespace Charlie
+﻿namespace Charlie
 {
     public static class ULongExtensions
     {
-        /// <summary>
-        /// Count the number of bits set to 1 in a ulong
-        /// </summary>
         public static byte BitCount(this ulong value)
         {
             ulong result = value - ((value >> 1) & 0x5555555555555555UL);
@@ -15,7 +9,7 @@ namespace Charlie
             return (byte)(unchecked(((result + (result >> 4)) & 0xF0F0F0F0F0F0F0FUL) * 0x101010101010101UL) >> 56);
         }
 
-        public static ulong CountLeadingZeros(this ulong input)
+        public static int CountLeadingZeros(this ulong input)
         {
             if (input == 0) return 0;
 
@@ -28,18 +22,9 @@ namespace Charlie
             if ((input >> 62) == 0) { n += 2; input <<= 2; }
             n -= input >> 63;
 
-            return n;
+            return (int)n;
         }
 
-        public static int CountTrailingZeroes(this ulong input)
-        {
-            return RtlFindLeastSignificantBit(input);
-            //return 63 - CountLeadingZeros(input);
-        }
-
-        // This dll is apparently a Windows thing
-        [DllImport("ntdll"), SuppressUnmanagedCodeSecurity]
-        private static extern int RtlFindLeastSignificantBit(ulong ul);
-
+        public static int CountTrailingZeroes(this ulong input) => 63 - CountLeadingZeros(input);
     }
 }
