@@ -140,16 +140,23 @@ namespace Charlie.Search
                 int eval = DrawScore;
                 BoardState newBoard = boardState.MakeMove(move);
 
-                if (foundPv)
+                if (depth == 2 && move.IsCaptureOrPromotion(boardState))
                 {
-                    eval = -await AlphaBeta(newBoard, -alpha - 1, -alpha, depth - 1, height + 1, pvBuffer, childPvMoves);
-
-                    if (eval > alpha && eval < beta)
-                        eval = -await AlphaBeta(newBoard, -beta, -alpha, depth - 1, height + 1, pvBuffer, childPvMoves);
+                    eval = -await Quiesce(newBoard, -beta, -alpha);
                 }
                 else
                 {
-                    eval = -await AlphaBeta(newBoard, -beta, -alpha, depth - 1, height + 1, pvBuffer, childPvMoves);
+                    if (foundPv)
+                    {
+                        eval = -await AlphaBeta(newBoard, -alpha - 1, -alpha, depth - 1, height + 1, pvBuffer, childPvMoves);
+
+                        if (eval > alpha && eval < beta)
+                            eval = -await AlphaBeta(newBoard, -beta, -alpha, depth - 1, height + 1, pvBuffer, childPvMoves);
+                    }
+                    else
+                    {
+                        eval = -await AlphaBeta(newBoard, -beta, -alpha, depth - 1, height + 1, pvBuffer, childPvMoves);
+                    }
                 }
 
                 if (cancel) break;
