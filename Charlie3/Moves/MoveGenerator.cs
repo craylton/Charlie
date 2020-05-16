@@ -239,7 +239,7 @@ namespace Charlie.Moves
                     !board.IsUnderAttack(king >> 1, PieceColour.Black) &&
                     !board.IsUnderAttack(king >> 2, PieceColour.Black))
                 {
-                    new Move(king, Chessboard.SquareG1, false, true, false, PromotionType.None);
+                    yield return new Move(king, Chessboard.SquareG1, false, true, false, PromotionType.None);
                 }
 
                 // If can long castle
@@ -347,7 +347,7 @@ namespace Charlie.Moves
                         }
                         else
                         {
-                            new Move(pawn, pawn >> 9);
+                            yield return new Move(pawn, pawn >> 9);
                         }
                     }
 
