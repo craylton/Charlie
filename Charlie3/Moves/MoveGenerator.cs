@@ -73,13 +73,13 @@ namespace Charlie.Moves
                 left2 = (knight & ~(Chessboard.AFile | Chessboard.BFile)) != 0;
 
                 if (up2 && right && ((knight >> 17) & ~friendlyPieces) != 0) yield return new Move(knight, knight >> 17);
+                if (up2 && left && ((knight >> 15) & ~friendlyPieces) != 0) yield return new Move(knight, knight >> 15);
                 if (up && right2 && ((knight >> 10) & ~friendlyPieces) != 0) yield return new Move(knight, knight >> 10);
+                if (up && left2 && ((knight >> 6) & ~friendlyPieces) != 0) yield return new Move(knight, knight >> 6);
                 if (down && right2 && ((knight << 6) & ~friendlyPieces) != 0) yield return new Move(knight, knight << 6);
+                if (down && left2 && ((knight << 10) & ~friendlyPieces) != 0) yield return new Move(knight, knight << 10);
                 if (down2 && right && ((knight << 15) & ~friendlyPieces) != 0) yield return new Move(knight, knight << 15);
                 if (down2 && left && ((knight << 17) & ~friendlyPieces) != 0) yield return new Move(knight, knight << 17);
-                if (down && left2 && ((knight << 10) & ~friendlyPieces) != 0) yield return new Move(knight, knight << 10);
-                if (up && left2 && ((knight >> 6) & ~friendlyPieces) != 0) yield return new Move(knight, knight >> 6);
-                if (up2 && left && ((knight >> 15) & ~friendlyPieces) != 0) yield return new Move(knight, knight >> 15);
             }
         }
 
@@ -109,16 +109,6 @@ namespace Charlie.Moves
                     if ((newSq & board.BitBoard.Occupied) != 0) break;
                 }
 
-                // scan down
-                distance = 0;
-                while (((rook << distance) & ~Chessboard.Rank1) != 0)
-                {
-                    distance += 8;
-                    ulong newSq = rook << distance;
-                    if ((newSq & ~friendlyPieces) != 0) yield return new Move(rook, newSq);
-                    if ((newSq & board.BitBoard.Occupied) != 0) break;
-                }
-
                 // scan right
                 distance = 0;
                 while (((rook >> distance) & ~Chessboard.HFile) != 0)
@@ -134,6 +124,16 @@ namespace Charlie.Moves
                 while (((rook << distance) & ~Chessboard.AFile) != 0)
                 {
                     distance++;
+                    ulong newSq = rook << distance;
+                    if ((newSq & ~friendlyPieces) != 0) yield return new Move(rook, newSq);
+                    if ((newSq & board.BitBoard.Occupied) != 0) break;
+                }
+
+                // scan down
+                distance = 0;
+                while (((rook << distance) & ~Chessboard.Rank1) != 0)
+                {
+                    distance += 8;
                     ulong newSq = rook << distance;
                     if ((newSq & ~friendlyPieces) != 0) yield return new Move(rook, newSq);
                     if ((newSq & board.BitBoard.Occupied) != 0) break;
@@ -289,34 +289,12 @@ namespace Charlie.Moves
 
             for (int i = 0; i < 64; i++)
             {
-                ulong b = (ulong)1 << i;
+                ulong b = 1ul << i;
                 ulong pawn = pawns & b;
+                if (pawn == 0) continue;
 
                 if (board.ToMove == PieceColour.White)
                 {
-                    // if the pawn can move forward
-                    if (((pawn >> 8) & ~occupiedBb) != 0)
-                    {
-                        // if moving forward will make it promote
-                        if ((pawn & Chessboard.Rank7) != 0)
-                        {
-                            yield return new Move(pawn, pawn >> 8, false, false, false, PromotionType.Queen);
-                            yield return new Move(pawn, pawn >> 8, false, false, false, PromotionType.Rook);
-                            yield return new Move(pawn, pawn >> 8, false, false, false, PromotionType.Bishop);
-                            yield return new Move(pawn, pawn >> 8, false, false, false, PromotionType.Knight);
-                        }
-                        else
-                        {
-                            yield return new Move(pawn, pawn >> 8);
-
-                            // if the pawn can move a second space
-                            if (((pawn >> 16) & Chessboard.Rank4 & ~occupiedBb) != 0)
-                            {
-                                yield return new Move(pawn, pawn >> 16, false, false, true, PromotionType.None);
-                            }
-                        }
-                    }
-
                     // if the pawn can take to the left
                     if (((pawn >> 7) & blackPiecesBb & ~Chessboard.HFile) != 0)
                     {
@@ -362,32 +340,32 @@ namespace Charlie.Moves
                     {
                         yield return new Move(pawn, pawn >> 9, true, false, false, PromotionType.None);
                     }
-                }
-                else
-                {
+
                     // if the pawn can move forward
-                    if (((pawn << 8) & ~occupiedBb) != 0)
+                    if (((pawn >> 8) & ~occupiedBb) != 0)
                     {
                         // if moving forward will make it promote
-                        if ((pawn & Chessboard.Rank2) != 0)
+                        if ((pawn & Chessboard.Rank7) != 0)
                         {
-                            yield return new Move(pawn, pawn << 8, false, false, false, PromotionType.Queen);
-                            yield return new Move(pawn, pawn << 8, false, false, false, PromotionType.Rook);
-                            yield return new Move(pawn, pawn << 8, false, false, false, PromotionType.Bishop);
-                            yield return new Move(pawn, pawn << 8, false, false, false, PromotionType.Knight);
+                            yield return new Move(pawn, pawn >> 8, false, false, false, PromotionType.Queen);
+                            yield return new Move(pawn, pawn >> 8, false, false, false, PromotionType.Rook);
+                            yield return new Move(pawn, pawn >> 8, false, false, false, PromotionType.Bishop);
+                            yield return new Move(pawn, pawn >> 8, false, false, false, PromotionType.Knight);
                         }
                         else
                         {
-                            yield return new Move(pawn, pawn << 8);
+                            yield return new Move(pawn, pawn >> 8);
 
                             // if the pawn can move a second space
-                            if (((pawn << 16) & Chessboard.Rank5 & ~occupiedBb) != 0)
+                            if (((pawn >> 16) & Chessboard.Rank4 & ~occupiedBb) != 0)
                             {
-                                yield return new Move(pawn, pawn << 16, false, false, true, PromotionType.None);
+                                yield return new Move(pawn, pawn >> 16, false, false, true, PromotionType.None);
                             }
                         }
                     }
-
+                }
+                else
+                {
                     // if the pawn can take to the left
                     if (((pawn << 9) & whitePiecesBb & ~Chessboard.HFile) != 0)
                     {
@@ -432,6 +410,29 @@ namespace Charlie.Moves
                     if (((pawn << 7) & board.BlackEnPassant & ~Chessboard.AFile) != 0)
                     {
                         yield return new Move(pawn, pawn << 7, true, false, false, PromotionType.None);
+                    }
+
+                    // if the pawn can move forward
+                    if (((pawn << 8) & ~occupiedBb) != 0)
+                    {
+                        // if moving forward will make it promote
+                        if ((pawn & Chessboard.Rank2) != 0)
+                        {
+                            yield return new Move(pawn, pawn << 8, false, false, false, PromotionType.Queen);
+                            yield return new Move(pawn, pawn << 8, false, false, false, PromotionType.Rook);
+                            yield return new Move(pawn, pawn << 8, false, false, false, PromotionType.Bishop);
+                            yield return new Move(pawn, pawn << 8, false, false, false, PromotionType.Knight);
+                        }
+                        else
+                        {
+                            yield return new Move(pawn, pawn << 8);
+
+                            // if the pawn can move a second space
+                            if (((pawn << 16) & Chessboard.Rank5 & ~occupiedBb) != 0)
+                            {
+                                yield return new Move(pawn, pawn << 16, false, false, true, PromotionType.None);
+                            }
+                        }
                     }
                 }
             }
