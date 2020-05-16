@@ -55,6 +55,12 @@ namespace Charlie.Search
 
                 if (cancel) break;
 
+                if (searchParameters.SearchType == SearchType.Time)
+                {
+                    if (sw.ElapsedMilliseconds * 4 > searchParameters.SearchTime.IdealTime) break;
+                    if (isMate) break;
+                }
+
                 if (eval <= alpha)
                 {
                     alpha = NegativeInfinityScore;
@@ -76,17 +82,8 @@ namespace Charlie.Search
                 beta = eval + 30;
                 depth++;
 
-                if (searchParameters.SearchType == SearchType.Time)
-                {
-                    if (sw.ElapsedMilliseconds * 4 > searchParameters.SearchTime.IdealTime) break;
-                    if (isMate) break;
-                }
-
                 if (searchParameters.SearchType == SearchType.Depth
                     && depth > searchParameters.DepthLimit)
-                    break;
-
-                if (cancel)
                     break;
             }
 
@@ -142,6 +139,7 @@ namespace Charlie.Search
 
                 if (depth == 2 && move.IsCaptureOrPromotion(boardState))
                 {
+                    nodesSearched++;
                     eval = -await Quiesce(newBoard, -beta, -alpha);
                 }
                 else
