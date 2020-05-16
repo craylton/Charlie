@@ -1,61 +1,63 @@
 ﻿using Charlie.Board;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Charlie.Moves
 {
     public class MoveGenerator
     {
-        public List<Move> GeneratePseudoLegalMoves(BoardState board)
+        public IEnumerable<Move> GeneratePseudoLegalMoves(BoardState board)
         {
-            var moves = new List<Move>();
-
             if (board.ToMove == PieceColour.White)
             {
-                moves.AddRange(GeneratePawnMoves(board.BitBoard.WhitePawn, board));
-                moves.AddRange(GenerateBishopMoves(board.BitBoard.WhiteBishop, board.BitBoard.WhitePieces, board));
-                moves.AddRange(GenerateQueenMoves(board.BitBoard.WhiteQueen, board.BitBoard.WhitePieces, board));
-                moves.AddRange(GenerateKingMoves(board.BitBoard.WhiteKing, board.BitBoard.WhitePieces, board));
-                moves.AddRange(GenerateRookMoves(board.BitBoard.WhiteRook, board.BitBoard.WhitePieces, board));
-                moves.AddRange(GenerateKnightMoves(board.BitBoard.WhiteKnight, board.BitBoard.WhitePieces));
+                foreach (Move move in GeneratePawnMoves(board.BitBoard.WhitePawn, board))
+                    yield return move;
+
+                foreach (Move move in GenerateBishopMoves(board.BitBoard.WhiteBishop, board.BitBoard.WhitePieces, board))
+                    yield return move;
+
+                foreach (Move move in GenerateQueenMoves(board.BitBoard.WhiteQueen, board.BitBoard.WhitePieces, board))
+                    yield return move;
+
+                foreach (Move move in GenerateKingMoves(board.BitBoard.WhiteKing, board.BitBoard.WhitePieces, board))
+                    yield return move;
+
+                foreach (Move move in GenerateRookMoves(board.BitBoard.WhiteRook, board.BitBoard.WhitePieces, board))
+                    yield return move;
+
+                foreach (Move move in GenerateKnightMoves(board.BitBoard.WhiteKnight, board.BitBoard.WhitePieces))
+                    yield return move;
             }
             else
             {
-                moves.AddRange(GeneratePawnMoves(board.BitBoard.BlackPawn, board));
-                moves.AddRange(GenerateBishopMoves(board.BitBoard.BlackBishop, board.BitBoard.BlackPieces, board));
-                moves.AddRange(GenerateQueenMoves(board.BitBoard.BlackQueen, board.BitBoard.BlackPieces, board));
-                moves.AddRange(GenerateKingMoves(board.BitBoard.BlackKing, board.BitBoard.BlackPieces, board));
-                moves.AddRange(GenerateRookMoves(board.BitBoard.BlackRook, board.BitBoard.BlackPieces, board));
-                moves.AddRange(GenerateKnightMoves(board.BitBoard.BlackKnight, board.BitBoard.BlackPieces));
-            }
+                foreach (Move move in GeneratePawnMoves(board.BitBoard.BlackPawn, board))
+                    yield return move;
 
-            return moves;
+                foreach (Move move in GenerateBishopMoves(board.BitBoard.BlackBishop, board.BitBoard.BlackPieces, board))
+                    yield return move;
+
+                foreach (Move move in GenerateQueenMoves(board.BitBoard.BlackQueen, board.BitBoard.BlackPieces, board))
+                    yield return move;
+
+                foreach (Move move in GenerateKingMoves(board.BitBoard.BlackKing, board.BitBoard.BlackPieces, board))
+                    yield return move;
+
+                foreach (Move move in GenerateRookMoves(board.BitBoard.BlackRook, board.BitBoard.BlackPieces, board))
+                    yield return move;
+
+                foreach (Move move in GenerateKnightMoves(board.BitBoard.BlackKnight, board.BitBoard.BlackPieces))
+                    yield return move;
+            }
         }
 
-        public List<Move> GenerateLegalMoves(BoardState board) =>
+        public IEnumerable<Move> GenerateLegalMoves(BoardState board) =>
             TrimIllegalMoves(GeneratePseudoLegalMoves(board), board);
 
-        public List<Move> TrimIllegalMoves(List<Move> moves, BoardState board)
-        {
-            PieceColour attacker = board.ToMove == PieceColour.White ? PieceColour.Black : PieceColour.White;
-
-            // If there is a chance we are in check, do a more comprehensive search
-            moves.RemoveAll(m =>
-            {
-                BoardState newState = board.MakeMove(m);
-                // Look if there are any enemy pieces aimed at the king
-                if (newState.IsInPseudoCheck(attacker))
-                    return newState.IsInCheck(board.ToMove);
-
-                return false;
-            });
-
-            return moves;
-        }
+        public IEnumerable<Move> TrimIllegalMoves(IEnumerable<Move> moves, BoardState board) =>
+            moves.Where(m => !m.LeavesPlayerInCheck(board));
 
         private IEnumerable<Move> GenerateKnightMoves(ulong knights, ulong friendlyPieces)
         {
-            var moves = new List<Move>();
-
             for (int i = 0; i < 64; i++)
             {
                 ulong knight = knights & (1ul << i);
@@ -70,33 +72,28 @@ namespace Charlie.Moves
                 right2 = (knight & ~(Chessboard.GFile | Chessboard.HFile)) != 0,
                 left2 = (knight & ~(Chessboard.AFile | Chessboard.BFile)) != 0;
 
-                if (up2 && right && ((knight >> 17) & ~friendlyPieces) != 0) moves.Add(new Move(knight, knight >> 17));
-                if (up && right2 && ((knight >> 10) & ~friendlyPieces) != 0) moves.Add(new Move(knight, knight >> 10));
-                if (down && right2 && ((knight << 6) & ~friendlyPieces) != 0) moves.Add(new Move(knight, knight << 6));
-                if (down2 && right && ((knight << 15) & ~friendlyPieces) != 0) moves.Add(new Move(knight, knight << 15));
-                if (down2 && left && ((knight << 17) & ~friendlyPieces) != 0) moves.Add(new Move(knight, knight << 17));
-                if (down && left2 && ((knight << 10) & ~friendlyPieces) != 0) moves.Add(new Move(knight, knight << 10));
-                if (up && left2 && ((knight >> 6) & ~friendlyPieces) != 0) moves.Add(new Move(knight, knight >> 6));
-                if (up2 && left && ((knight >> 15) & ~friendlyPieces) != 0) moves.Add(new Move(knight, knight >> 15));
+                if (up2 && right && ((knight >> 17) & ~friendlyPieces) != 0) yield return new Move(knight, knight >> 17);
+                if (up && right2 && ((knight >> 10) & ~friendlyPieces) != 0) yield return new Move(knight, knight >> 10);
+                if (down && right2 && ((knight << 6) & ~friendlyPieces) != 0) yield return new Move(knight, knight << 6);
+                if (down2 && right && ((knight << 15) & ~friendlyPieces) != 0) yield return new Move(knight, knight << 15);
+                if (down2 && left && ((knight << 17) & ~friendlyPieces) != 0) yield return new Move(knight, knight << 17);
+                if (down && left2 && ((knight << 10) & ~friendlyPieces) != 0) yield return new Move(knight, knight << 10);
+                if (up && left2 && ((knight >> 6) & ~friendlyPieces) != 0) yield return new Move(knight, knight >> 6);
+                if (up2 && left && ((knight >> 15) & ~friendlyPieces) != 0) yield return new Move(knight, knight >> 15);
             }
-
-            return moves;
         }
 
         private IEnumerable<Move> GenerateQueenMoves(ulong queens, ulong friendlyPieces, BoardState board)
         {
-            var moves = new List<Move>();
+            foreach (Move move in GenerateBishopMoves(queens, friendlyPieces, board))
+                yield return move;
 
-            moves.AddRange(GenerateBishopMoves(queens, friendlyPieces, board));
-            moves.AddRange(GenerateRookMoves(queens, friendlyPieces, board));
-
-            return moves;
+            foreach (Move move in GenerateRookMoves(queens, friendlyPieces, board))
+                yield return move;
         }
 
         private IEnumerable<Move> GenerateRookMoves(ulong rooks, ulong friendlyPieces, BoardState board)
         {
-            var moves = new List<Move>();
-
             for (int i = 0; i < 64; i++)
             {
                 ulong rook = rooks & (1ul << i);
@@ -108,7 +105,7 @@ namespace Charlie.Moves
                 {
                     distance += 8;
                     ulong newSq = rook >> distance;
-                    if ((newSq & ~friendlyPieces) != 0) moves.Add(new Move(rook, newSq));
+                    if ((newSq & ~friendlyPieces) != 0) yield return new Move(rook, newSq);
                     if ((newSq & board.BitBoard.Occupied) != 0) break;
                 }
 
@@ -118,7 +115,7 @@ namespace Charlie.Moves
                 {
                     distance += 8;
                     ulong newSq = rook << distance;
-                    if ((newSq & ~friendlyPieces) != 0) moves.Add(new Move(rook, newSq));
+                    if ((newSq & ~friendlyPieces) != 0) yield return new Move(rook, newSq);
                     if ((newSq & board.BitBoard.Occupied) != 0) break;
                 }
 
@@ -128,7 +125,7 @@ namespace Charlie.Moves
                 {
                     distance++;
                     ulong newSq = rook >> distance;
-                    if ((newSq & ~friendlyPieces) != 0) moves.Add(new Move(rook, newSq));
+                    if ((newSq & ~friendlyPieces) != 0) yield return new Move(rook, newSq);
                     if ((newSq & board.BitBoard.Occupied) != 0) break;
                 }
 
@@ -138,18 +135,14 @@ namespace Charlie.Moves
                 {
                     distance++;
                     ulong newSq = rook << distance;
-                    if ((newSq & ~friendlyPieces) != 0) moves.Add(new Move(rook, newSq));
+                    if ((newSq & ~friendlyPieces) != 0) yield return new Move(rook, newSq);
                     if ((newSq & board.BitBoard.Occupied) != 0) break;
                 }
             }
-
-            return moves;
         }
 
         private IEnumerable<Move> GenerateBishopMoves(ulong bishops, ulong friendlyPieces, BoardState board)
         {
-            var moves = new List<Move>();
-
             for (int i = 0; i < 64; i++)
             {
                 ulong bishop = bishops & (1ul << i);
@@ -161,7 +154,7 @@ namespace Charlie.Moves
                 {
                     distance += 9;
                     ulong newSq = bishop >> distance;
-                    if ((newSq & ~friendlyPieces) != 0) moves.Add(new Move(bishop, newSq));
+                    if ((newSq & ~friendlyPieces) != 0) yield return new Move(bishop, newSq);
                     if ((newSq & board.BitBoard.Occupied) != 0) break;
                 }
 
@@ -171,7 +164,7 @@ namespace Charlie.Moves
                 {
                     distance += 7;
                     ulong newSq = bishop >> distance;
-                    if ((newSq & ~friendlyPieces) != 0) moves.Add(new Move(bishop, newSq));
+                    if ((newSq & ~friendlyPieces) != 0) yield return new Move(bishop, newSq);
                     if ((newSq & board.BitBoard.Occupied) != 0) break;
                 }
 
@@ -181,7 +174,7 @@ namespace Charlie.Moves
                 {
                     distance += 7;
                     ulong newSq = bishop << distance;
-                    if ((newSq & ~friendlyPieces) != 0) moves.Add(new Move(bishop, newSq));
+                    if ((newSq & ~friendlyPieces) != 0) yield return new Move(bishop, newSq);
                     if ((newSq & board.BitBoard.Occupied) != 0) break;
                 }
 
@@ -191,18 +184,14 @@ namespace Charlie.Moves
                 {
                     distance += 9;
                     ulong newSq = bishop << distance;
-                    if ((newSq & ~friendlyPieces) != 0) moves.Add(new Move(bishop, newSq));
+                    if ((newSq & ~friendlyPieces) != 0) yield return new Move(bishop, newSq);
                     if ((newSq & board.BitBoard.Occupied) != 0) break;
                 }
             }
-
-            return moves;
         }
 
         private IEnumerable<Move> GenerateKingMoves(ulong king, ulong friendlyPieces, BoardState board)
         {
-            var moves = new List<Move>();
-
             bool up = (king & ~Chessboard.Rank8) != 0,
             down = (king & ~Chessboard.Rank1) != 0,
             right = (king & ~Chessboard.HFile) != 0,
@@ -210,35 +199,35 @@ namespace Charlie.Moves
 
             // if can move up
             if (up && ((king >> 8) & ~friendlyPieces) != 0)
-                moves.Add(new Move(king, king >> 8));
+                yield return new Move(king, king >> 8);
 
             // if can move down
             if (down && ((king << 8) & ~friendlyPieces) != 0)
-                moves.Add(new Move(king, king << 8));
+                yield return new Move(king, king << 8);
 
             // if can move right
             if (right && ((king >> 1) & ~friendlyPieces) != 0)
-                moves.Add(new Move(king, king >> 1));
+                yield return new Move(king, king >> 1);
 
             // if can move left
             if (left && ((king << 1) & ~friendlyPieces) != 0)
-                moves.Add(new Move(king, king << 1));
+                yield return new Move(king, king << 1);
 
             // up right
             if (up && right && ((king >> 9) & ~friendlyPieces) != 0)
-                moves.Add(new Move(king, king >> 9));
+                yield return new Move(king, king >> 9);
 
             // up left
             if (up && left && ((king >> 7) & ~friendlyPieces) != 0)
-                moves.Add(new Move(king, king >> 7));
+                yield return new Move(king, king >> 7);
 
             // down right
             if (down && right && ((king << 7) & ~friendlyPieces) != 0)
-                moves.Add(new Move(king, king << 7));
+                yield return new Move(king, king << 7);
 
             // down left
             if (down && left && ((king << 9) & ~friendlyPieces) != 0)
-                moves.Add(new Move(king, king << 9));
+                yield return new Move(king, king << 9);
 
             if (board.ToMove == PieceColour.White)
             {
@@ -250,7 +239,7 @@ namespace Charlie.Moves
                     !board.IsUnderAttack(king >> 1, PieceColour.Black) &&
                     !board.IsUnderAttack(king >> 2, PieceColour.Black))
                 {
-                    moves.Add(new Move(king, Chessboard.SquareG1, false, true, false, PromotionType.None));
+                    new Move(king, Chessboard.SquareG1, false, true, false, PromotionType.None);
                 }
 
                 // If can long castle
@@ -262,7 +251,7 @@ namespace Charlie.Moves
                     !board.IsUnderAttack(king << 2, PieceColour.Black) &&
                     !board.IsUnderAttack(king << 3, PieceColour.Black))
                 {
-                    moves.Add(new Move(king, Chessboard.SquareC1, false, true, false, PromotionType.None));
+                    yield return new Move(king, Chessboard.SquareC1, false, true, false, PromotionType.None);
                 }
             }
             else
@@ -275,7 +264,7 @@ namespace Charlie.Moves
                     !board.IsUnderAttack(king >> 1, PieceColour.White) &&
                     !board.IsUnderAttack(king >> 2, PieceColour.White))
                 {
-                    moves.Add(new Move(king, Chessboard.SquareG8, false, true, false, PromotionType.None));
+                    yield return new Move(king, Chessboard.SquareG8, false, true, false, PromotionType.None);
                 }
 
                 // If can long castle
@@ -287,17 +276,13 @@ namespace Charlie.Moves
                     !board.IsUnderAttack(king << 2, PieceColour.White) &&
                     !board.IsUnderAttack(king << 3, PieceColour.White))
                 {
-                    moves.Add(new Move(king, Chessboard.SquareC8, false, true, false, PromotionType.None));
+                    yield return new Move(king, Chessboard.SquareC8, false, true, false, PromotionType.None);
                 }
             }
-
-            return moves;
         }
 
         private IEnumerable<Move> GeneratePawnMoves(ulong pawns, BoardState board)
         {
-            var moves = new List<Move>();
-
             ulong occupiedBb = board.BitBoard.Occupied;
             ulong blackPiecesBb = board.BitBoard.BlackPieces;
             ulong whitePiecesBb = board.BitBoard.WhitePieces;
@@ -315,19 +300,19 @@ namespace Charlie.Moves
                         // if moving forward will make it promote
                         if ((pawn & Chessboard.Rank7) != 0)
                         {
-                            moves.Add(new Move(pawn, pawn >> 8, false, false, false, PromotionType.Queen));
-                            moves.Add(new Move(pawn, pawn >> 8, false, false, false, PromotionType.Rook));
-                            moves.Add(new Move(pawn, pawn >> 8, false, false, false, PromotionType.Bishop));
-                            moves.Add(new Move(pawn, pawn >> 8, false, false, false, PromotionType.Knight));
+                            yield return new Move(pawn, pawn >> 8, false, false, false, PromotionType.Queen);
+                            yield return new Move(pawn, pawn >> 8, false, false, false, PromotionType.Rook);
+                            yield return new Move(pawn, pawn >> 8, false, false, false, PromotionType.Bishop);
+                            yield return new Move(pawn, pawn >> 8, false, false, false, PromotionType.Knight);
                         }
                         else
                         {
-                            moves.Add(new Move(pawn, pawn >> 8));
+                            yield return new Move(pawn, pawn >> 8);
 
                             // if the pawn can move a second space
                             if (((pawn >> 16) & Chessboard.Rank4 & ~occupiedBb) != 0)
                             {
-                                moves.Add(new Move(pawn, pawn >> 16, false, false, true, PromotionType.None));
+                                yield return new Move(pawn, pawn >> 16, false, false, true, PromotionType.None);
                             }
                         }
                     }
@@ -338,14 +323,14 @@ namespace Charlie.Moves
                         // if moving forward will make it promote
                         if ((pawn & Chessboard.Rank7) != 0)
                         {
-                            moves.Add(new Move(pawn, pawn >> 7, false, false, false, PromotionType.Queen));
-                            moves.Add(new Move(pawn, pawn >> 7, false, false, false, PromotionType.Rook));
-                            moves.Add(new Move(pawn, pawn >> 7, false, false, false, PromotionType.Bishop));
-                            moves.Add(new Move(pawn, pawn >> 7, false, false, false, PromotionType.Knight));
+                            yield return new Move(pawn, pawn >> 7, false, false, false, PromotionType.Queen);
+                            yield return new Move(pawn, pawn >> 7, false, false, false, PromotionType.Rook);
+                            yield return new Move(pawn, pawn >> 7, false, false, false, PromotionType.Bishop);
+                            yield return new Move(pawn, pawn >> 7, false, false, false, PromotionType.Knight);
                         }
                         else
                         {
-                            moves.Add(new Move(pawn, pawn >> 7));
+                            yield return new Move(pawn, pawn >> 7);
                         }
                     }
 
@@ -355,27 +340,27 @@ namespace Charlie.Moves
                         // if moving forward will make it promote
                         if ((pawn & Chessboard.Rank7) != 0)
                         {
-                            moves.Add(new Move(pawn, pawn >> 9, false, false, false, PromotionType.Queen));
-                            moves.Add(new Move(pawn, pawn >> 9, false, false, false, PromotionType.Rook));
-                            moves.Add(new Move(pawn, pawn >> 9, false, false, false, PromotionType.Bishop));
-                            moves.Add(new Move(pawn, pawn >> 9, false, false, false, PromotionType.Knight));
+                            yield return new Move(pawn, pawn >> 9, false, false, false, PromotionType.Queen);
+                            yield return new Move(pawn, pawn >> 9, false, false, false, PromotionType.Rook);
+                            yield return new Move(pawn, pawn >> 9, false, false, false, PromotionType.Bishop);
+                            yield return new Move(pawn, pawn >> 9, false, false, false, PromotionType.Knight);
                         }
                         else
                         {
-                            moves.Add(new Move(pawn, pawn >> 9));
+                            new Move(pawn, pawn >> 9);
                         }
                     }
 
                     // if can take en passant to the left
                     if (((pawn >> 7) & board.WhiteEnPassant & ~Chessboard.HFile) != 0)
                     {
-                        moves.Add(new Move(pawn, pawn >> 7, true, false, false, PromotionType.None));
+                        yield return new Move(pawn, pawn >> 7, true, false, false, PromotionType.None);
                     }
 
                     // if can take en passant to the right
                     if (((pawn >> 9) & board.WhiteEnPassant & ~Chessboard.AFile) != 0)
                     {
-                        moves.Add(new Move(pawn, pawn >> 9, true, false, false, PromotionType.None));
+                        yield return new Move(pawn, pawn >> 9, true, false, false, PromotionType.None);
                     }
                 }
                 else
@@ -386,19 +371,19 @@ namespace Charlie.Moves
                         // if moving forward will make it promote
                         if ((pawn & Chessboard.Rank2) != 0)
                         {
-                            moves.Add(new Move(pawn, pawn << 8, false, false, false, PromotionType.Queen));
-                            moves.Add(new Move(pawn, pawn << 8, false, false, false, PromotionType.Rook));
-                            moves.Add(new Move(pawn, pawn << 8, false, false, false, PromotionType.Bishop));
-                            moves.Add(new Move(pawn, pawn << 8, false, false, false, PromotionType.Knight));
+                            yield return new Move(pawn, pawn << 8, false, false, false, PromotionType.Queen);
+                            yield return new Move(pawn, pawn << 8, false, false, false, PromotionType.Rook);
+                            yield return new Move(pawn, pawn << 8, false, false, false, PromotionType.Bishop);
+                            yield return new Move(pawn, pawn << 8, false, false, false, PromotionType.Knight);
                         }
                         else
                         {
-                            moves.Add(new Move(pawn, pawn << 8));
+                            yield return new Move(pawn, pawn << 8);
 
                             // if the pawn can move a second space
                             if (((pawn << 16) & Chessboard.Rank5 & ~occupiedBb) != 0)
                             {
-                                moves.Add(new Move(pawn, pawn << 16, false, false, true, PromotionType.None));
+                                yield return new Move(pawn, pawn << 16, false, false, true, PromotionType.None);
                             }
                         }
                     }
@@ -409,14 +394,14 @@ namespace Charlie.Moves
                         // if moving forward will make it promote
                         if ((pawn & Chessboard.Rank2) != 0)
                         {
-                            moves.Add(new Move(pawn, pawn << 9, false, false, false, PromotionType.Queen));
-                            moves.Add(new Move(pawn, pawn << 9, false, false, false, PromotionType.Rook));
-                            moves.Add(new Move(pawn, pawn << 9, false, false, false, PromotionType.Bishop));
-                            moves.Add(new Move(pawn, pawn << 9, false, false, false, PromotionType.Knight));
+                            yield return new Move(pawn, pawn << 9, false, false, false, PromotionType.Queen);
+                            yield return new Move(pawn, pawn << 9, false, false, false, PromotionType.Rook);
+                            yield return new Move(pawn, pawn << 9, false, false, false, PromotionType.Bishop);
+                            yield return new Move(pawn, pawn << 9, false, false, false, PromotionType.Knight);
                         }
                         else
                         {
-                            moves.Add(new Move(pawn, pawn << 9));
+                            yield return new Move(pawn, pawn << 9);
                         }
                     }
 
@@ -426,32 +411,30 @@ namespace Charlie.Moves
                         // if moving forward will make it promote
                         if ((pawn & Chessboard.Rank2) != 0)
                         {
-                            moves.Add(new Move(pawn, pawn << 7, false, false, false, PromotionType.Queen));
-                            moves.Add(new Move(pawn, pawn << 7, false, false, false, PromotionType.Rook));
-                            moves.Add(new Move(pawn, pawn << 7, false, false, false, PromotionType.Bishop));
-                            moves.Add(new Move(pawn, pawn << 7, false, false, false, PromotionType.Knight));
+                            yield return new Move(pawn, pawn << 7, false, false, false, PromotionType.Queen);
+                            yield return new Move(pawn, pawn << 7, false, false, false, PromotionType.Rook);
+                            yield return new Move(pawn, pawn << 7, false, false, false, PromotionType.Bishop);
+                            yield return new Move(pawn, pawn << 7, false, false, false, PromotionType.Knight);
                         }
                         else
                         {
-                            moves.Add(new Move(pawn, pawn << 7));
+                            yield return new Move(pawn, pawn << 7);
                         }
                     }
 
                     // if can take en passant to the left
                     if (((pawn << 9) & board.BlackEnPassant & ~Chessboard.HFile) != 0)
                     {
-                        moves.Add(new Move(pawn, pawn << 9, true, false, false, PromotionType.None));
+                        yield return new Move(pawn, pawn << 9, true, false, false, PromotionType.None);
                     }
 
                     // if can take en passant to the right
                     if (((pawn << 7) & board.BlackEnPassant & ~Chessboard.AFile) != 0)
                     {
-                        moves.Add(new Move(pawn, pawn << 7, true, false, false, PromotionType.None));
+                        yield return new Move(pawn, pawn << 7, true, false, false, PromotionType.None);
                     }
                 }
             }
-
-            return moves;
         }
     }
 }

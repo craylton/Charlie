@@ -65,7 +65,7 @@ namespace Charlie
                     {
                         foreach (string moveInput in @params[(movesIndicatorIndex + 1)..])
                         {
-                            List<Move> moves = generator.GenerateLegalMoves(boardState);
+                            IEnumerable<Move> moves = generator.GenerateLegalMoves(boardState);
                             Move move = Move.FromString(moves, moveInput);
                             boardState = boardState.MakeMove(move);
                         }

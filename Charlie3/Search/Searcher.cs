@@ -118,9 +118,9 @@ namespace Charlie.Search
                 return DrawScore;
             }
 
-            List<Move> moves = generator.GenerateLegalMoves(boardState);
+            IEnumerable<Move> moves = generator.GenerateLegalMoves(boardState);
             if (pvMoves.Length > 0)
-                moves.MoveToFront(pvMoves[0]);
+                moves = moves.ToList().MoveToFront(pvMoves[0]);
 
             if (!moves.Any())
             {

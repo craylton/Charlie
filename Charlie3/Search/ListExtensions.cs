@@ -4,12 +4,15 @@ namespace Charlie.Search
 {
     public static class ListExtensions
     {
-        public static void MoveToFront<T>(this List<T> list, T item)
+        public static List<T> MoveToFront<T>(this List<T> list, T item)
         {
-            if (!list.Contains(item)) return;
+            if (list.Contains(item))
+            {
+                list.Remove(item);
+                list.Insert(0, item);
+            }
 
-            list.Remove(item);
-            list.Insert(0, item);
+            return list;
         }
     }
 }
