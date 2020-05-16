@@ -51,23 +51,23 @@ namespace Charlie.Search
             {
                 pv = new Move[depth];
                 eval = await AlphaBeta(currentBoard, alpha, beta, depth, 0, pv, prevPv);
+                bool isMate = IsMateScore(eval);
 
                 if (cancel) break;
 
                 if (eval <= alpha)
                 {
-                    alpha -= 100;
-                    continue;
+                    alpha = NegativeInfinityScore;
+                    if (!isMate) continue;
                 }
                 else if (eval >= beta)
                 {
-                    beta += 100;
-                    continue;
+                    beta = InfinityScore;
+                    if (!isMate) continue;
                 }
 
                 prevPv = pv.Reverse().TakeWhile(move => move.IsValid()).ToArray();
                 bestMove = prevPv[0];
-                bool isMate = Math.Abs(eval) > MateScore - 100;
 
                 var moveInfo = new MoveInfo(depth, prevPv, eval, isMate, sw.ElapsedMilliseconds, nodesSearched);
                 BestMoveChanged?.Invoke(this, moveInfo);
@@ -190,5 +190,7 @@ namespace Charlie.Search
 
             return alpha;
         }
+        private bool IsMateScore(int eval) => Math.Abs(eval) > MateScore - 100;
+
     }
 }
