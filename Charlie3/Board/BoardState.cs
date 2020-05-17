@@ -1,6 +1,7 @@
 ﻿using Charlie.Moves;
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 
 namespace Charlie.Board
 {
@@ -198,7 +199,7 @@ namespace Charlie.Board
                 if (IsUnderImmediateAttack(BitBoard.WhiteKing, BitBoard.BlackKing, attacker)) return true;
                 if (IsUnderKnightAttack(BitBoard.WhiteKing, BitBoard.BlackKnight)) return true;
 
-                int cellIndex = BitBoard.WhiteKing.CountTrailingZeroes();
+                int cellIndex = BitOperations.TrailingZeroCount(BitBoard.WhiteKing);
 
                 if ((Magics.BishopAttacks[cellIndex] & (BitBoard.BlackBishop | BitBoard.BlackQueen)) != 0) return true;
                 if ((Magics.RookAttacks[cellIndex] & (BitBoard.BlackRook | BitBoard.BlackQueen)) != 0) return true;
@@ -208,7 +209,7 @@ namespace Charlie.Board
                 if (IsUnderImmediateAttack(BitBoard.BlackKing, BitBoard.WhiteKing, attacker)) return true;
                 if (IsUnderKnightAttack(BitBoard.BlackKing, BitBoard.WhiteKnight)) return true;
 
-                int cellIndex = BitBoard.BlackKing.CountTrailingZeroes();
+                int cellIndex = BitOperations.TrailingZeroCount(BitBoard.BlackKing);
 
                 if ((Magics.BishopAttacks[cellIndex] & (BitBoard.WhiteBishop | BitBoard.WhiteQueen)) != 0) return true;
                 if ((Magics.RookAttacks[cellIndex] & (BitBoard.WhiteRook | BitBoard.WhiteQueen)) != 0) return true;
@@ -346,7 +347,7 @@ namespace Charlie.Board
 
         private bool IsUnderKnightAttack(ulong cell, ulong theirKnight)
         {
-            int cellIndex = cell.CountTrailingZeroes();
+            int cellIndex = BitOperations.TrailingZeroCount(cell);
             return (Magics.KnightAttacks[cellIndex] & theirKnight) != 0;
         }
 

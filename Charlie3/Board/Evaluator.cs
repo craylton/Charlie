@@ -1,4 +1,6 @@
-﻿namespace Charlie.Board
+﻿using System.Numerics;
+
+namespace Charlie.Board
 {
     public class Evaluator
     {
@@ -107,17 +109,17 @@
             ulong whiteAttacks = 0ul, blackAttacks = 0ul;
             int whiteMaterial = 0, blackMaterial = 0;
 
-            whiteMaterial += board.BitBoard.WhitePawn.BitCount() * pawn;
-            whiteMaterial += board.BitBoard.WhiteKnight.BitCount() * knight;
-            whiteMaterial += board.BitBoard.WhiteBishop.BitCount() * bishop;
-            whiteMaterial += board.BitBoard.WhiteRook.BitCount() * rook;
-            whiteMaterial += board.BitBoard.WhiteQueen.BitCount() * queen;
+            whiteMaterial += BitOperations.PopCount(board.BitBoard.WhitePawn) * pawn;
+            whiteMaterial += BitOperations.PopCount(board.BitBoard.WhiteKnight) * knight;
+            whiteMaterial += BitOperations.PopCount(board.BitBoard.WhiteBishop) * bishop;
+            whiteMaterial += BitOperations.PopCount(board.BitBoard.WhiteRook) * rook;
+            whiteMaterial += BitOperations.PopCount(board.BitBoard.WhiteQueen) * queen;
 
-            blackMaterial += board.BitBoard.BlackPawn.BitCount() * pawn;
-            blackMaterial += board.BitBoard.BlackKnight.BitCount() * knight;
-            blackMaterial += board.BitBoard.BlackBishop.BitCount() * bishop;
-            blackMaterial += board.BitBoard.BlackRook.BitCount() * rook;
-            blackMaterial += board.BitBoard.BlackQueen.BitCount() * queen;
+            blackMaterial += BitOperations.PopCount(board.BitBoard.BlackPawn) * pawn;
+            blackMaterial += BitOperations.PopCount(board.BitBoard.BlackKnight) * knight;
+            blackMaterial += BitOperations.PopCount(board.BitBoard.BlackBishop) * bishop;
+            blackMaterial += BitOperations.PopCount(board.BitBoard.BlackRook) * rook;
+            blackMaterial += BitOperations.PopCount(board.BitBoard.BlackQueen) * queen;
 
             whiteScore += whiteMaterial;
             blackScore += blackMaterial;
@@ -170,25 +172,25 @@
             ulong whiteTerritory = whiteAttacks & ~blackAttacks;
             ulong blackTerritory = blackAttacks & ~whiteAttacks;
 
-            whiteScore += whiteAttacks.BitCount() * 5 + whiteTerritory.BitCount() * 10;
-            blackScore += blackAttacks.BitCount() * 5 + blackTerritory.BitCount() * 10;
+            whiteScore += BitOperations.PopCount(whiteAttacks) * 5 + BitOperations.PopCount(whiteTerritory) * 10;
+            blackScore += BitOperations.PopCount(blackAttacks) * 5 + BitOperations.PopCount(blackTerritory) * 10;
 
             // Hanging pieces are worth half value
             if (board.ToMove == PieceColour.Black)
             {
-                whiteScore -= (blackTerritory & board.BitBoard.WhitePawn).BitCount() * pawn / 2;
-                whiteScore -= (blackTerritory & board.BitBoard.WhiteKnight).BitCount() * knight / 2;
-                whiteScore -= (blackTerritory & board.BitBoard.WhiteBishop).BitCount() * bishop / 2;
-                whiteScore -= (blackTerritory & board.BitBoard.WhiteRook).BitCount() * rook / 2;
-                whiteScore -= (blackTerritory & board.BitBoard.WhiteQueen).BitCount() * queen / 2;
+                whiteScore -= BitOperations.PopCount(blackTerritory & board.BitBoard.WhitePawn) * pawn / 2;
+                whiteScore -= BitOperations.PopCount(blackTerritory & board.BitBoard.WhiteKnight) * knight / 2;
+                whiteScore -= BitOperations.PopCount(blackTerritory & board.BitBoard.WhiteBishop) * bishop / 2;
+                whiteScore -= BitOperations.PopCount(blackTerritory & board.BitBoard.WhiteRook) * rook / 2;
+                whiteScore -= BitOperations.PopCount(blackTerritory & board.BitBoard.WhiteQueen) * queen / 2;
             }
             else if (board.ToMove == PieceColour.White)
             {
-                blackScore -= (whiteTerritory & board.BitBoard.BlackPawn).BitCount() * pawn / 2;
-                blackScore -= (whiteTerritory & board.BitBoard.BlackKnight).BitCount() * knight / 2;
-                blackScore -= (whiteTerritory & board.BitBoard.BlackBishop).BitCount() * bishop / 2;
-                blackScore -= (whiteTerritory & board.BitBoard.BlackRook).BitCount() * rook / 2;
-                blackScore -= (whiteTerritory & board.BitBoard.BlackQueen).BitCount() * queen / 2;
+                blackScore -= BitOperations.PopCount(whiteTerritory & board.BitBoard.BlackPawn) * pawn / 2;
+                blackScore -= BitOperations.PopCount(whiteTerritory & board.BitBoard.BlackKnight) * knight / 2;
+                blackScore -= BitOperations.PopCount(whiteTerritory & board.BitBoard.BlackBishop) * bishop / 2;
+                blackScore -= BitOperations.PopCount(whiteTerritory & board.BitBoard.BlackRook) * rook / 2;
+                blackScore -= BitOperations.PopCount(whiteTerritory & board.BitBoard.BlackQueen) * queen / 2;
             }
 
             for (int i = 0; i < Chessboard.Files.Length; i++)
@@ -213,8 +215,8 @@
                 }
 
                 // Check for doubled pawns
-                if ((board.BitBoard.WhitePawn & Chessboard.Files[i]).BitCount() > 1) whiteScore -= 20;
-                if ((board.BitBoard.BlackPawn & Chessboard.Files[i]).BitCount() > 1) blackScore -= 20;
+                if (BitOperations.PopCount(board.BitBoard.WhitePawn & Chessboard.Files[i]) > 1) whiteScore -= 20;
+                if (BitOperations.PopCount(board.BitBoard.BlackPawn & Chessboard.Files[i]) > 1) blackScore -= 20;
             }
 
             return (whiteScore - blackScore) * (board.ToMove == PieceColour.White ? 1 : -1);

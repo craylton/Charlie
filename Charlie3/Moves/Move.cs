@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 
 namespace Charlie.Moves
 {
@@ -36,8 +37,8 @@ namespace Charlie.Moves
 
         public override string ToString()
         {
-            string from = Chessboard.CellNames[FromCell.CountLeadingZeros()];
-            string to = Chessboard.CellNames[ToCell.CountLeadingZeros()];
+            string from = Chessboard.CellNames[BitOperations.LeadingZeroCount(FromCell)];
+            string to = Chessboard.CellNames[BitOperations.LeadingZeroCount(ToCell)];
 
             var promotion = string.Empty;
 
