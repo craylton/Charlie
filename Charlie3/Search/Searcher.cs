@@ -53,40 +53,49 @@ namespace Charlie.Search
                 eval = await AlphaBeta(currentBoard, alpha, beta, depth, 0, pv, prevPv);
                 bool isMate = IsMateScore(eval);
 
+                // Check if a stop command has been sent
                 if (cancel) break;
 
+                // If fail high/low, reset aspiration windows and try again
+                if (eval <= alpha)
+                {
+                    alpha = NegativeInfinityScore;
+                    // Don't try again if we found mate because we won't find anything better
+                    if (!isMate) continue;
+                }
+                else if (eval >= beta)
+                {
+                    beta = InfinityScore;
+                    // Don't try again if we found mate because we won't find anything better
+                    if (!isMate) continue;
+                }
+
+                // Extract the pv
+                prevPv = pv.Reverse().TakeWhile(move => move.IsValid()).ToArray();
+                bestMove = prevPv[0];
+
+                // Report the pv
+                var moveInfo = new MoveInfo(depth, prevPv, eval, isMate, sw.ElapsedMilliseconds, nodesSearched);
+                BestMoveChanged?.Invoke(this, moveInfo);
+
+                // Set new aspiration windows
+                alpha = eval - 30;
+                beta = eval + 30;
+                depth++;
+
+                // Check if we need to abort search
                 if (searchParameters.SearchType == SearchType.Time)
                 {
                     if (sw.ElapsedMilliseconds * 4 > searchParameters.SearchTime.IdealTime) break;
                     if (isMate) break;
                 }
 
-                if (eval <= alpha)
-                {
-                    alpha = NegativeInfinityScore;
-                    if (!isMate) continue;
-                }
-                else if (eval >= beta)
-                {
-                    beta = InfinityScore;
-                    if (!isMate) continue;
-                }
-
-                prevPv = pv.Reverse().TakeWhile(move => move.IsValid()).ToArray();
-                bestMove = prevPv[0];
-
-                var moveInfo = new MoveInfo(depth, prevPv, eval, isMate, sw.ElapsedMilliseconds, nodesSearched);
-                BestMoveChanged?.Invoke(this, moveInfo);
-
-                alpha = eval - 30;
-                beta = eval + 30;
-                depth++;
-
                 if (searchParameters.SearchType == SearchType.Depth
                     && depth > searchParameters.DepthLimit)
                     break;
             }
 
+            // Stop the search and report the results
             SearchResults results = new SearchResults(bestMove, nodesSearched, sw.ElapsedMilliseconds);
             SearchComplete?.Invoke(this, results);
             Stop();
