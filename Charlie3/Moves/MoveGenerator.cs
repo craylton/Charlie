@@ -1,15 +1,25 @@
 ﻿using Charlie.Board;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 
 namespace Charlie.Moves
 {
     public class MoveGenerator
     {
+        public IEnumerable<Move> GenerateLegalMoves(BoardState board) =>
+            TrimIllegalMoves(GeneratePseudoLegalMoves(board), board);
+
+        public IEnumerable<Move> TrimIllegalMoves(IEnumerable<Move> moves, BoardState board) =>
+            moves.Where(m => !m.LeavesPlayerInCheck(board));
+
         public IEnumerable<Move> GeneratePseudoLegalMoves(BoardState board)
         {
             if (board.ToMove == PieceColour.White)
             {
+                foreach (Move move in GenerateKnightCaptures(board.BitBoard.WhiteKnight, board.BitBoard.BlackPieces))
+                    yield return move;
+
                 foreach (Move move in GeneratePawnMoves(board.BitBoard.WhitePawn, board))
                     yield return move;
 
@@ -25,11 +35,14 @@ namespace Charlie.Moves
                 foreach (Move move in GenerateRookMoves(board.BitBoard.WhiteRook, board.BitBoard.WhitePieces, board))
                     yield return move;
 
-                foreach (Move move in GenerateKnightMoves(board.BitBoard.WhiteKnight, board.BitBoard.WhitePieces))
+                foreach (Move move in GenerateKnightNonCaptures(board.BitBoard.WhiteKnight, board.BitBoard.Occupied))
                     yield return move;
             }
             else
             {
+                foreach (Move move in GenerateKnightCaptures(board.BitBoard.BlackKnight, board.BitBoard.WhitePieces))
+                    yield return move;
+
                 foreach (Move move in GeneratePawnMoves(board.BitBoard.BlackPawn, board))
                     yield return move;
 
@@ -45,41 +58,47 @@ namespace Charlie.Moves
                 foreach (Move move in GenerateRookMoves(board.BitBoard.BlackRook, board.BitBoard.BlackPieces, board))
                     yield return move;
 
-                foreach (Move move in GenerateKnightMoves(board.BitBoard.BlackKnight, board.BitBoard.BlackPieces))
+                foreach (Move move in GenerateKnightNonCaptures(board.BitBoard.BlackKnight, board.BitBoard.Occupied))
                     yield return move;
             }
         }
 
-        public IEnumerable<Move> GenerateLegalMoves(BoardState board) =>
-            TrimIllegalMoves(GeneratePseudoLegalMoves(board), board);
-
-        public IEnumerable<Move> TrimIllegalMoves(IEnumerable<Move> moves, BoardState board) =>
-            moves.Where(m => !m.LeavesPlayerInCheck(board));
-
-        private IEnumerable<Move> GenerateKnightMoves(ulong knights, ulong friendlyPieces)
+        private IEnumerable<Move> GenerateKnightCaptures(ulong knights, ulong enemyPieces)
         {
             for (int i = 0; i < 64; i++)
             {
                 ulong knight = knights & (1ul << i);
                 if (knight == 0) continue;
 
-                bool up = (knight & ~Chessboard.Rank8) != 0,
-                down = (knight & ~Chessboard.Rank1) != 0,
-                right = (knight & ~Chessboard.HFile) != 0,
-                left = (knight & ~Chessboard.AFile) != 0,
-                up2 = (knight & ~(Chessboard.Rank7 | Chessboard.Rank8)) != 0,
-                down2 = (knight & ~(Chessboard.Rank1 | Chessboard.Rank2)) != 0,
-                right2 = (knight & ~(Chessboard.GFile | Chessboard.HFile)) != 0,
-                left2 = (knight & ~(Chessboard.AFile | Chessboard.BFile)) != 0;
+                var magic = Magics.KnightAttacks[i];
+                while (magic != 0)
+                {
+                    var toSquare = 1ul << BitOperations.TrailingZeroCount(magic);
 
-                if (up2 && right && ((knight >> 17) & ~friendlyPieces) != 0) yield return new Move(knight, knight >> 17);
-                if (up2 && left && ((knight >> 15) & ~friendlyPieces) != 0) yield return new Move(knight, knight >> 15);
-                if (up && right2 && ((knight >> 10) & ~friendlyPieces) != 0) yield return new Move(knight, knight >> 10);
-                if (up && left2 && ((knight >> 6) & ~friendlyPieces) != 0) yield return new Move(knight, knight >> 6);
-                if (down && right2 && ((knight << 6) & ~friendlyPieces) != 0) yield return new Move(knight, knight << 6);
-                if (down && left2 && ((knight << 10) & ~friendlyPieces) != 0) yield return new Move(knight, knight << 10);
-                if (down2 && right && ((knight << 15) & ~friendlyPieces) != 0) yield return new Move(knight, knight << 15);
-                if (down2 && left && ((knight << 17) & ~friendlyPieces) != 0) yield return new Move(knight, knight << 17);
+                    if ((toSquare & enemyPieces) != 0)
+                        yield return new Move(knight, toSquare);
+
+                    magic ^= toSquare;
+                }
+            }
+        }
+        private IEnumerable<Move> GenerateKnightNonCaptures(ulong knights, ulong occupied)
+        {
+            for (int i = 0; i < 64; i++)
+            {
+                ulong knight = knights & (1ul << i);
+                if (knight == 0) continue;
+
+                var magic = Magics.KnightAttacks[i];
+                while (magic != 0)
+                {
+                    var toSquare = 1ul << BitOperations.TrailingZeroCount(magic);
+
+                    if ((toSquare & occupied) == 0)
+                        yield return new Move(knight, toSquare);
+
+                    magic ^= toSquare;
+                }
             }
         }
 
