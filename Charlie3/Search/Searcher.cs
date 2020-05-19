@@ -43,13 +43,14 @@ namespace Charlie.Search
             }
 
             Move bestMove = default;
-            Move[] pv, prevPv = new Move[0];
+            List<Move> pv;
+            Move[] prevPv = new Move[0];
             int eval = DrawScore, depth = 1;
             int alpha = NegativeInfinityScore, beta = InfinityScore;
 
             while (true)
             {
-                pv = new Move[depth];
+                pv = new List<Move>();
                 eval = await AlphaBeta(currentBoard, alpha, beta, depth, 0, pv, prevPv);
                 bool isMate = IsMateScore(eval);
 
@@ -71,7 +72,7 @@ namespace Charlie.Search
                 }
 
                 // Extract the pv
-                prevPv = pv.Reverse().TakeWhile(move => move.IsValid()).ToArray();
+                prevPv = pv.ToArray();
                 bestMove = prevPv[0];
 
                 // Report the pv
@@ -108,9 +109,10 @@ namespace Charlie.Search
             cancel = true;
         }
 
-        private async Task<int> AlphaBeta(BoardState boardState, int alpha, int beta, int depth, int height, Move[] pv, Move[] pvMoves)
+        private async Task<int> AlphaBeta(BoardState boardState, int alpha, int beta, int depth, int height, List<Move> pv, Move[] pvMoves)
         {
             var foundPv = false;
+            var isRoot = height == 0;
 
             if (depth == 0)
             {
@@ -123,6 +125,9 @@ namespace Charlie.Search
                 nodesSearched++;
                 return DrawScore;
             }
+
+            if (boardState.IsInCheck(boardState.ToMove) && !isRoot)
+                depth++;
 
             IEnumerable<Move> moves = generator.GenerateLegalMoves(boardState);
             if (pvMoves.Length > 0)
@@ -141,7 +146,7 @@ namespace Charlie.Search
             {
                 bool isPvMove = pvMoves.Length > 0 && pvMoves[0].Equals(move);
                 Move[] childPvMoves = isPvMove ? pvMoves[1..] : new Move[0];
-                var pvBuffer = new Move[depth - 1];
+                var pvBuffer = new List<Move>();
 
                 int eval = DrawScore;
                 BoardState newBoard = boardState.MakeMove(move);
@@ -174,8 +179,10 @@ namespace Charlie.Search
                 {
                     alpha = eval;
                     foundPv = true;
-                    pvBuffer.CopyTo(pv, 0);
-                    pv[depth - 1] = move;
+
+                    pv.Clear();
+                    pv.Add(move);
+                    pv.AddRange(pvBuffer);
                 }
             }
 
