@@ -172,8 +172,8 @@ namespace Charlie.Board
             ulong whiteTerritory = whiteAttacks & ~blackAttacks;
             ulong blackTerritory = blackAttacks & ~whiteAttacks;
 
-            whiteScore += BitOperations.PopCount(whiteAttacks) * 5 + BitOperations.PopCount(whiteTerritory) * 10;
-            blackScore += BitOperations.PopCount(blackAttacks) * 5 + BitOperations.PopCount(blackTerritory) * 10;
+            whiteScore += BitOperations.PopCount(whiteAttacks) * 5 + BitOperations.PopCount(whiteTerritory) * 5;
+            blackScore += BitOperations.PopCount(blackAttacks) * 5 + BitOperations.PopCount(blackTerritory) * 5;
 
             // Hanging pieces are worth half value
             if (board.ToMove == PieceColour.Black)

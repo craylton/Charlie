@@ -45,7 +45,7 @@ namespace Charlie.Search
             Move bestMove = default;
             List<Move> pv;
             Move[] prevPv = new Move[0];
-            int eval = DrawScore, depth = 1;
+            int eval, depth = 1;
             int alpha = NegativeInfinityScore, beta = InfinityScore;
 
             while (true)

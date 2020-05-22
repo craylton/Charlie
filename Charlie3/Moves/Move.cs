@@ -93,8 +93,6 @@ namespace Charlie.Moves
             return false;
         }
 
-        public bool IsValid() => !Equals(default(Move));
-
         public override bool Equals(object obj) =>
             obj is Move move &&
             FromCell == move.FromCell &&
