@@ -67,13 +67,13 @@ namespace Charlie.Moves
             IEnumerable<Move> matches = possibleMoves.Where(m => m.FromCell == fromCell && m.ToCell == toCell);
 
             // If it was a pawn promotion, there will be multiple matching moves
-            if (matches.Count() > 1 && move.Length == 5)
+            if (matches.Count() > 1 && move.Length >= 5)
             {
-                string promotion = move[4].ToString().ToUpper();
-                return matches.FirstOrDefault(m => m.PromotionType.GetSuffix().ToUpper() == promotion);
+                string promotion = move[^1].ToString().ToUpper();
+                return matches.Single(m => m.PromotionType.GetSuffix().ToUpper() == promotion);
             }
 
-            return matches.FirstOrDefault();
+            return matches.Single();
         }
 
         public bool IsCapture(BoardState board) => (board.BitBoard.Occupied & ToCell) != 0;
