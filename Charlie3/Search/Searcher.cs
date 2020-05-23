@@ -87,7 +87,7 @@ namespace Charlie.Search
                 // Check if we need to abort search
                 if (searchParameters.SearchType == SearchType.Time)
                 {
-                    if (sw.ElapsedMilliseconds * 4 > searchParameters.SearchTime.IdealTime) break;
+                    if (sw.ElapsedMilliseconds * 4 > searchParameters.SearchTime.IdealTime + searchParameters.SearchTime.Increment) break;
                     if (isMate) break;
                 }
 
@@ -126,6 +126,7 @@ namespace Charlie.Search
                 return DrawScore;
             }
 
+            // Check extension - ~200 elo
             if (boardState.IsInCheck(boardState.ToMove) && !isRoot)
                 depth++;
 
@@ -151,6 +152,7 @@ namespace Charlie.Search
                 int eval = DrawScore;
                 BoardState newBoard = boardState.MakeMove(move);
 
+                // Early quiescence - ~50 elo
                 if (depth == 2 && move.IsCaptureOrPromotion(boardState))
                 {
                     nodesSearched++;

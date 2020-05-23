@@ -87,11 +87,22 @@ namespace Charlie
                     else if (@params.Length >= 5 && @params[1] == "wtime" && @params[3] == "btime")
                     {
                         searchType = SearchType.Time;
+                        int ourIncrement = 0;
                         int whiteTime = int.Parse(@params[2]);
                         int blackTime = int.Parse(@params[4]);
 
                         int timeAvailable = boardState.ToMove == PieceColour.White ? whiteTime : blackTime;
-                        searchTime = new SearchTime(timeAvailable / 30, timeAvailable / 20);
+
+                        if (@params.Length >= 9 && @params[5] == "winc" && @params[7] == "binc")
+                        {
+                            searchType = SearchType.Time;
+                            int whiteIncrement = int.Parse(@params[6]);
+                            int blackIncrement = int.Parse(@params[8]);
+
+                            ourIncrement = boardState.ToMove == PieceColour.White ? whiteIncrement : blackIncrement;
+                        }
+
+                        searchTime = new SearchTime(timeAvailable / 40, timeAvailable / 5, ourIncrement);
                     }
 
                     var searchParameters = new SearchParameters(searchType, searchTime, targetDepth);
