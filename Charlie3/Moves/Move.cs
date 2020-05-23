@@ -45,7 +45,7 @@ namespace Charlie.Moves
             if (PromotionType != PromotionType.None)
                 promotion = "=" + PromotionType.GetSuffix();
 
-            return $"{from}-{to}{promotion}";
+            return $"{from}{to}{promotion}";
         }
 
         public static Move FromString(IEnumerable<Move> possibleMoves, string move)
