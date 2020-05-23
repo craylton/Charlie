@@ -17,10 +17,10 @@ namespace Charlie.Moves
         {
             if (board.ToMove == PieceColour.White)
             {
-                foreach (Move move in GenerateKnightCaptures(board.BitBoard.WhiteKnight, board.BitBoard.BlackPieces))
+                foreach (Move move in GeneratePawnMoves(board.BitBoard.WhitePawn, board))
                     yield return move;
 
-                foreach (Move move in GeneratePawnMoves(board.BitBoard.WhitePawn, board))
+                foreach (Move move in GenerateKnightCaptures(board.BitBoard.WhiteKnight, board.BitBoard.BlackPieces))
                     yield return move;
 
                 foreach (Move move in GenerateBishopMoves(board.BitBoard.WhiteBishop, board.BitBoard.WhitePieces, board))
@@ -40,10 +40,10 @@ namespace Charlie.Moves
             }
             else
             {
-                foreach (Move move in GenerateKnightCaptures(board.BitBoard.BlackKnight, board.BitBoard.WhitePieces))
+                foreach (Move move in GeneratePawnMoves(board.BitBoard.BlackPawn, board))
                     yield return move;
 
-                foreach (Move move in GeneratePawnMoves(board.BitBoard.BlackPawn, board))
+                foreach (Move move in GenerateKnightCaptures(board.BitBoard.BlackKnight, board.BitBoard.WhitePieces))
                     yield return move;
 
                 foreach (Move move in GenerateBishopMoves(board.BitBoard.BlackBishop, board.BitBoard.BlackPieces, board))
