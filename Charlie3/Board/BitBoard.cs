@@ -1,5 +1,6 @@
 ﻿using Charlie.Moves;
 using System;
+using System.Numerics;
 
 namespace Charlie.Board
 {
@@ -275,29 +276,23 @@ namespace Charlie.Board
             WhiteKnight == board.WhiteKnight &&
             BlackKnight == board.BlackKnight &&
             WhitePawn == board.WhitePawn &&
-            BlackPawn == board.BlackPawn &&
-            WhitePieces == board.WhitePieces &&
-            BlackPieces == board.BlackPieces &&
-            Occupied == board.Occupied;
+            BlackPawn == board.BlackPawn;
 
         public override int GetHashCode()
         {
             HashCode hash = new HashCode();
-            hash.Add(WhiteKing);
-            hash.Add(BlackKing);
-            hash.Add(WhiteQueen);
-            hash.Add(BlackQueen);
-            hash.Add(WhiteRook);
-            hash.Add(BlackRook);
-            hash.Add(WhiteBishop);
-            hash.Add(BlackBishop);
-            hash.Add(WhiteKnight);
-            hash.Add(BlackKnight);
-            hash.Add(WhitePawn);
-            hash.Add(BlackPawn);
-            hash.Add(WhitePieces);
-            hash.Add(BlackPieces);
-            hash.Add(Occupied);
+            hash.Add((int)WhiteKing + BitOperations.LeadingZeroCount(WhiteKing) + 64 * BitOperations.TrailingZeroCount(WhiteKing));
+            hash.Add((int)BlackKing + BitOperations.LeadingZeroCount(BlackKing) + 64 * BitOperations.TrailingZeroCount(BlackKing));
+            hash.Add((int)WhiteQueen + BitOperations.LeadingZeroCount(WhiteQueen) + 64 * BitOperations.TrailingZeroCount(WhiteKing));
+            hash.Add((int)BlackQueen + BitOperations.LeadingZeroCount(BlackQueen) + 64 * BitOperations.TrailingZeroCount(BlackQueen));
+            hash.Add((int)WhiteRook + BitOperations.LeadingZeroCount(WhiteRook) + 64 * BitOperations.TrailingZeroCount(WhiteRook));
+            hash.Add((int)BlackRook + BitOperations.LeadingZeroCount(BlackRook) + 64 * BitOperations.TrailingZeroCount(BlackRook));
+            hash.Add((int)WhiteBishop + BitOperations.LeadingZeroCount(WhiteBishop) + 64 * BitOperations.TrailingZeroCount(WhiteBishop));
+            hash.Add((int)BlackBishop + BitOperations.LeadingZeroCount(BlackBishop) + 64 * BitOperations.TrailingZeroCount(BlackBishop));
+            hash.Add((int)WhiteKnight + BitOperations.LeadingZeroCount(WhiteKnight) + 64 * BitOperations.TrailingZeroCount(WhiteKnight));
+            hash.Add((int)BlackKnight + BitOperations.LeadingZeroCount(BlackKnight) + 64 * BitOperations.TrailingZeroCount(BlackKnight));
+            hash.Add((int)WhitePawn + BitOperations.LeadingZeroCount(WhitePawn) + 64 * BitOperations.TrailingZeroCount(WhitePawn));
+            hash.Add((int)BlackPawn + BitOperations.LeadingZeroCount(BlackPawn) + 64 * BitOperations.TrailingZeroCount(BlackPawn));
             return hash.ToHashCode();
         }
     }
