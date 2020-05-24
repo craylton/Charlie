@@ -23,6 +23,8 @@ namespace Charlie
             searcher.SearchComplete += Searcher_SearchComplete;
             bench.BenchComplete += Bench_BenchComplete;
 
+            Zobrist.Initialise();
+
             while (true)
             {
                 string input = Console.ReadLine();

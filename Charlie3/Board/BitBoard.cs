@@ -263,37 +263,107 @@ namespace Charlie.Board
             new[] { DefaultWhiteKnight, DefaultBlackKnight },
             new[] { DefaultWhitePawn, DefaultBlackPawn });
 
-        public override bool Equals(object obj) =>
-            obj is BitBoard board &&
-            WhiteKing == board.WhiteKing &&
-            BlackKing == board.BlackKing &&
-            WhiteQueen == board.WhiteQueen &&
-            BlackQueen == board.BlackQueen &&
-            WhiteRook == board.WhiteRook &&
-            BlackRook == board.BlackRook &&
-            WhiteBishop == board.WhiteBishop &&
-            BlackBishop == board.BlackBishop &&
-            WhiteKnight == board.WhiteKnight &&
-            BlackKnight == board.BlackKnight &&
-            WhitePawn == board.WhitePawn &&
-            BlackPawn == board.BlackPawn;
-
-        public override int GetHashCode()
+        public long GetLongHashCode()
         {
-            HashCode hash = new HashCode();
-            hash.Add((int)WhiteKing + BitOperations.LeadingZeroCount(WhiteKing) + 64 * BitOperations.TrailingZeroCount(WhiteKing));
-            hash.Add((int)BlackKing + BitOperations.LeadingZeroCount(BlackKing) + 64 * BitOperations.TrailingZeroCount(BlackKing));
-            hash.Add((int)WhiteQueen + BitOperations.LeadingZeroCount(WhiteQueen) + 64 * BitOperations.TrailingZeroCount(WhiteKing));
-            hash.Add((int)BlackQueen + BitOperations.LeadingZeroCount(BlackQueen) + 64 * BitOperations.TrailingZeroCount(BlackQueen));
-            hash.Add((int)WhiteRook + BitOperations.LeadingZeroCount(WhiteRook) + 64 * BitOperations.TrailingZeroCount(WhiteRook));
-            hash.Add((int)BlackRook + BitOperations.LeadingZeroCount(BlackRook) + 64 * BitOperations.TrailingZeroCount(BlackRook));
-            hash.Add((int)WhiteBishop + BitOperations.LeadingZeroCount(WhiteBishop) + 64 * BitOperations.TrailingZeroCount(WhiteBishop));
-            hash.Add((int)BlackBishop + BitOperations.LeadingZeroCount(BlackBishop) + 64 * BitOperations.TrailingZeroCount(BlackBishop));
-            hash.Add((int)WhiteKnight + BitOperations.LeadingZeroCount(WhiteKnight) + 64 * BitOperations.TrailingZeroCount(WhiteKnight));
-            hash.Add((int)BlackKnight + BitOperations.LeadingZeroCount(BlackKnight) + 64 * BitOperations.TrailingZeroCount(BlackKnight));
-            hash.Add((int)WhitePawn + BitOperations.LeadingZeroCount(WhitePawn) + 64 * BitOperations.TrailingZeroCount(WhitePawn));
-            hash.Add((int)BlackPawn + BitOperations.LeadingZeroCount(BlackPawn) + 64 * BitOperations.TrailingZeroCount(BlackPawn));
-            return hash.ToHashCode();
+            var hash = 0L;
+
+            var piece = WhiteKing;
+            while (piece != 0)
+            {
+                var cellNumber = BitOperations.TrailingZeroCount(piece);
+                hash ^= Zobrist.Keys[(int)PieceType.WhiteKing, cellNumber];
+                piece ^= 1ul << cellNumber;
+            }
+
+            piece = BlackKing;
+            while (piece != 0)
+            {
+                var cellNumber = BitOperations.TrailingZeroCount(piece);
+                hash ^= Zobrist.Keys[(int)PieceType.BlackKing, cellNumber];
+                piece ^= 1ul << cellNumber;
+            }
+
+            piece = WhiteQueen;
+            while (piece != 0)
+            {
+                var cellNumber = BitOperations.TrailingZeroCount(piece);
+                hash ^= Zobrist.Keys[(int)PieceType.WhiteQueen, cellNumber];
+                piece ^= 1ul << cellNumber;
+            }
+
+            piece = BlackQueen;
+            while (piece != 0)
+            {
+                var cellNumber = BitOperations.TrailingZeroCount(piece);
+                hash ^= Zobrist.Keys[(int)PieceType.BlackQueen, cellNumber];
+                piece ^= 1ul << cellNumber;
+            }
+
+            piece = WhiteRook;
+            while (piece != 0)
+            {
+                var cellNumber = BitOperations.TrailingZeroCount(piece);
+                hash ^= Zobrist.Keys[(int)PieceType.WhiteRook, cellNumber];
+                piece ^= 1ul << cellNumber;
+            }
+
+            piece = BlackRook;
+            while (piece != 0)
+            {
+                var cellNumber = BitOperations.TrailingZeroCount(piece);
+                hash ^= Zobrist.Keys[(int)PieceType.BlackRook, cellNumber];
+                piece ^= 1ul << cellNumber;
+            }
+
+            piece = WhiteBishop;
+            while (piece != 0)
+            {
+                var cellNumber = BitOperations.TrailingZeroCount(piece);
+                hash ^= Zobrist.Keys[(int)PieceType.WhiteBishop, cellNumber];
+                piece ^= 1ul << cellNumber;
+            }
+
+            piece = BlackBishop;
+            while (piece != 0)
+            {
+                var cellNumber = BitOperations.TrailingZeroCount(piece);
+                hash ^= Zobrist.Keys[(int)PieceType.BlackBishop, cellNumber];
+                piece ^= 1ul << cellNumber;
+            }
+
+            piece = WhiteKnight;
+            while (piece != 0)
+            {
+                var cellNumber = BitOperations.TrailingZeroCount(piece);
+                hash ^= Zobrist.Keys[(int)PieceType.WhiteKnight, cellNumber];
+                piece ^= 1ul << cellNumber;
+            }
+
+            piece = BlackKnight;
+            while (piece != 0)
+            {
+                var cellNumber = BitOperations.TrailingZeroCount(piece);
+                hash ^= Zobrist.Keys[(int)PieceType.BlackKnight, cellNumber];
+                piece ^= 1ul << cellNumber;
+            }
+
+            piece = WhitePawn;
+            while (piece != 0)
+            {
+                var cellNumber = BitOperations.TrailingZeroCount(piece);
+                hash ^= Zobrist.Keys[(int)PieceType.WhitePawn, cellNumber];
+                piece ^= 1ul << cellNumber;
+            }
+
+            piece = BlackPawn;
+            while (piece != 0)
+            {
+                var cellNumber = BitOperations.TrailingZeroCount(piece);
+                hash ^= Zobrist.Keys[(int)PieceType.BlackPawn, cellNumber];
+                piece ^= 1ul << cellNumber;
+            }
+
+            return hash;
         }
     }
 }

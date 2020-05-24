@@ -1,5 +1,4 @@
 ﻿using Charlie.Moves;
-using System;
 using System.Collections.Generic;
 using System.Numerics;
 
@@ -7,7 +6,7 @@ namespace Charlie.Board
 {
     public class BoardState
     {
-        private readonly List<int> previousStates;
+        private readonly List<long> previousStates;
 
         public BitBoard BitBoard { get; }
 
@@ -21,7 +20,7 @@ namespace Charlie.Board
         public PieceColour ToMove { get; }
 
         public BoardState() : this(
-            new List<int>(),
+            new List<long>(),
             BitBoard.GetDefault(),
             PieceColour.White,
             0b_00001111,
@@ -31,7 +30,7 @@ namespace Charlie.Board
         }
 
         private BoardState(
-            List<int> previousStates,
+            List<long> previousStates,
             BitBoard bitBoard,
             PieceColour toMove,
             byte castleRules,
@@ -47,11 +46,11 @@ namespace Charlie.Board
 
             ToMove = toMove;
 
-            this.previousStates = new List<int>(previousStates) { GetHashCode() };
+            this.previousStates = new List<long>(previousStates) { GetLongHashCode() };
         }
 
         private BoardState(
-            List<int> previousStates,
+            List<long> previousStates,
             BitBoard bitBoard,
             PieceColour toMove,
             byte castleRules,
@@ -92,7 +91,7 @@ namespace Charlie.Board
                     BlackEnPassant = GetEnPassantFromFen(enPassant[0], false);
             }
 
-            previousStates = new List<int>();
+            previousStates = new List<long>();
         }
 
         private ulong GetEnPassantFromFen(char enPassantFile, bool whiteToMove)
@@ -168,9 +167,9 @@ namespace Charlie.Board
         internal bool IsThreeMoveRepetition()
         {
             int count = 0;
-            int thisHash = GetHashCode();
+            long thisHash = GetLongHashCode();
 
-            foreach (int state in previousStates)
+            foreach (long state in previousStates)
             {
                 if (state.Equals(thisHash))
                 {
@@ -351,15 +350,17 @@ namespace Charlie.Board
             return (Magics.KnightAttacks[cellIndex] & theirKnight) != 0;
         }
 
-        public override bool Equals(object obj) =>
-            obj is BoardState state &&
-            EqualityComparer<BitBoard>.Default.Equals(BitBoard, state.BitBoard) &&
-            CastleRules == state.CastleRules &&
-            WhiteEnPassant == state.WhiteEnPassant &&
-            BlackEnPassant == state.BlackEnPassant &&
-            ToMove == state.ToMove;
+        public long GetLongHashCode()
+        {
+            var hash = BitBoard.GetLongHashCode() ^ (long)WhiteEnPassant ^ (long)BlackEnPassant;
 
-        public override int GetHashCode() =>
-            HashCode.Combine(BitBoard, CastleRules, WhiteEnPassant, BlackEnPassant, ToMove);
+            for (int i = 0; i < 64 / 4; i++)
+                hash ^= CastleRules << i;
+
+            if (ToMove == PieceColour.Black)
+                hash ^= long.MaxValue;
+
+            return hash;
+        }
     }
 }
