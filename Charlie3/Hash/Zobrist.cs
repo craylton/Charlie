@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Charlie
+namespace Charlie.Hash
 {
     public static class Zobrist
     {
@@ -10,7 +10,7 @@ namespace Charlie
         {
             var random = new Random(1255702);
 
-            for (int pieceType = (int)PieceType.WhiteKing; pieceType < (int)PieceType.BlackPawn; pieceType++)
+            for (int pieceType = (int)PieceType.WhiteKing; pieceType <= (int)PieceType.BlackPawn; pieceType++)
             {
                 for (int cellNumber = 0; cellNumber < 64; cellNumber++)
                 {

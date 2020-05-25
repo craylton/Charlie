@@ -1,4 +1,5 @@
 ﻿using Charlie.Board;
+using Charlie.Hash;
 using Charlie.Moves;
 using Charlie.Search;
 using System;
@@ -41,6 +42,9 @@ namespace Charlie
                     case "isready":
                         Console.WriteLine("readyok");
                         break;
+                    case "setoption name Clear Hash":
+                        searcher.ClearHash();
+                        break;
                     case "stop":
                         searcher.Stop();
                         break;
@@ -55,6 +59,7 @@ namespace Charlie
                     if (@params.Length > 1 && @params[1] == "startpos")
                     {
                         boardState = new BoardState();
+                        //Console.WriteLine($"{boardState.GetLongHashCode()}\t{boardState.BitBoard.GetLongHashCode()}");
                         movesIndicatorIndex = 2;
                     }
                     else if (@params.Length >= 8 && @params[1] == "fen")

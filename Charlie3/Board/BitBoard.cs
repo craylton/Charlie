@@ -1,5 +1,5 @@
-﻿using Charlie.Moves;
-using System;
+﻿using Charlie.Hash;
+using Charlie.Moves;
 using System.Numerics;
 
 namespace Charlie.Board

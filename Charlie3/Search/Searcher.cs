@@ -1,4 +1,5 @@
 ﻿using Charlie.Board;
+using Charlie.Hash;
 using Charlie.Moves;
 using System;
 using System.Collections.Generic;
@@ -19,11 +20,14 @@ namespace Charlie.Search
         private const int NegativeInfinityScore = -InfinityScore;
         private const int MateScore = 1 << 20;
         private const int DrawScore = 0;
+        private const int UnknownScore = 1 << 21;
 
         private readonly Evaluator evaluator = new Evaluator();
         private readonly MoveGenerator generator = new MoveGenerator();
 
         private ulong nodesSearched;
+
+        private readonly Dictionary<long, HashElement> HashTable = new Dictionary<long, HashElement>();
 
         public event EventHandler<MoveInfo> BestMoveChanged;
         public event EventHandler<SearchResults> SearchComplete;
@@ -109,21 +113,54 @@ namespace Charlie.Search
             cancel = true;
         }
 
+        public void ClearHash() => HashTable.Clear();
+
+        private int ProbeHash(long hash, int depth, int alpha, int beta)
+        {
+            if (!HashTable.ContainsKey(hash)) return UnknownScore;
+
+            HashElement hashElement = HashTable[hash];
+
+            if (hashElement.Depth < depth) return UnknownScore;
+
+            return hashElement.Type switch
+            {
+                HashType.Exact => hashElement.Evaluation,
+                HashType.Alpha when hashElement.Evaluation <= alpha => alpha,
+                HashType.Beta when hashElement.Evaluation >= beta => beta,
+                _ => UnknownScore
+            };
+        }
+
+        private void RecordHash(long hashKey, int depth, HashType type, int evaluation)
+        {
+            if (!HashTable.ContainsKey(hashKey) || HashTable[hashKey].Depth < depth)
+                HashTable[hashKey] = new HashElement(depth, type, evaluation);
+        }
+
         private async Task<int> AlphaBeta(BoardState boardState, int alpha, int beta, int depth, int height, List<Move> pv, Move[] pvMoves)
         {
             var foundPv = false;
             var isRoot = height == 0;
+            HashType hashType = HashType.Alpha;
+            var ttValue = ProbeHash(boardState.GetLongHashCode(), depth, alpha, beta);
+
+            if (!isRoot && ttValue != UnknownScore) return ttValue;
 
             if (depth == 0)
             {
                 nodesSearched++;
-                return await Quiesce(boardState, alpha, beta);
+                var eval = await Quiesce(boardState, alpha, beta);
+                RecordHash(boardState.GetLongHashCode(), depth, HashType.Exact, eval);
+                return eval;
             }
 
             if (boardState.IsThreeMoveRepetition())
             {
                 nodesSearched++;
-                return DrawScore;
+                var eval = DrawScore;
+                RecordHash(boardState.GetLongHashCode(), depth, HashType.Exact, eval);
+                return eval;
             }
 
             // Check extension - ~200 elo
@@ -137,10 +174,14 @@ namespace Charlie.Search
             if (!moves.Any())
             {
                 nodesSearched++;
+                int eval;
 
                 if (boardState.IsInCheck(boardState.ToMove))
-                    return -MateScore + height;
-                else return DrawScore;
+                    eval = -MateScore + height;
+                else eval = DrawScore;
+
+                RecordHash(boardState.GetLongHashCode(), depth, HashType.Exact, eval);
+                return eval;
             }
 
             foreach (Move move in moves)
@@ -160,14 +201,14 @@ namespace Charlie.Search
                 }
                 else
                 {
-                    if (foundPv)
-                    {
-                        eval = -await AlphaBeta(newBoard, -alpha - 1, -alpha, depth - 1, height + 1, pvBuffer, childPvMoves);
+                    //if (foundPv)
+                    //{
+                    //    eval = -await AlphaBeta(newBoard, -alpha - 1, -alpha, depth - 1, height + 1, pvBuffer, childPvMoves);
 
-                        if (eval > alpha && eval < beta)
-                            eval = -await AlphaBeta(newBoard, -beta, -alpha, depth - 1, height + 1, pvBuffer, childPvMoves);
-                    }
-                    else
+                    //    if (eval > alpha && eval < beta)
+                    //        eval = -await AlphaBeta(newBoard, -beta, -alpha, depth - 1, height + 1, pvBuffer, childPvMoves);
+                    //}
+                    //else
                     {
                         eval = -await AlphaBeta(newBoard, -beta, -alpha, depth - 1, height + 1, pvBuffer, childPvMoves);
                     }
@@ -175,18 +216,25 @@ namespace Charlie.Search
 
                 if (cancel) break;
 
-                if (eval >= beta) return beta;
+                if (eval >= beta)
+                {
+                    RecordHash(newBoard.GetLongHashCode(), depth - 1, HashType.Beta, beta);
+                    return beta;
+                }
 
                 if (eval > alpha)
                 {
                     alpha = eval;
                     foundPv = true;
+                    hashType = HashType.Exact;
 
                     pv.Clear();
                     pv.Add(move);
                     pv.AddRange(pvBuffer);
                 }
             }
+
+            if (!cancel) RecordHash(boardState.GetLongHashCode(), depth, hashType, alpha);
 
             return alpha;
         }
