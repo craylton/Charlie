@@ -155,14 +155,6 @@ namespace Charlie.Search
                 return eval;
             }
 
-            if (boardState.IsThreeMoveRepetition())
-            {
-                nodesSearched++;
-                var eval = DrawScore;
-                RecordHash(boardState.GetLongHashCode(), depth, HashType.Exact, eval);
-                return eval;
-            }
-
             // Check extension - ~200 elo
             if (boardState.IsInCheck(boardState.ToMove) && !isRoot)
                 depth++;
@@ -193,8 +185,14 @@ namespace Charlie.Search
                 int eval = DrawScore;
                 BoardState newBoard = boardState.MakeMove(move);
 
+                if (newBoard.IsThreeMoveRepetition())
+                {
+                    nodesSearched++;
+                    eval = DrawScore;
+                    RecordHash(newBoard.GetLongHashCode(), depth-1, HashType.Exact, eval);
+                }
                 // Early quiescence - ~50 elo
-                if (depth == 2 && move.IsCaptureOrPromotion(boardState))
+                else if (depth == 2 && move.IsCaptureOrPromotion(boardState))
                 {
                     nodesSearched++;
                     eval = -await Quiesce(newBoard, -beta, -alpha);
