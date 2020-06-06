@@ -141,10 +141,18 @@ namespace Charlie
             sb.Append(" time " + moveInfo.Time);
             sb.Append(" nodes " + moveInfo.Nodes);
             sb.Append(" pv " + string.Join(' ', moveInfo.Moves.Select(mi => mi.ToString())));
+
             if (moveInfo.IsMate)
-                sb.Append(" score mate " + (moveInfo.Evaluation < 0 ? "-" : "") + ((moveInfo.Depth + 1) / 2));
+            {
+                int mateScore = 1 << 20;
+                int mateEval = Math.Abs(moveInfo.Evaluation);
+                var matePlies = mateScore - Math.Abs(mateEval);
+                sb.Append(" score mate " + (moveInfo.Evaluation < 0 ? "-" : "") + ((matePlies + 1) / 2));
+            }
             else
+            {
                 sb.Append(" score cp " + moveInfo.Evaluation);
+            }
 
             Console.WriteLine(sb.ToString());
         }

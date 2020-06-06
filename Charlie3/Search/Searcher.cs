@@ -143,15 +143,21 @@ namespace Charlie.Search
             var foundPv = false;
             var isRoot = height == 0;
             HashType hashType = HashType.Alpha;
-            var ttValue = ProbeHash(boardState.GetLongHashCode(), depth, alpha, beta);
+            var ttValue = ProbeHash(boardState.HashCode, depth, alpha, beta);
 
-            if (!isRoot && ttValue != UnknownScore) return ttValue;
+            if (!isRoot && ttValue != UnknownScore)
+            {
+                if (IsMateScore(ttValue))
+                    return (MateScore - (height + MatePlies(ttValue) - 1)) * (ttValue > 0 ? 1 : -1);
+
+                return ttValue;
+            }
 
             if (depth == 0)
             {
                 nodesSearched++;
                 var eval = await Quiesce(boardState, alpha, beta);
-                RecordHash(boardState.GetLongHashCode(), depth, HashType.Exact, eval);
+                RecordHash(boardState.HashCode, depth, HashType.Exact, eval);
                 return eval;
             }
 
@@ -169,10 +175,10 @@ namespace Charlie.Search
                 int eval;
 
                 if (boardState.IsInCheck(boardState.ToMove))
-                    eval = -MateScore + height;
+                    eval = (-MateScore) + height;
                 else eval = DrawScore;
 
-                RecordHash(boardState.GetLongHashCode(), depth, HashType.Exact, eval);
+                RecordHash(boardState.HashCode, depth, HashType.Exact, eval);
                 return eval;
             }
 
@@ -189,14 +195,14 @@ namespace Charlie.Search
                 {
                     nodesSearched++;
                     eval = DrawScore;
-                    RecordHash(newBoard.GetLongHashCode(), depth-1, HashType.Exact, eval);
+                    RecordHash(newBoard.HashCode, depth - 1, HashType.Exact, eval);
                 }
                 // Early quiescence - ~50 elo
-                else if (depth == 2 && move.IsCaptureOrPromotion(boardState))
-                {
-                    nodesSearched++;
-                    eval = -await Quiesce(newBoard, -beta, -alpha);
-                }
+                //else if (depth == 2 && move.IsCaptureOrPromotion(boardState))
+                //{
+                //    nodesSearched++;
+                //    eval = -await Quiesce(newBoard, -beta, -alpha);
+                //}
                 else
                 {
                     //if (foundPv)
@@ -216,7 +222,7 @@ namespace Charlie.Search
 
                 if (eval >= beta)
                 {
-                    RecordHash(newBoard.GetLongHashCode(), depth - 1, HashType.Beta, beta);
+                    RecordHash(boardState.HashCode, depth, HashType.Beta, beta);
                     return beta;
                 }
 
@@ -232,7 +238,7 @@ namespace Charlie.Search
                 }
             }
 
-            if (!cancel) RecordHash(boardState.GetLongHashCode(), depth, hashType, alpha);
+            if (!cancel) RecordHash(boardState.HashCode, depth, hashType, alpha);
 
             return alpha;
         }
@@ -259,7 +265,9 @@ namespace Charlie.Search
 
             return alpha;
         }
-        private bool IsMateScore(int eval) => Math.Abs(eval) > MateScore - 100;
 
+        private bool IsMateScore(int eval) => Math.Abs(eval) > (MateScore - 100);
+
+        private int MatePlies(int mateScore) => MateScore - Math.Abs(mateScore);
     }
 }

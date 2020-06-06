@@ -19,6 +19,8 @@ namespace Charlie.Board
 
         public PieceColour ToMove { get; }
 
+        public long HashCode { get; }
+
         public BoardState() : this(
             new List<long>(),
             BitBoard.GetDefault(),
@@ -46,7 +48,8 @@ namespace Charlie.Board
 
             ToMove = toMove;
 
-            this.previousStates = new List<long>(previousStates) { GetLongHashCode() };
+            HashCode = CalculateLongHashCode();
+            this.previousStates = new List<long>(previousStates) { HashCode };
         }
 
         private BoardState(
@@ -91,7 +94,8 @@ namespace Charlie.Board
                     BlackEnPassant = GetEnPassantFromFen(enPassant[0], false);
             }
 
-            previousStates = new List<long>();
+            HashCode = CalculateLongHashCode();
+            previousStates = new List<long>() { HashCode };
         }
 
         private ulong GetEnPassantFromFen(char enPassantFile, bool whiteToMove)
@@ -167,11 +171,10 @@ namespace Charlie.Board
         internal bool IsThreeMoveRepetition()
         {
             int count = 0;
-            long thisHash = GetLongHashCode();
 
             foreach (long state in previousStates)
             {
-                if (state.Equals(thisHash))
+                if (state.Equals(HashCode))
                 {
                     count++;
 
@@ -350,7 +353,7 @@ namespace Charlie.Board
             return (Magics.KnightAttacks[cellIndex] & theirKnight) != 0;
         }
 
-        public long GetLongHashCode()
+        private long CalculateLongHashCode()
         {
             var hash = BitBoard.GetLongHashCode() ^ (long)WhiteEnPassant ^ (long)BlackEnPassant;
 
