@@ -81,6 +81,8 @@ namespace Charlie.Moves
         public bool IsCaptureOrPromotion(BoardState board) =>
             IsCapture(board) || PromotionType != PromotionType.None;
 
+        public bool IsValidMove() => !Equals(default(Move));
+
         public bool LeavesPlayerInCheck(BoardState board)
         {
             PieceColour attacker = board.ToMove == PieceColour.White ? PieceColour.Black : PieceColour.White;

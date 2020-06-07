@@ -20,7 +20,6 @@ namespace Charlie.Search
         private const int NegativeInfinityScore = -InfinityScore;
         private const int MateScore = 1 << 20;
         private const int DrawScore = 0;
-        private const int UnknownScore = 1 << 21;
 
         private readonly Evaluator evaluator = new Evaluator();
         private readonly MoveGenerator generator = new MoveGenerator();
@@ -115,72 +114,51 @@ namespace Charlie.Search
 
         public void ClearHash() => HashTable.Clear();
 
-        private int ProbeHash(long hash, int depth, int alpha, int beta)
+        private Move ProbeHash(long hash)
         {
-            if (!HashTable.ContainsKey(hash)) return UnknownScore;
-
-            HashElement hashElement = HashTable[hash];
-
-            if (hashElement.Depth < depth) return UnknownScore;
-
-            return hashElement.Type switch
-            {
-                HashType.Exact => hashElement.Evaluation,
-                HashType.Alpha when hashElement.Evaluation <= alpha => alpha,
-                HashType.Beta when hashElement.Evaluation >= beta => beta,
-                _ => UnknownScore
-            };
+            if (!HashTable.ContainsKey(hash)) return default;
+            return HashTable[hash].Move;
         }
 
-        private void RecordHash(long hashKey, int depth, HashType type, int evaluation)
+        private void RecordHash(long hashKey, int depth, Move move)
         {
             if (!HashTable.ContainsKey(hashKey) || HashTable[hashKey].Depth < depth)
-                HashTable[hashKey] = new HashElement(depth, type, evaluation);
+                HashTable[hashKey] = new HashElement(depth, move);
         }
 
         private async Task<int> AlphaBeta(BoardState boardState, int alpha, int beta, int depth, int height, List<Move> pv, Move[] pvMoves)
         {
             var foundPv = false;
             var isRoot = height == 0;
-            HashType hashType = HashType.Alpha;
-            var ttValue = ProbeHash(boardState.HashCode, depth, alpha, beta);
-
-            if (!isRoot && ttValue != UnknownScore)
-            {
-                if (IsMateScore(ttValue))
-                    return (MateScore - (height + MatePlies(ttValue) - 1)) * (ttValue > 0 ? 1 : -1);
-
-                return ttValue;
-            }
 
             if (depth == 0)
             {
                 nodesSearched++;
-                var eval = await Quiesce(boardState, alpha, beta);
-                RecordHash(boardState.HashCode, depth, HashType.Exact, eval);
-                return eval;
+                return await Quiesce(boardState, alpha, beta);
             }
 
             // Check extension - ~200 elo
             if (boardState.IsInCheck(boardState.ToMove) && !isRoot)
                 depth++;
 
-            IEnumerable<Move> moves = generator.GenerateLegalMoves(boardState);
+            var ttBestMove = ProbeHash(boardState.HashCode);
+            IEnumerable<Move> moves = ttBestMove.IsValidMove()
+                ? generator.GenerateLegalMoves(boardState, ttBestMove)
+                : generator.GenerateLegalMoves(boardState);
+
             if (pvMoves.Length > 0)
                 moves = moves.ToList().MoveToFront(pvMoves[0]);
 
             if (!moves.Any())
             {
                 nodesSearched++;
-                int eval;
 
                 if (boardState.IsInCheck(boardState.ToMove))
-                    eval = (-MateScore) + height;
-                else eval = DrawScore;
-
-                RecordHash(boardState.HashCode, depth, HashType.Exact, eval);
-                return eval;
+                    return (-MateScore) + height;
+                else return DrawScore;
             }
+
+            Move bestMove = default;
 
             foreach (Move move in moves)
             {
@@ -195,7 +173,6 @@ namespace Charlie.Search
                 {
                     nodesSearched++;
                     eval = DrawScore;
-                    RecordHash(newBoard.HashCode, depth - 1, HashType.Exact, eval);
                 }
                 // Early quiescence - ~50 elo
                 else if (depth == 2 && move.IsCaptureOrPromotion(boardState))
@@ -219,7 +196,7 @@ namespace Charlie.Search
 
                 if (eval >= beta)
                 {
-                    RecordHash(boardState.HashCode, depth, HashType.Beta, beta);
+                    RecordHash(boardState.HashCode, depth, move);
                     return beta;
                 }
 
@@ -227,7 +204,7 @@ namespace Charlie.Search
                 {
                     alpha = eval;
                     foundPv = true;
-                    hashType = HashType.Exact;
+                    bestMove = move;
 
                     pv.Clear();
                     pv.Add(move);
@@ -235,7 +212,7 @@ namespace Charlie.Search
                 }
             }
 
-            if (!cancel) RecordHash(boardState.HashCode, depth, hashType, alpha);
+            RecordHash(boardState.HashCode, depth, bestMove);
 
             return alpha;
         }
