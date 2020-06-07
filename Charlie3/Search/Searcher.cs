@@ -198,24 +198,21 @@ namespace Charlie.Search
                     RecordHash(newBoard.HashCode, depth - 1, HashType.Exact, eval);
                 }
                 // Early quiescence - ~50 elo
-                //else if (depth == 2 && move.IsCaptureOrPromotion(boardState))
-                //{
-                //    nodesSearched++;
-                //    eval = -await Quiesce(newBoard, -beta, -alpha);
-                //}
+                else if (depth == 2 && move.IsCaptureOrPromotion(boardState))
+                {
+                    nodesSearched++;
+                    eval = -await Quiesce(newBoard, -beta, -alpha);
+                }
+                else if (foundPv)
+                {
+                    eval = -await AlphaBeta(newBoard, -alpha - 1, -alpha, depth - 1, height + 1, pvBuffer, childPvMoves);
+
+                    if (eval > alpha && eval < beta)
+                        eval = -await AlphaBeta(newBoard, -beta, -alpha, depth - 1, height + 1, pvBuffer, childPvMoves);
+                }
                 else
                 {
-                    //if (foundPv)
-                    //{
-                    //    eval = -await AlphaBeta(newBoard, -alpha - 1, -alpha, depth - 1, height + 1, pvBuffer, childPvMoves);
-
-                    //    if (eval > alpha && eval < beta)
-                    //        eval = -await AlphaBeta(newBoard, -beta, -alpha, depth - 1, height + 1, pvBuffer, childPvMoves);
-                    //}
-                    //else
-                    {
-                        eval = -await AlphaBeta(newBoard, -beta, -alpha, depth - 1, height + 1, pvBuffer, childPvMoves);
-                    }
+                    eval = -await AlphaBeta(newBoard, -beta, -alpha, depth - 1, height + 1, pvBuffer, childPvMoves);
                 }
 
                 if (cancel) break;
