@@ -144,9 +144,7 @@ namespace Charlie
 
             if (moveInfo.IsMate)
             {
-                int mateScore = 1 << 20;
-                int mateEval = Math.Abs(moveInfo.Evaluation);
-                var matePlies = mateScore - Math.Abs(mateEval);
+                var matePlies = Constants.MateScore - Math.Abs(moveInfo.Evaluation);
                 sb.Append(" score mate " + (moveInfo.Evaluation < 0 ? "-" : "") + ((matePlies + 1) / 2));
             }
             else

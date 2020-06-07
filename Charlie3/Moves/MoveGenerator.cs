@@ -10,13 +10,15 @@ namespace Charlie.Moves
         public IEnumerable<Move> GenerateLegalMoves(BoardState board) =>
             TrimIllegalMoves(GeneratePseudoLegalMoves(board), board);
 
-        public IEnumerable<Move> GenerateLegalMoves(BoardState board, Move bestMove)
+        public IEnumerable<Move> GenerateLegalMoves(BoardState board, IEnumerable<Move> bestMoves)
         {
-            yield return bestMove;
+            foreach (Move move in bestMoves)
+                yield return move;
 
             var pseudoLegalMoves = GeneratePseudoLegalMoves(board);
+            var legalMoves = TrimIllegalMoves(pseudoLegalMoves, board);
 
-            foreach (Move move in TrimIllegalMoves(pseudoLegalMoves, board).Where(move => !move.Equals(bestMove)))
+            foreach (Move move in legalMoves.Where(move => !bestMoves.Contains(move)))
                 yield return move;
         }
 

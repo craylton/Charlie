@@ -16,17 +16,12 @@ namespace Charlie.Search
         private readonly Timer timer = new Timer() { AutoReset = false };
         private readonly Stopwatch sw = new Stopwatch();
 
-        private const int InfinityScore = 1 << 24;
-        private const int NegativeInfinityScore = -InfinityScore;
-        private const int MateScore = 1 << 20;
-        private const int DrawScore = 0;
-
         private readonly Evaluator evaluator = new Evaluator();
         private readonly MoveGenerator generator = new MoveGenerator();
 
         private ulong nodesSearched;
 
-        private readonly Dictionary<long, HashElement> HashTable = new Dictionary<long, HashElement>();
+        private readonly HashTable HashTable = new HashTable();
 
         public event EventHandler<MoveInfo> BestMoveChanged;
         public event EventHandler<SearchResults> SearchComplete;
@@ -49,7 +44,7 @@ namespace Charlie.Search
             List<Move> pv;
             Move[] prevPv = new Move[0];
             int eval, depth = 1;
-            int alpha = NegativeInfinityScore, beta = InfinityScore;
+            int alpha = Constants.NegativeInfinityScore, beta = Constants.InfinityScore;
 
             while (true)
             {
@@ -63,13 +58,13 @@ namespace Charlie.Search
                 // If fail high/low, reset aspiration windows and try again
                 if (eval <= alpha)
                 {
-                    alpha = NegativeInfinityScore;
+                    alpha = Constants.NegativeInfinityScore;
                     // Don't try again if we found mate because we won't find anything better
                     if (!isMate) continue;
                 }
                 else if (eval >= beta)
                 {
-                    beta = InfinityScore;
+                    beta = Constants.InfinityScore;
                     // Don't try again if we found mate because we won't find anything better
                     if (!isMate) continue;
                 }
@@ -112,20 +107,6 @@ namespace Charlie.Search
             cancel = true;
         }
 
-        public void ClearHash() => HashTable.Clear();
-
-        private Move ProbeHash(long hash)
-        {
-            if (!HashTable.ContainsKey(hash)) return default;
-            return HashTable[hash].Move;
-        }
-
-        private void RecordHash(long hashKey, int depth, Move move)
-        {
-            if (!HashTable.ContainsKey(hashKey) || HashTable[hashKey].Depth < depth)
-                HashTable[hashKey] = new HashElement(depth, move);
-        }
-
         private async Task<int> AlphaBeta(BoardState boardState, int alpha, int beta, int depth, int height, List<Move> pv, Move[] pvMoves)
         {
             var foundPv = false;
@@ -141,21 +122,15 @@ namespace Charlie.Search
             if (boardState.IsInCheck(boardState.ToMove) && !isRoot)
                 depth++;
 
-            var ttBestMove = ProbeHash(boardState.HashCode);
-            IEnumerable<Move> moves = ttBestMove.IsValidMove()
-                ? generator.GenerateLegalMoves(boardState, ttBestMove)
-                : generator.GenerateLegalMoves(boardState);
-
-            if (pvMoves.Length > 0)
-                moves = moves.ToList().MoveToFront(pvMoves[0]);
+            IEnumerable<Move> moves = GenerateOrderedMoves(boardState, pvMoves);
 
             if (!moves.Any())
             {
                 nodesSearched++;
 
                 if (boardState.IsInCheck(boardState.ToMove))
-                    return (-MateScore) + height;
-                else return DrawScore;
+                    return height - Constants.MateScore;
+                else return Constants.DrawScore;
             }
 
             Move bestMove = default;
@@ -166,13 +141,13 @@ namespace Charlie.Search
                 Move[] childPvMoves = isPvMove ? pvMoves[1..] : new Move[0];
                 var pvBuffer = new List<Move>();
 
-                int eval = DrawScore;
+                int eval = Constants.DrawScore;
                 BoardState newBoard = boardState.MakeMove(move);
 
                 if (newBoard.IsThreeMoveRepetition())
                 {
                     nodesSearched++;
-                    eval = DrawScore;
+                    eval = Constants.DrawScore;
                 }
                 // Early quiescence - ~50 elo
                 else if (depth == 2 && move.IsCaptureOrPromotion(boardState))
@@ -196,7 +171,7 @@ namespace Charlie.Search
 
                 if (eval >= beta)
                 {
-                    RecordHash(boardState.HashCode, depth, move);
+                    HashTable.RecordHash(boardState.HashCode, depth, move);
                     return beta;
                 }
 
@@ -212,9 +187,23 @@ namespace Charlie.Search
                 }
             }
 
-            RecordHash(boardState.HashCode, depth, bestMove);
+            HashTable.RecordHash(boardState.HashCode, depth, bestMove);
 
             return alpha;
+        }
+
+        private IEnumerable<Move> GenerateOrderedMoves(BoardState boardState, Move[] pvMoves)
+        {
+            Move ttBestMove = HashTable.ProbeHash(boardState.HashCode);
+            List<Move> bestMoves = new List<Move>();
+
+            if (pvMoves.Length > 0 && !pvMoves[0].Equals(ttBestMove))
+                bestMoves.Add(pvMoves[0]);
+
+            if (ttBestMove.IsValidMove())
+                bestMoves.Add(ttBestMove);
+
+            return generator.GenerateLegalMoves(boardState, bestMoves);
         }
 
         private async Task<int> Quiesce(BoardState boardState, int alpha, int beta)
@@ -240,8 +229,8 @@ namespace Charlie.Search
             return alpha;
         }
 
-        private bool IsMateScore(int eval) => Math.Abs(eval) > (MateScore - 100);
+        private bool IsMateScore(int eval) => Math.Abs(eval) > (Constants.MateScore - 100);
 
-        private int MatePlies(int mateScore) => MateScore - Math.Abs(mateScore);
+        public void ClearHash() => HashTable.Clear();
     }
 }
