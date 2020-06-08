@@ -59,7 +59,6 @@ namespace Charlie
                     if (@params.Length > 1 && @params[1] == "startpos")
                     {
                         boardState = new BoardState();
-                        //Console.WriteLine($"{boardState.GetLongHashCode()}\t{boardState.BitBoard.GetLongHashCode()}");
                         movesIndicatorIndex = 2;
                     }
                     else if (@params.Length >= 8 && @params[1] == "fen")
@@ -141,16 +140,7 @@ namespace Charlie
             sb.Append(" time " + moveInfo.Time);
             sb.Append(" nodes " + moveInfo.Nodes);
             sb.Append(" pv " + string.Join(' ', moveInfo.Moves.Select(mi => mi.ToString())));
-
-            if (moveInfo.IsMate)
-            {
-                var matePlies = Constants.MateScore - Math.Abs(moveInfo.Evaluation);
-                sb.Append(" score mate " + (moveInfo.Evaluation < 0 ? "-" : "") + ((matePlies + 1) / 2));
-            }
-            else
-            {
-                sb.Append(" score cp " + moveInfo.Evaluation);
-            }
+            sb.Append(" score " + moveInfo.Evaluation.ToString());
 
             Console.WriteLine(sb.ToString());
         }

@@ -102,9 +102,9 @@ namespace Charlie.Board
             -10,-5,  0,  5,  5,  0,-5, -10,
         };
 
-        public int Evaluate(BoardState board)
+        public Score Evaluate(BoardState board)
         {
-            int whiteScore = 0, blackScore = 0;
+            Score whiteScore = Score.Draw, blackScore = Score.Draw;
 
             ulong whiteAttacks = 0ul, blackAttacks = 0ul;
             int whiteMaterial = 0, blackMaterial = 0;
