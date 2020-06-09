@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Numerics;
 
 namespace Charlie.Hash
 {
@@ -8,15 +9,22 @@ namespace Charlie.Hash
 
         public static void Initialise()
         {
-            var random = new Random(1255702);
+            var rng = new Random(56810);
 
             for (int pieceType = (int)PieceType.WhiteKing; pieceType <= (int)PieceType.BlackPawn; pieceType++)
             {
                 for (int cellNumber = 0; cellNumber < 64; cellNumber++)
                 {
-                    Keys[pieceType, cellNumber] = random.Next(int.MinValue, int.MaxValue);
+                    Keys[pieceType, cellNumber] = RandomLong(rng);
                 }
             }
+        }
+
+        private static long RandomLong(Random rng)
+        {
+            byte[] buf = new byte[8];
+            rng.NextBytes(buf);
+            return BitConverter.ToInt64(buf, 0);
         }
     }
 }
