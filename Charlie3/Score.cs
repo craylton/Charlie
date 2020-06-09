@@ -36,7 +36,7 @@ namespace Charlie
         public static bool operator >=(int score1, Score score2) => score1 >= score2.score;
         public static bool operator <=(int score1, Score score2) => score1 <= score2.score;
 
-        public bool IsMateScore() => Math.Abs(score) > (Constants.MateScore - 100);
+        public bool IsMateScore() => Math.Abs(score) > (Mate - 100);
         public int PliesToMate() => (Mate - Math.Abs(score)).score;
 
         public bool IsPositive() => score > Draw;
