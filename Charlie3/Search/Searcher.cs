@@ -58,14 +58,9 @@ namespace Charlie.Search
                 if (cancel) break;
 
                 // If fail high/low, reset aspiration windows and try again
-                if (eval <= alpha)
+                if (eval <= alpha || eval >= beta)
                 {
                     alpha = Score.NegativeInfinity;
-                    // Don't try again if we found mate because we won't find anything better
-                    if (!isMate) continue;
-                }
-                else if (eval >= beta)
-                {
                     beta = Score.Infinity;
                     // Don't try again if we found mate because we won't find anything better
                     if (!isMate) continue;
