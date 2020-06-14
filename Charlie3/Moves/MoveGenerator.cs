@@ -326,8 +326,7 @@ namespace Charlie.Moves
                     (board.BitBoard.WhiteRook & Chessboard.SquareA1) != 0 &&
                     !board.IsInCheck(PieceColour.White) &&
                     !board.IsUnderAttack(king << 1, PieceColour.Black) &&
-                    !board.IsUnderAttack(king << 2, PieceColour.Black) &&
-                    !board.IsUnderAttack(king << 3, PieceColour.Black))
+                    !board.IsUnderAttack(king << 2, PieceColour.Black))
                 {
                     yield return new Move(king, Chessboard.SquareC1, false, true, false, PromotionType.None);
                 }
@@ -351,8 +350,7 @@ namespace Charlie.Moves
                     (board.BitBoard.BlackRook & Chessboard.SquareA8) != 0 &&
                     !board.IsInCheck(PieceColour.Black) &&
                     !board.IsUnderAttack(king << 1, PieceColour.White) &&
-                    !board.IsUnderAttack(king << 2, PieceColour.White) &&
-                    !board.IsUnderAttack(king << 3, PieceColour.White))
+                    !board.IsUnderAttack(king << 2, PieceColour.White))
                 {
                     yield return new Move(king, Chessboard.SquareC8, false, true, false, PromotionType.None);
                 }
