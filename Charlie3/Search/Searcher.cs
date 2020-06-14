@@ -198,12 +198,11 @@ namespace Charlie.Search
             if (eval >= beta) return beta;
             if (eval > alpha) alpha = eval;
 
-            IEnumerable<Move> moves = generator.GenerateLegalMoves(boardState)
-                                               .Where(move => move.IsCaptureOrPromotion(boardState));
+            IEnumerable<Move> moves = generator.GenerateQuiescenceMoves(boardState);
 
             foreach (Move move in moves)
             {
-                BoardState newBoardState = boardState.MakeMove(move); ;
+                BoardState newBoardState = boardState.MakeMove(move);
 
                 eval = -await Quiesce(newBoardState, -beta, -alpha);
 
