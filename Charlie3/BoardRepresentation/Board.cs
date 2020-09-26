@@ -2,23 +2,10 @@
 using Charlie.Moves;
 using System.Numerics;
 
-namespace Charlie.Board
+namespace Charlie.BoardRepresentation
 {
-    public readonly struct BitBoard
+    public readonly struct Board
     {
-        private const ulong DefaultWhiteKing = Chessboard.SquareE1;
-        private const ulong DefaultBlackKing = Chessboard.SquareE8;
-        private const ulong DefaultWhiteQueen = Chessboard.SquareD1;
-        private const ulong DefaultBlackQueen = Chessboard.SquareD8;
-        private const ulong DefaultWhiteRook = Chessboard.SquareA1 | Chessboard.SquareH1;
-        private const ulong DefaultBlackRook = Chessboard.SquareA8 | Chessboard.SquareH8;
-        private const ulong DefaultWhiteBishop = Chessboard.SquareC1 | Chessboard.SquareF1;
-        private const ulong DefaultBlackBishop = Chessboard.SquareC8 | Chessboard.SquareF8;
-        private const ulong DefaultWhiteKnight = Chessboard.SquareB1 | Chessboard.SquareG1;
-        private const ulong DefaultBlackKnight = Chessboard.SquareB8 | Chessboard.SquareG8;
-        private const ulong DefaultWhitePawn = Chessboard.Rank2;
-        private const ulong DefaultBlackPawn = Chessboard.Rank7;
-
         public ulong WhiteKing { get; }
         public ulong BlackKing { get; }
 
@@ -42,23 +29,7 @@ namespace Charlie.Board
 
         public ulong Occupied => WhitePieces | BlackPieces;
 
-        private BitBoard(ulong[] kings, ulong[] queens, ulong[] rooks, ulong[] bishops, ulong[] knights, ulong[] pawns)
-        {
-            WhiteKing = kings[0];
-            BlackKing = kings[1];
-            WhiteQueen = queens[0];
-            BlackQueen = queens[1];
-            WhiteRook = rooks[0];
-            BlackRook = rooks[1];
-            WhiteBishop = bishops[0];
-            BlackBishop = bishops[1];
-            WhiteKnight = knights[0];
-            BlackKnight = knights[1];
-            WhitePawn = pawns[0];
-            BlackPawn = pawns[1];
-        }
-
-        public BitBoard(BitBoard oldBb, Move move)
+        public Board(Board oldBb, Move move)
         {
             WhiteKing = oldBb.WhiteKing;
             BlackKing = oldBb.BlackKing;
@@ -194,7 +165,7 @@ namespace Charlie.Board
             if ((oldBb.BlackPawn & move.FromCell) != 0) BlackPawn |= move.ToCell;
         }
 
-        public BitBoard(string fenPieces) : this()
+        public Board(string fenPieces) : this()
         {
             var cell = 0;
 
@@ -254,14 +225,6 @@ namespace Charlie.Board
                 cell++;
             }
         }
-
-        public static BitBoard GetDefault() => new BitBoard(
-            new[] { DefaultWhiteKing, DefaultBlackKing },
-            new[] { DefaultWhiteQueen, DefaultBlackQueen },
-            new[] { DefaultWhiteRook, DefaultBlackRook },
-            new[] { DefaultWhiteBishop, DefaultBlackBishop },
-            new[] { DefaultWhiteKnight, DefaultBlackKnight },
-            new[] { DefaultWhitePawn, DefaultBlackPawn });
 
         public long GetLongHashCode()
         {

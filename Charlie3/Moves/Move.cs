@@ -1,4 +1,4 @@
-﻿using Charlie.Board;
+﻿using Charlie.BoardRepresentation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -76,7 +76,7 @@ namespace Charlie.Moves
             return matches.Single();
         }
 
-        public bool IsCapture(BoardState board) => (board.BitBoard.Occupied & ToCell) != 0;
+        public bool IsCapture(BoardState board) => (board.Board.Occupied & ToCell) != 0;
 
         public bool IsCaptureOrPromotion(BoardState board) =>
             IsCapture(board) || PromotionType != PromotionType.None;

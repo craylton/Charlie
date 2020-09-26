@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 
-namespace Charlie.Board
+namespace Charlie.BoardRepresentation
 {
     public class Evaluator
     {
@@ -117,7 +117,7 @@ namespace Charlie.Board
             bool isOpening = whiteMaterial + blackMaterial >= 6200;
             bool isEndgame = whiteMaterial + blackMaterial <= 3600;
 
-            ulong unoccupiedBb = ~board.BitBoard.Occupied;
+            ulong unoccupiedBb = ~board.Board.Occupied;
 
             if (board.IsInPseudoCheck(PieceColour.White)) whiteScore += 25;
             if (board.IsInPseudoCheck(PieceColour.Black)) blackScore += 25;
@@ -139,75 +139,114 @@ namespace Charlie.Board
             ulong whiteTerritory = whiteAttacks & ~blackAttacks;
             ulong blackTerritory = blackAttacks & ~whiteAttacks;
 
+            //whiteScore -= CalculateKingDanger(board.BitBoard.WhiteKing, blackAttacks) * 15;
+            //blackScore -= CalculateKingDanger(board.BitBoard.BlackKing, whiteAttacks) * 15;
+
             whiteScore += BitOperations.PopCount(whiteAttacks) * 5 + BitOperations.PopCount(whiteTerritory) * 5;
             blackScore += BitOperations.PopCount(blackAttacks) * 5 + BitOperations.PopCount(blackTerritory) * 5;
 
             // Hanging pieces are worth half value
             if (board.ToMove == PieceColour.Black)
             {
-                whiteScore -= BitOperations.PopCount(blackTerritory & board.BitBoard.WhitePawn) * pawn / 2;
-                whiteScore -= BitOperations.PopCount(blackTerritory & board.BitBoard.WhiteKnight) * knight / 2;
-                whiteScore -= BitOperations.PopCount(blackTerritory & board.BitBoard.WhiteBishop) * bishop / 2;
-                whiteScore -= BitOperations.PopCount(blackTerritory & board.BitBoard.WhiteRook) * rook / 2;
-                whiteScore -= BitOperations.PopCount(blackTerritory & board.BitBoard.WhiteQueen) * queen / 2;
+                whiteScore -= BitOperations.PopCount(blackTerritory & board.Board.WhitePawn) * pawn / 2;
+                whiteScore -= BitOperations.PopCount(blackTerritory & board.Board.WhiteKnight) * knight / 2;
+                whiteScore -= BitOperations.PopCount(blackTerritory & board.Board.WhiteBishop) * bishop / 2;
+                whiteScore -= BitOperations.PopCount(blackTerritory & board.Board.WhiteRook) * rook / 2;
+                whiteScore -= BitOperations.PopCount(blackTerritory & board.Board.WhiteQueen) * queen / 2;
             }
             else if (board.ToMove == PieceColour.White)
             {
-                blackScore -= BitOperations.PopCount(whiteTerritory & board.BitBoard.BlackPawn) * pawn / 2;
-                blackScore -= BitOperations.PopCount(whiteTerritory & board.BitBoard.BlackKnight) * knight / 2;
-                blackScore -= BitOperations.PopCount(whiteTerritory & board.BitBoard.BlackBishop) * bishop / 2;
-                blackScore -= BitOperations.PopCount(whiteTerritory & board.BitBoard.BlackRook) * rook / 2;
-                blackScore -= BitOperations.PopCount(whiteTerritory & board.BitBoard.BlackQueen) * queen / 2;
+                blackScore -= BitOperations.PopCount(whiteTerritory & board.Board.BlackPawn) * pawn / 2;
+                blackScore -= BitOperations.PopCount(whiteTerritory & board.Board.BlackKnight) * knight / 2;
+                blackScore -= BitOperations.PopCount(whiteTerritory & board.Board.BlackBishop) * bishop / 2;
+                blackScore -= BitOperations.PopCount(whiteTerritory & board.Board.BlackRook) * rook / 2;
+                blackScore -= BitOperations.PopCount(whiteTerritory & board.Board.BlackQueen) * queen / 2;
             }
 
             for (int i = 0; i < Chessboard.Files.Length; i++)
             {
                 // Check for isolated pawns
-                if ((board.BitBoard.WhitePawn & Chessboard.Files[i]) != 0)
+                if ((board.Board.WhitePawn & Chessboard.Files[i]) != 0)
                 {
-                    bool isPawnToLeft = i != 0 && (board.BitBoard.WhitePawn & Chessboard.Files[i - 1]) != 0;
+                    bool isPawnToLeft = i != 0 && (board.Board.WhitePawn & Chessboard.Files[i - 1]) != 0;
                     bool IsPawnToRight = i != Chessboard.Files.Length - 1 &&
-                                        (board.BitBoard.WhitePawn & Chessboard.Files[i + 1]) != 0;
+                                        (board.Board.WhitePawn & Chessboard.Files[i + 1]) != 0;
 
                     if (!isPawnToLeft && !IsPawnToRight) whiteScore -= 20;
                 }
 
-                if ((board.BitBoard.BlackPawn & Chessboard.Files[i]) != 0)
+                if ((board.Board.BlackPawn & Chessboard.Files[i]) != 0)
                 {
-                    bool isPawnToLeft = i != 0 && (board.BitBoard.BlackPawn & Chessboard.Files[i - 1]) != 0;
+                    bool isPawnToLeft = i != 0 && (board.Board.BlackPawn & Chessboard.Files[i - 1]) != 0;
                     bool IsPawnToRight = i != Chessboard.Files.Length - 1 &&
-                                        (board.BitBoard.BlackPawn & Chessboard.Files[i + 1]) != 0;
+                                        (board.Board.BlackPawn & Chessboard.Files[i + 1]) != 0;
 
                     if (!isPawnToLeft && !IsPawnToRight) blackScore -= 20;
                 }
 
                 // Check for doubled pawns
-                if (BitOperations.PopCount(board.BitBoard.WhitePawn & Chessboard.Files[i]) > 1) whiteScore -= 20;
-                if (BitOperations.PopCount(board.BitBoard.BlackPawn & Chessboard.Files[i]) > 1) blackScore -= 20;
+                if (BitOperations.PopCount(board.Board.WhitePawn & Chessboard.Files[i]) > 1) whiteScore -= 20;
+                if (BitOperations.PopCount(board.Board.BlackPawn & Chessboard.Files[i]) > 1) blackScore -= 20;
             }
 
             return (whiteScore - blackScore) * (board.ToMove == PieceColour.White ? 1 : -1);
         }
 
+        private int CalculateKingDanger(ulong king, ulong attacks)
+        {
+            ulong kingRing = GetNeighbours(king);
+            return BitOperations.PopCount(kingRing & attacks);
+        }
+
+        private static ulong GetNeighbours(ulong centre)
+        {
+            ulong kingRing = centre;
+            bool isOnAFile = (centre & Chessboard.AFile) != 0;
+            bool isOnHFile = (centre & Chessboard.HFile) != 0;
+            bool isOnFirstRank = (centre & Chessboard.Rank1) != 0;
+            bool isOnEighthRank = (centre & Chessboard.Rank8) != 0;
+
+            if (!isOnAFile)
+            {
+                kingRing |= centre << 1;
+
+                if (!isOnFirstRank) kingRing |= centre << 9;
+                if (!isOnEighthRank) kingRing |= centre >> 7;
+            }
+
+            if (!isOnHFile)
+            {
+                kingRing |= centre >> 1;
+
+                if (!isOnFirstRank) kingRing |= centre << 7;
+                if (!isOnEighthRank) kingRing |= centre >> 9;
+            }
+
+            kingRing |= centre << 8;
+            kingRing |= centre >> 8;
+
+            return kingRing;
+        }
+
         private static int GetWhiteMaterialCount(BoardState board)
         {
             int whiteMaterial = 0;
-            whiteMaterial += BitOperations.PopCount(board.BitBoard.WhitePawn) * pawn;
-            whiteMaterial += BitOperations.PopCount(board.BitBoard.WhiteKnight) * knight;
-            whiteMaterial += BitOperations.PopCount(board.BitBoard.WhiteBishop) * bishop;
-            whiteMaterial += BitOperations.PopCount(board.BitBoard.WhiteRook) * rook;
-            whiteMaterial += BitOperations.PopCount(board.BitBoard.WhiteQueen) * queen;
+            whiteMaterial += BitOperations.PopCount(board.Board.WhitePawn) * pawn;
+            whiteMaterial += BitOperations.PopCount(board.Board.WhiteKnight) * knight;
+            whiteMaterial += BitOperations.PopCount(board.Board.WhiteBishop) * bishop;
+            whiteMaterial += BitOperations.PopCount(board.Board.WhiteRook) * rook;
+            whiteMaterial += BitOperations.PopCount(board.Board.WhiteQueen) * queen;
             return whiteMaterial;
         }
 
         private static int GetBlackMaterialCount(BoardState board)
         {
             int blackMaterial = 0;
-            blackMaterial += BitOperations.PopCount(board.BitBoard.BlackPawn) * pawn;
-            blackMaterial += BitOperations.PopCount(board.BitBoard.BlackKnight) * knight;
-            blackMaterial += BitOperations.PopCount(board.BitBoard.BlackBishop) * bishop;
-            blackMaterial += BitOperations.PopCount(board.BitBoard.BlackRook) * rook;
-            blackMaterial += BitOperations.PopCount(board.BitBoard.BlackQueen) * queen;
+            blackMaterial += BitOperations.PopCount(board.Board.BlackPawn) * pawn;
+            blackMaterial += BitOperations.PopCount(board.Board.BlackKnight) * knight;
+            blackMaterial += BitOperations.PopCount(board.Board.BlackBishop) * bishop;
+            blackMaterial += BitOperations.PopCount(board.Board.BlackRook) * rook;
+            blackMaterial += BitOperations.PopCount(board.Board.BlackQueen) * queen;
             return blackMaterial;
         }
 
@@ -215,15 +254,15 @@ namespace Charlie.Board
         {
             Score psqt = Score.Draw;
 
-            if ((board.BitBoard.WhitePawn & thisSquare) != 0) psqt += pawnPsqt[cellIndex];
-            if ((board.BitBoard.WhiteKnight & thisSquare) != 0) psqt += knightPsqt[cellIndex];
-            if ((board.BitBoard.WhiteBishop & thisSquare) != 0) psqt += bishopPsqt[cellIndex];
-            if ((board.BitBoard.WhiteRook & thisSquare) != 0) psqt += rookPsqt[cellIndex];
-            if ((board.BitBoard.WhiteQueen & thisSquare) != 0)
+            if ((board.Board.WhitePawn & thisSquare) != 0) psqt += pawnPsqt[cellIndex];
+            if ((board.Board.WhiteKnight & thisSquare) != 0) psqt += knightPsqt[cellIndex];
+            if ((board.Board.WhiteBishop & thisSquare) != 0) psqt += bishopPsqt[cellIndex];
+            if ((board.Board.WhiteRook & thisSquare) != 0) psqt += rookPsqt[cellIndex];
+            if ((board.Board.WhiteQueen & thisSquare) != 0)
             {
                 psqt += isOpening ? openingQueenPsqt[cellIndex] : queenPsqt[cellIndex];
             }
-            if ((board.BitBoard.WhiteKing & thisSquare) != 0)
+            if ((board.Board.WhiteKing & thisSquare) != 0)
             {
                 psqt += isEndgame ? endgameKingPsqt[cellIndex] : kingPsqt[cellIndex];
             }
@@ -235,15 +274,15 @@ namespace Charlie.Board
         {
             Score psqt = Score.Draw;
 
-            if ((board.BitBoard.BlackPawn & thisSquare) != 0) psqt += pawnPsqt[63 - cellIndex];
-            if ((board.BitBoard.BlackKnight & thisSquare) != 0) psqt += knightPsqt[63 - cellIndex];
-            if ((board.BitBoard.BlackBishop & thisSquare) != 0) psqt += bishopPsqt[63 - cellIndex];
-            if ((board.BitBoard.BlackRook & thisSquare) != 0) psqt += rookPsqt[63 - cellIndex];
-            if ((board.BitBoard.BlackQueen & thisSquare) != 0)
+            if ((board.Board.BlackPawn & thisSquare) != 0) psqt += pawnPsqt[63 - cellIndex];
+            if ((board.Board.BlackKnight & thisSquare) != 0) psqt += knightPsqt[63 - cellIndex];
+            if ((board.Board.BlackBishop & thisSquare) != 0) psqt += bishopPsqt[63 - cellIndex];
+            if ((board.Board.BlackRook & thisSquare) != 0) psqt += rookPsqt[63 - cellIndex];
+            if ((board.Board.BlackQueen & thisSquare) != 0)
             {
                 psqt += isOpening ? openingQueenPsqt[63 - cellIndex] : queenPsqt[63 - cellIndex];
             }
-            if ((board.BitBoard.BlackKing & thisSquare) != 0)
+            if ((board.Board.BlackKing & thisSquare) != 0)
             {
                 psqt += isEndgame ? endgameKingPsqt[63 - cellIndex] : kingPsqt[63 - cellIndex];
             }

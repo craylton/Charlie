@@ -2,13 +2,16 @@
 using System.Collections.Generic;
 using System.Numerics;
 
-namespace Charlie.Board
+namespace Charlie.BoardRepresentation
 {
     public class BoardState
     {
+        private static string StartPositionFen { get; } =
+            "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
         private readonly List<long> previousStates;
 
-        public BitBoard BitBoard { get; }
+        public Board Board { get; }
 
         // 0001 = white short, 0010 = white long, 0100 = black short, 1000 = black long
         public byte CastleRules { get; }
@@ -21,25 +24,19 @@ namespace Charlie.Board
 
         public long HashCode { get; }
 
-        public BoardState() : this(
-            new List<long>(),
-            BitBoard.GetDefault(),
-            PieceColour.White,
-            0b_00001111,
-            0,
-            0)
+        public BoardState() : this(StartPositionFen.Split(" "))
         {
         }
 
         private BoardState(
             List<long> previousStates,
-            BitBoard bitBoard,
+            Board bitBoard,
             PieceColour toMove,
             byte castleRules,
             ulong whiteEnPassant,
             ulong blackEnPassant)
         {
-            BitBoard = bitBoard;
+            Board = bitBoard;
 
             CastleRules = castleRules;
 
@@ -54,14 +51,14 @@ namespace Charlie.Board
 
         private BoardState(
             List<long> previousStates,
-            BitBoard bitBoard,
+            Board bitBoard,
             PieceColour toMove,
             byte castleRules,
             ulong whiteEnPassant,
             ulong blackEnPassant,
             Move move) : this(
                 previousStates,
-                new BitBoard(bitBoard, move),
+                new Board(bitBoard, move),
                 toMove,
                 castleRules,
                 whiteEnPassant,
@@ -78,7 +75,7 @@ namespace Charlie.Board
             string fiftyMoveRule = fenElements[4];
             string numberOfMoves = fenElements[5];
 
-            BitBoard = new BitBoard(pieces);
+            Board = new Board(pieces);
             CastleRules = GetCastlingRulesFromFen(castlingRules);
             ToMove = toMove == "w" ? PieceColour.White : PieceColour.Black;
 
@@ -140,27 +137,27 @@ namespace Charlie.Board
             // Check if castling rules have changed
             byte castleRules = CastleRules;
 
-            if ((BitBoard.WhiteRook & move.FromCell & Chessboard.SquareH1) != 0)
+            if ((Board.WhiteRook & move.FromCell & Chessboard.SquareH1) != 0)
                 castleRules &= unchecked((byte)~0b_00000001);
 
-            if ((BitBoard.WhiteRook & move.FromCell & Chessboard.SquareA1) != 0)
+            if ((Board.WhiteRook & move.FromCell & Chessboard.SquareA1) != 0)
                 castleRules &= unchecked((byte)~0b_00000010);
 
-            if ((BitBoard.WhiteKing & move.FromCell) != 0) castleRules &= unchecked((byte)~0b_00000011);
+            if ((Board.WhiteKing & move.FromCell) != 0) castleRules &= unchecked((byte)~0b_00000011);
 
-            if ((BitBoard.BlackRook & move.FromCell & Chessboard.SquareH8) != 0)
+            if ((Board.BlackRook & move.FromCell & Chessboard.SquareH8) != 0)
                 castleRules &= unchecked((byte)~0b_00000100);
 
-            if ((BitBoard.BlackRook & move.FromCell & Chessboard.SquareA8) != 0)
+            if ((Board.BlackRook & move.FromCell & Chessboard.SquareA8) != 0)
                 castleRules &= unchecked((byte)~0b_00001000);
 
-            if ((BitBoard.BlackKing & move.FromCell) != 0) castleRules &= unchecked((byte)~0b_00001100);
+            if ((Board.BlackKing & move.FromCell) != 0) castleRules &= unchecked((byte)~0b_00001100);
 
             PieceColour nextToMove = ToMove == PieceColour.White ? PieceColour.Black : PieceColour.White;
 
             return new BoardState(
                 previousStates,
-                BitBoard,
+                Board,
                 nextToMove,
                 castleRules,
                 whiteEP,
@@ -189,32 +186,32 @@ namespace Charlie.Board
         internal bool IsInCheck(PieceColour toMove)
         {
             if (toMove == PieceColour.White)
-                return IsUnderAttack(BitBoard.WhiteKing, PieceColour.Black);
+                return IsUnderAttack(Board.WhiteKing, PieceColour.Black);
             else
-                return IsUnderAttack(BitBoard.BlackKing, PieceColour.White);
+                return IsUnderAttack(Board.BlackKing, PieceColour.White);
         }
 
         internal bool IsInPseudoCheck(PieceColour attacker)
         {
             if (attacker == PieceColour.Black)
             {
-                if (IsUnderImmediateAttack(BitBoard.WhiteKing, BitBoard.BlackKing, attacker)) return true;
-                if (IsUnderKnightAttack(BitBoard.WhiteKing, BitBoard.BlackKnight)) return true;
+                if (IsUnderImmediateAttack(Board.WhiteKing, Board.BlackKing, attacker)) return true;
+                if (IsUnderKnightAttack(Board.WhiteKing, Board.BlackKnight)) return true;
 
-                int cellIndex = BitOperations.TrailingZeroCount(BitBoard.WhiteKing);
+                int cellIndex = BitOperations.TrailingZeroCount(Board.WhiteKing);
 
-                if ((Magics.BishopAttacks[cellIndex] & (BitBoard.BlackBishop | BitBoard.BlackQueen)) != 0) return true;
-                if ((Magics.RookAttacks[cellIndex] & (BitBoard.BlackRook | BitBoard.BlackQueen)) != 0) return true;
+                if ((Magics.BishopAttacks[cellIndex] & (Board.BlackBishop | Board.BlackQueen)) != 0) return true;
+                if ((Magics.RookAttacks[cellIndex] & (Board.BlackRook | Board.BlackQueen)) != 0) return true;
             }
             else
             {
-                if (IsUnderImmediateAttack(BitBoard.BlackKing, BitBoard.WhiteKing, attacker)) return true;
-                if (IsUnderKnightAttack(BitBoard.BlackKing, BitBoard.WhiteKnight)) return true;
+                if (IsUnderImmediateAttack(Board.BlackKing, Board.WhiteKing, attacker)) return true;
+                if (IsUnderKnightAttack(Board.BlackKing, Board.WhiteKnight)) return true;
 
-                int cellIndex = BitOperations.TrailingZeroCount(BitBoard.BlackKing);
+                int cellIndex = BitOperations.TrailingZeroCount(Board.BlackKing);
 
-                if ((Magics.BishopAttacks[cellIndex] & (BitBoard.WhiteBishop | BitBoard.WhiteQueen)) != 0) return true;
-                if ((Magics.RookAttacks[cellIndex] & (BitBoard.WhiteRook | BitBoard.WhiteQueen)) != 0) return true;
+                if ((Magics.BishopAttacks[cellIndex] & (Board.WhiteBishop | Board.WhiteQueen)) != 0) return true;
+                if ((Magics.RookAttacks[cellIndex] & (Board.WhiteRook | Board.WhiteQueen)) != 0) return true;
             }
 
             return false;
@@ -224,15 +221,15 @@ namespace Charlie.Board
         {
             if (attacker == PieceColour.Black)
             {
-                if (IsUnderImmediateAttack(cell, BitBoard.BlackKing, attacker)) return true;
-                if (IsUnderRayAttack(cell, BitBoard.BlackQueen, BitBoard.BlackRook, BitBoard.BlackBishop)) return true;
-                if (IsUnderKnightAttack(cell, BitBoard.BlackKnight)) return true;
+                if (IsUnderImmediateAttack(cell, Board.BlackKing, attacker)) return true;
+                if (IsUnderRayAttack(cell, Board.BlackQueen, Board.BlackRook, Board.BlackBishop)) return true;
+                if (IsUnderKnightAttack(cell, Board.BlackKnight)) return true;
             }
             else
             {
-                if (IsUnderImmediateAttack(cell, BitBoard.WhiteKing, attacker)) return true;
-                if (IsUnderRayAttack(cell, BitBoard.WhiteQueen, BitBoard.WhiteRook, BitBoard.WhiteBishop)) return true;
-                if (IsUnderKnightAttack(cell, BitBoard.WhiteKnight)) return true;
+                if (IsUnderImmediateAttack(cell, Board.WhiteKing, attacker)) return true;
+                if (IsUnderRayAttack(cell, Board.WhiteQueen, Board.WhiteRook, Board.WhiteBishop)) return true;
+                if (IsUnderKnightAttack(cell, Board.WhiteKnight)) return true;
             }
 
             return false;
@@ -256,13 +253,13 @@ namespace Charlie.Board
 
             if (attacker == PieceColour.Black)
             {
-                if (up && right && ((cell >> 9) & BitBoard.BlackPawn) != 0) return true;
-                if (up && left && ((cell >> 7) & BitBoard.BlackPawn) != 0) return true;
+                if (up && right && ((cell >> 9) & Board.BlackPawn) != 0) return true;
+                if (up && left && ((cell >> 7) & Board.BlackPawn) != 0) return true;
             }
             else
             {
-                if (down && right && ((cell << 7) & BitBoard.WhitePawn) != 0) return true;
-                if (down && left && ((cell << 9) & BitBoard.WhitePawn) != 0) return true;
+                if (down && right && ((cell << 7) & Board.WhitePawn) != 0) return true;
+                if (down && left && ((cell << 9) & Board.WhitePawn) != 0) return true;
             }
 
             return false;
@@ -270,7 +267,7 @@ namespace Charlie.Board
 
         private bool IsUnderRayAttack(ulong cell, ulong theirQueen, ulong theirRook, ulong theirBishop)
         {
-            ulong occupiedBb = BitBoard.Occupied;
+            ulong occupiedBb = Board.Occupied;
 
             // scan up
             int distance = 0;
@@ -355,7 +352,7 @@ namespace Charlie.Board
 
         private long CalculateLongHashCode()
         {
-            var hash = BitBoard.GetLongHashCode() ^ (long)WhiteEnPassant ^ (long)BlackEnPassant;
+            var hash = Board.GetLongHashCode() ^ (long)WhiteEnPassant ^ (long)BlackEnPassant;
 
             for (int i = 0; i < 64 / 4; i++)
                 hash ^= CastleRules << i;

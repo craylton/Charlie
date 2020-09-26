@@ -1,4 +1,4 @@
-﻿using Charlie.Board;
+﻿using Charlie.BoardRepresentation;
 using Charlie.Hash;
 using Charlie.Moves;
 using System;
@@ -25,6 +25,7 @@ namespace Charlie.Search
 
         public event EventHandler<MoveInfo> BestMoveChanged;
         public event EventHandler<SearchResults> SearchComplete;
+        public event EventHandler<PerftResults> PerftComplete;
 
         public Searcher() => timer.Elapsed += (s, e) => cancel = true;
 
@@ -225,6 +226,40 @@ namespace Charlie.Search
                 bestMoves.Add(ttBestMove);
 
             return generator.GenerateLegalMoves(boardState, bestMoves);
+        }
+
+        public async Task PerfTest(BoardState currentBoard, int rootDepth)
+        {
+            sw.Start();
+
+            ulong permutationCount = await PerfTestInner(currentBoard, rootDepth);
+            long timeTaken = sw.ElapsedMilliseconds;
+
+            Stop();
+
+            var results = new PerftResults(permutationCount, (ulong)timeTaken);
+            PerftComplete?.Invoke(this, results);
+
+            async Task<ulong> PerfTestInner(BoardState boardState, int subDepth)
+            {
+                ulong count = 0;
+
+                if (subDepth == 0) return 1;
+
+                var moves = generator.GenerateLegalMoves(boardState);
+
+                foreach (Move move in moves)
+                {
+                    var newBoard = boardState.MakeMove(move);
+                    var perft = await PerfTestInner(newBoard, subDepth - 1);
+
+                    if (subDepth == rootDepth) Console.WriteLine($"{move}: {perft}");
+
+                    count += perft;
+                }
+
+                return count;
+            }
         }
     }
 }

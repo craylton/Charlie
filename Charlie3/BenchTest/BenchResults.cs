@@ -1,4 +1,4 @@
-﻿namespace Charlie
+﻿namespace Charlie.BenchTest
 {
     public readonly struct BenchResults
     {

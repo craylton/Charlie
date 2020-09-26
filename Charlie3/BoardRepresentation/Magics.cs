@@ -1,4 +1,4 @@
-﻿namespace Charlie.Board
+﻿namespace Charlie.BoardRepresentation
 {
     public static class Magics
     {

@@ -1,4 +1,4 @@
-﻿using Charlie.Board;
+﻿using Charlie.BoardRepresentation;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -32,48 +32,48 @@ namespace Charlie.Moves
         {
             if (board.ToMove == PieceColour.White)
             {
-                foreach (Move move in GeneratePawnMoves(board.BitBoard.WhitePawn, board))
+                foreach (Move move in GeneratePawnMoves(board.Board.WhitePawn, board))
                     yield return move;
 
-                foreach (Move move in GenerateKnightCaptures(board.BitBoard.WhiteKnight, board.BitBoard.BlackPieces))
+                foreach (Move move in GenerateKnightCaptures(board.Board.WhiteKnight, board.Board.BlackPieces))
                     yield return move;
 
-                foreach (Move move in GenerateBishopMoves(board.BitBoard.WhiteBishop, board.BitBoard.WhitePieces, board))
+                foreach (Move move in GenerateBishopMoves(board.Board.WhiteBishop, board.Board.WhitePieces, board))
                     yield return move;
 
-                foreach (Move move in GenerateQueenMoves(board.BitBoard.WhiteQueen, board.BitBoard.WhitePieces, board))
+                foreach (Move move in GenerateQueenMoves(board.Board.WhiteQueen, board.Board.WhitePieces, board))
                     yield return move;
 
-                foreach (Move move in GenerateKingMoves(board.BitBoard.WhiteKing, board.BitBoard.WhitePieces, board))
+                foreach (Move move in GenerateKingMoves(board.Board.WhiteKing, board.Board.WhitePieces, board))
                     yield return move;
 
-                foreach (Move move in GenerateRookMoves(board.BitBoard.WhiteRook, board.BitBoard.WhitePieces, board))
+                foreach (Move move in GenerateRookMoves(board.Board.WhiteRook, board.Board.WhitePieces, board))
                     yield return move;
 
-                foreach (Move move in GenerateKnightNonCaptures(board.BitBoard.WhiteKnight, board.BitBoard.Occupied))
+                foreach (Move move in GenerateKnightNonCaptures(board.Board.WhiteKnight, board.Board.Occupied))
                     yield return move;
             }
             else
             {
-                foreach (Move move in GeneratePawnMoves(board.BitBoard.BlackPawn, board))
+                foreach (Move move in GeneratePawnMoves(board.Board.BlackPawn, board))
                     yield return move;
 
-                foreach (Move move in GenerateKnightCaptures(board.BitBoard.BlackKnight, board.BitBoard.WhitePieces))
+                foreach (Move move in GenerateKnightCaptures(board.Board.BlackKnight, board.Board.WhitePieces))
                     yield return move;
 
-                foreach (Move move in GenerateBishopMoves(board.BitBoard.BlackBishop, board.BitBoard.BlackPieces, board))
+                foreach (Move move in GenerateBishopMoves(board.Board.BlackBishop, board.Board.BlackPieces, board))
                     yield return move;
 
-                foreach (Move move in GenerateQueenMoves(board.BitBoard.BlackQueen, board.BitBoard.BlackPieces, board))
+                foreach (Move move in GenerateQueenMoves(board.Board.BlackQueen, board.Board.BlackPieces, board))
                     yield return move;
 
-                foreach (Move move in GenerateKingMoves(board.BitBoard.BlackKing, board.BitBoard.BlackPieces, board))
+                foreach (Move move in GenerateKingMoves(board.Board.BlackKing, board.Board.BlackPieces, board))
                     yield return move;
 
-                foreach (Move move in GenerateRookMoves(board.BitBoard.BlackRook, board.BitBoard.BlackPieces, board))
+                foreach (Move move in GenerateRookMoves(board.Board.BlackRook, board.Board.BlackPieces, board))
                     yield return move;
 
-                foreach (Move move in GenerateKnightNonCaptures(board.BitBoard.BlackKnight, board.BitBoard.Occupied))
+                foreach (Move move in GenerateKnightNonCaptures(board.Board.BlackKnight, board.Board.Occupied))
                     yield return move;
             }
         }
@@ -82,42 +82,42 @@ namespace Charlie.Moves
         {
             if (board.ToMove == PieceColour.White)
             {
-                foreach (Move move in GeneratePawnQuiescenceMoves(board.BitBoard.WhitePawn, board))
+                foreach (Move move in GeneratePawnQuiescenceMoves(board.Board.WhitePawn, board))
                     yield return move;
 
-                foreach (Move move in GenerateKnightCaptures(board.BitBoard.WhiteKnight, board.BitBoard.BlackPieces))
+                foreach (Move move in GenerateKnightCaptures(board.Board.WhiteKnight, board.Board.BlackPieces))
                     yield return move;
 
-                foreach (Move move in GenerateBishopCaptures(board.BitBoard.WhiteBishop, board.BitBoard.BlackPieces, board))
+                foreach (Move move in GenerateBishopCaptures(board.Board.WhiteBishop, board.Board.BlackPieces, board))
                     yield return move;
 
-                foreach (Move move in GenerateQueenCaptures(board.BitBoard.WhiteQueen, board.BitBoard.BlackPieces, board))
+                foreach (Move move in GenerateQueenCaptures(board.Board.WhiteQueen, board.Board.BlackPieces, board))
                     yield return move;
 
-                foreach (Move move in GenerateKingCaptures(board.BitBoard.WhiteKing, board.BitBoard.BlackPieces))
+                foreach (Move move in GenerateKingCaptures(board.Board.WhiteKing, board.Board.BlackPieces))
                     yield return move;
 
-                foreach (Move move in GenerateRookCaptures(board.BitBoard.WhiteRook, board.BitBoard.BlackPieces, board))
+                foreach (Move move in GenerateRookCaptures(board.Board.WhiteRook, board.Board.BlackPieces, board))
                     yield return move;
             }
             else
             {
-                foreach (Move move in GeneratePawnQuiescenceMoves(board.BitBoard.BlackPawn, board))
+                foreach (Move move in GeneratePawnQuiescenceMoves(board.Board.BlackPawn, board))
                     yield return move;
 
-                foreach (Move move in GenerateKnightCaptures(board.BitBoard.BlackKnight, board.BitBoard.WhitePieces))
+                foreach (Move move in GenerateKnightCaptures(board.Board.BlackKnight, board.Board.WhitePieces))
                     yield return move;
 
-                foreach (Move move in GenerateBishopCaptures(board.BitBoard.BlackBishop, board.BitBoard.WhitePieces, board))
+                foreach (Move move in GenerateBishopCaptures(board.Board.BlackBishop, board.Board.WhitePieces, board))
                     yield return move;
 
-                foreach (Move move in GenerateQueenCaptures(board.BitBoard.BlackQueen, board.BitBoard.WhitePieces, board))
+                foreach (Move move in GenerateQueenCaptures(board.Board.BlackQueen, board.Board.WhitePieces, board))
                     yield return move;
 
-                foreach (Move move in GenerateKingCaptures(board.BitBoard.BlackKing, board.BitBoard.WhitePieces))
+                foreach (Move move in GenerateKingCaptures(board.Board.BlackKing, board.Board.WhitePieces))
                     yield return move;
 
-                foreach (Move move in GenerateRookCaptures(board.BitBoard.BlackRook, board.BitBoard.WhitePieces, board))
+                foreach (Move move in GenerateRookCaptures(board.Board.BlackRook, board.Board.WhitePieces, board))
                     yield return move;
             }
         }
@@ -184,7 +184,7 @@ namespace Charlie.Moves
                     distance += 8;
                     ulong newSq = rook >> distance;
                     if ((newSq & ~friendlyPieces) != 0) yield return new Move(rook, newSq);
-                    if ((newSq & board.BitBoard.Occupied) != 0) break;
+                    if ((newSq & board.Board.Occupied) != 0) break;
                 }
 
                 // scan right
@@ -194,7 +194,7 @@ namespace Charlie.Moves
                     distance++;
                     ulong newSq = rook >> distance;
                     if ((newSq & ~friendlyPieces) != 0) yield return new Move(rook, newSq);
-                    if ((newSq & board.BitBoard.Occupied) != 0) break;
+                    if ((newSq & board.Board.Occupied) != 0) break;
                 }
 
                 // scan left
@@ -204,7 +204,7 @@ namespace Charlie.Moves
                     distance++;
                     ulong newSq = rook << distance;
                     if ((newSq & ~friendlyPieces) != 0) yield return new Move(rook, newSq);
-                    if ((newSq & board.BitBoard.Occupied) != 0) break;
+                    if ((newSq & board.Board.Occupied) != 0) break;
                 }
 
                 // scan down
@@ -214,7 +214,7 @@ namespace Charlie.Moves
                     distance += 8;
                     ulong newSq = rook << distance;
                     if ((newSq & ~friendlyPieces) != 0) yield return new Move(rook, newSq);
-                    if ((newSq & board.BitBoard.Occupied) != 0) break;
+                    if ((newSq & board.Board.Occupied) != 0) break;
                 }
             }
         }
@@ -233,7 +233,7 @@ namespace Charlie.Moves
                     distance += 9;
                     ulong newSq = bishop >> distance;
                     if ((newSq & ~friendlyPieces) != 0) yield return new Move(bishop, newSq);
-                    if ((newSq & board.BitBoard.Occupied) != 0) break;
+                    if ((newSq & board.Board.Occupied) != 0) break;
                 }
 
                 // scan up left
@@ -243,7 +243,7 @@ namespace Charlie.Moves
                     distance += 7;
                     ulong newSq = bishop >> distance;
                     if ((newSq & ~friendlyPieces) != 0) yield return new Move(bishop, newSq);
-                    if ((newSq & board.BitBoard.Occupied) != 0) break;
+                    if ((newSq & board.Board.Occupied) != 0) break;
                 }
 
                 // scan down right
@@ -253,7 +253,7 @@ namespace Charlie.Moves
                     distance += 7;
                     ulong newSq = bishop << distance;
                     if ((newSq & ~friendlyPieces) != 0) yield return new Move(bishop, newSq);
-                    if ((newSq & board.BitBoard.Occupied) != 0) break;
+                    if ((newSq & board.Board.Occupied) != 0) break;
                 }
 
                 // scan down left
@@ -263,7 +263,7 @@ namespace Charlie.Moves
                     distance += 9;
                     ulong newSq = bishop << distance;
                     if ((newSq & ~friendlyPieces) != 0) yield return new Move(bishop, newSq);
-                    if ((newSq & board.BitBoard.Occupied) != 0) break;
+                    if ((newSq & board.Board.Occupied) != 0) break;
                 }
             }
         }
@@ -311,8 +311,8 @@ namespace Charlie.Moves
             {
                 // If can short castle
                 if ((board.CastleRules & 0b0001) != 0 &&
-                    (board.BitBoard.Occupied & (Chessboard.SquareF1 | Chessboard.SquareG1)) == 0 &&
-                    (board.BitBoard.WhiteRook & Chessboard.SquareH1) != 0 &&
+                    (board.Board.Occupied & (Chessboard.SquareF1 | Chessboard.SquareG1)) == 0 &&
+                    (board.Board.WhiteRook & Chessboard.SquareH1) != 0 &&
                     !board.IsInCheck(PieceColour.White) &&
                     !board.IsUnderAttack(king >> 1, PieceColour.Black) &&
                     !board.IsUnderAttack(king >> 2, PieceColour.Black))
@@ -322,8 +322,8 @@ namespace Charlie.Moves
 
                 // If can long castle
                 if ((board.CastleRules & 0b0010) != 0 &&
-                    (board.BitBoard.Occupied & (Chessboard.SquareB1 | Chessboard.SquareC1 | Chessboard.SquareD1)) == 0 &&
-                    (board.BitBoard.WhiteRook & Chessboard.SquareA1) != 0 &&
+                    (board.Board.Occupied & (Chessboard.SquareB1 | Chessboard.SquareC1 | Chessboard.SquareD1)) == 0 &&
+                    (board.Board.WhiteRook & Chessboard.SquareA1) != 0 &&
                     !board.IsInCheck(PieceColour.White) &&
                     !board.IsUnderAttack(king << 1, PieceColour.Black) &&
                     !board.IsUnderAttack(king << 2, PieceColour.Black))
@@ -335,8 +335,8 @@ namespace Charlie.Moves
             {
                 // If can short castle
                 if ((board.CastleRules & 0b0100) != 0 &&
-                    (board.BitBoard.Occupied & (Chessboard.SquareF8 | Chessboard.SquareG8)) == 0 &&
-                    (board.BitBoard.BlackRook & Chessboard.SquareH8) != 0 &&
+                    (board.Board.Occupied & (Chessboard.SquareF8 | Chessboard.SquareG8)) == 0 &&
+                    (board.Board.BlackRook & Chessboard.SquareH8) != 0 &&
                     !board.IsInCheck(PieceColour.Black) &&
                     !board.IsUnderAttack(king >> 1, PieceColour.White) &&
                     !board.IsUnderAttack(king >> 2, PieceColour.White))
@@ -346,8 +346,8 @@ namespace Charlie.Moves
 
                 // If can long castle
                 if ((board.CastleRules & 0b1000) != 0 &&
-                    (board.BitBoard.Occupied & (Chessboard.SquareB8 | Chessboard.SquareC8 | Chessboard.SquareD8)) == 0 &&
-                    (board.BitBoard.BlackRook & Chessboard.SquareA8) != 0 &&
+                    (board.Board.Occupied & (Chessboard.SquareB8 | Chessboard.SquareC8 | Chessboard.SquareD8)) == 0 &&
+                    (board.Board.BlackRook & Chessboard.SquareA8) != 0 &&
                     !board.IsInCheck(PieceColour.Black) &&
                     !board.IsUnderAttack(king << 1, PieceColour.White) &&
                     !board.IsUnderAttack(king << 2, PieceColour.White))
@@ -359,9 +359,9 @@ namespace Charlie.Moves
 
         private IEnumerable<Move> GeneratePawnMoves(ulong pawns, BoardState board)
         {
-            ulong occupiedBb = board.BitBoard.Occupied;
-            ulong blackPiecesBb = board.BitBoard.BlackPieces;
-            ulong whitePiecesBb = board.BitBoard.WhitePieces;
+            ulong occupiedBb = board.Board.Occupied;
+            ulong blackPiecesBb = board.Board.BlackPieces;
+            ulong whitePiecesBb = board.Board.WhitePieces;
 
             for (int i = 0; i < 64; i++)
             {
@@ -537,7 +537,7 @@ namespace Charlie.Moves
                     distance += 8;
                     ulong newSq = rook >> distance;
                     if ((newSq & enemyPieces) != 0) yield return new Move(rook, newSq);
-                    if ((newSq & board.BitBoard.Occupied) != 0) break;
+                    if ((newSq & board.Board.Occupied) != 0) break;
                 }
 
                 // scan right
@@ -547,7 +547,7 @@ namespace Charlie.Moves
                     distance++;
                     ulong newSq = rook >> distance;
                     if ((newSq & enemyPieces) != 0) yield return new Move(rook, newSq);
-                    if ((newSq & board.BitBoard.Occupied) != 0) break;
+                    if ((newSq & board.Board.Occupied) != 0) break;
                 }
 
                 // scan left
@@ -557,7 +557,7 @@ namespace Charlie.Moves
                     distance++;
                     ulong newSq = rook << distance;
                     if ((newSq & enemyPieces) != 0) yield return new Move(rook, newSq);
-                    if ((newSq & board.BitBoard.Occupied) != 0) break;
+                    if ((newSq & board.Board.Occupied) != 0) break;
                 }
 
                 // scan down
@@ -567,7 +567,7 @@ namespace Charlie.Moves
                     distance += 8;
                     ulong newSq = rook << distance;
                     if ((newSq & enemyPieces) != 0) yield return new Move(rook, newSq);
-                    if ((newSq & board.BitBoard.Occupied) != 0) break;
+                    if ((newSq & board.Board.Occupied) != 0) break;
                 }
             }
         }
@@ -586,7 +586,7 @@ namespace Charlie.Moves
                     distance += 9;
                     ulong newSq = bishop >> distance;
                     if ((newSq & enemyPieces) != 0) yield return new Move(bishop, newSq);
-                    if ((newSq & board.BitBoard.Occupied) != 0) break;
+                    if ((newSq & board.Board.Occupied) != 0) break;
                 }
 
                 // scan up left
@@ -596,7 +596,7 @@ namespace Charlie.Moves
                     distance += 7;
                     ulong newSq = bishop >> distance;
                     if ((newSq & enemyPieces) != 0) yield return new Move(bishop, newSq);
-                    if ((newSq & board.BitBoard.Occupied) != 0) break;
+                    if ((newSq & board.Board.Occupied) != 0) break;
                 }
 
                 // scan down right
@@ -606,7 +606,7 @@ namespace Charlie.Moves
                     distance += 7;
                     ulong newSq = bishop << distance;
                     if ((newSq & enemyPieces) != 0) yield return new Move(bishop, newSq);
-                    if ((newSq & board.BitBoard.Occupied) != 0) break;
+                    if ((newSq & board.Board.Occupied) != 0) break;
                 }
 
                 // scan down left
@@ -616,7 +616,7 @@ namespace Charlie.Moves
                     distance += 9;
                     ulong newSq = bishop << distance;
                     if ((newSq & enemyPieces) != 0) yield return new Move(bishop, newSq);
-                    if ((newSq & board.BitBoard.Occupied) != 0) break;
+                    if ((newSq & board.Board.Occupied) != 0) break;
                 }
             }
         }
@@ -663,9 +663,9 @@ namespace Charlie.Moves
 
         private IEnumerable<Move> GeneratePawnQuiescenceMoves(ulong pawns, BoardState board)
         {
-            ulong occupiedBb = board.BitBoard.Occupied;
-            ulong blackPiecesBb = board.BitBoard.BlackPieces;
-            ulong whitePiecesBb = board.BitBoard.WhitePieces;
+            ulong occupiedBb = board.Board.Occupied;
+            ulong blackPiecesBb = board.Board.BlackPieces;
+            ulong whitePiecesBb = board.Board.WhitePieces;
 
             for (int i = 0; i < 64; i++)
             {

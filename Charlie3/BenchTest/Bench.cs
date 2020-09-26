@@ -1,9 +1,9 @@
-﻿using Charlie.Board;
-using Charlie.Search;
-using System;
+﻿using System;
 using System.Threading.Tasks;
+using Charlie.BoardRepresentation;
+using Charlie.Search;
 
-namespace Charlie
+namespace Charlie.BenchTest
 {
     public class Bench
     {
@@ -56,6 +56,8 @@ namespace Charlie
             "8/R7/2q5/8/6k1/8/1P5p/K6R w - - 0 124", // Draw
         };
 
+        private static readonly string KiwiPete = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1";
+
         private ulong nodesSearched;
         private ulong benchTimeMs;
 
@@ -76,6 +78,14 @@ namespace Charlie
 
             BenchComplete?.Invoke(this, new BenchResults(nodesSearched, benchTimeMs));
             search.SearchComplete -= Searcher_SearchComplete;
+        }
+
+        public async Task PerfTest(Searcher search, BoardState boardState, int depth)
+        {
+            if (boardState == default)
+                boardState = new BoardState(KiwiPete.Split(' '));
+
+            await search.PerfTest(boardState, depth);
         }
 
         private void Searcher_SearchComplete(object sender, SearchResults results)

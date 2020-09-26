@@ -1,5 +1,4 @@
-﻿using Charlie.Board;
-using Charlie.Hash;
+﻿using Charlie.Hash;
 using Charlie.Moves;
 using Charlie.Search;
 using System;
@@ -8,6 +7,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Charlie.BenchTest;
+using Charlie.BoardRepresentation;
 
 namespace Charlie
 {
@@ -22,6 +23,7 @@ namespace Charlie
         {
             searcher.BestMoveChanged += Searcher_BestMoveChanged;
             searcher.SearchComplete += Searcher_SearchComplete;
+            searcher.PerftComplete += Searcher_PerftComplete;
             bench.BenchComplete += Bench_BenchComplete;
 
             Zobrist.Initialise();
@@ -124,6 +126,16 @@ namespace Charlie
 
                     await bench.BenchTest(searcher, targetDepth);
                 }
+
+                if (@params[0] == "perft")
+                {
+                    int targetDepth = 4;
+
+                    if (@params.Length >= 2)
+                        targetDepth = int.Parse(@params[1]);
+
+                    await bench.PerfTest(searcher, boardState, targetDepth);
+                }
             }
         }
 
@@ -143,6 +155,15 @@ namespace Charlie
             sb.Append(" score " + moveInfo.Evaluation.ToString());
 
             Console.WriteLine(sb.ToString());
+        }
+
+        private static void Searcher_PerftComplete(object sender, PerftResults results)
+        {
+            Console.WriteLine();
+            Console.WriteLine("Perft test complete");
+            Console.WriteLine("Result: " + results.PermutationCount);
+            Console.WriteLine("Time (ms): " + results.ElapsedMilliseconds);
+            Console.WriteLine("Nodes per second: " + results.NodesPerSecond);
         }
 
         private static void Bench_BenchComplete(object sender, BenchResults results)
