@@ -4,7 +4,6 @@ using Charlie.Moves;
 using Charlie.Search;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -31,7 +30,6 @@ namespace Charlie
             while (true)
             {
                 string input = Console.ReadLine();
-                File.AppendAllLines("inputs.txt", new[] { input });
                 string[] @params = input.Split(' ');
 
                 switch (input)
@@ -177,7 +175,6 @@ namespace Charlie
         private void Searcher_SearchComplete(object sender, SearchResults results)
         {
             Console.WriteLine("bestmove " + results.BestMove.ToString());
-            File.AppendAllLines("inputs.txt", new[] { "[BEST MOVE]: " + results.BestMove.ToString() });
         }
 
         private void Searcher_BestMoveChanged(object sender, MoveInfo moveInfo)
