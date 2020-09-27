@@ -118,11 +118,8 @@ namespace Charlie.BoardRepresentation
 
             if (move.IsDoublePush)
             {
-                // if white pushed
-                if (move.FromCell > move.ToCell)
-                    blackEP = move.ToCell << 8;
-                else
-                    whiteEP = move.ToCell >> 8;
+                blackEP = move.ToCell << 8;
+                whiteEP = move.ToCell >> 8;
             }
 
             // Check if castling rules have changed
