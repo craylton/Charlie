@@ -44,9 +44,6 @@ namespace Charlie
                     case "isready":
                         Console.WriteLine("readyok");
                         break;
-                    case "setoption name Clear Hash":
-                        searcher.ClearHash();
-                        break;
                     case "stop":
                         searcher.Stop();
                         break;
@@ -54,14 +51,24 @@ namespace Charlie
                         return;
                 }
 
-                if (@params[0] == "position")
-                    boardState = Position(@params[1..]);
-                else if (@params[0] == "go")
-                    Go(@params[1..], boardState);
-                else if (@params[0] == "bench")
-                    await Bench(@params[1..]);
-                else if (@params[0] == "perft")
-                    await Perft(@params[1..], boardState);
+                switch (@params[0])
+                {
+                    case "position":
+                        boardState = Position(@params[1..]);
+                        break;
+                    case "go":
+                        Go(@params[1..], boardState);
+                        break;
+                    case "setoption":
+                        SetOption(@params[1..]);
+                        break;
+                    case "bench":
+                        await Bench(@params[1..]);
+                        break;
+                    case "perft":
+                        await Perft(@params[1..], boardState);
+                        break;
+                }
             }
         }
 
@@ -134,6 +141,17 @@ namespace Charlie
 
             var searchParameters = new SearchParameters(searchType, searchTime, targetDepth);
             _ = Task.Run(async () => await searcher.Start(boardState, searchParameters));
+        }
+
+        private void SetOption(string[] @params)
+        {
+            if (@params.Length >= 2 && @params[0] == "name")
+            {
+                var optionName = string.Join(' ', @params[1..]);
+
+                if (optionName == "Clear Hash")
+                    searcher.ClearHash();
+            }
         }
 
         private async Task Bench(string[] @params)
