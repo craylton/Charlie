@@ -78,28 +78,19 @@ namespace Charlie.BoardRepresentation
             Board = new Board(pieces);
             CastleRules = GetCastlingRulesFromFen(castlingRules);
             ToMove = toMove == "w" ? PieceColour.White : PieceColour.Black;
-
-            if (enPassant == "-")
-            {
-                WhiteEnPassant = BlackEnPassant = 0;
-            }
-            else
-            {
-                if (ToMove == PieceColour.White)
-                    WhiteEnPassant = GetEnPassantFromFen(enPassant[0], true);
-                else
-                    BlackEnPassant = GetEnPassantFromFen(enPassant[0], false);
-            }
-
+            WhiteEnPassant = GetEnPassantFromFen(enPassant[0], ToMove == PieceColour.White);
+            BlackEnPassant = GetEnPassantFromFen(enPassant[0], ToMove == PieceColour.Black);
             HashCode = CalculateLongHashCode();
             previousStates = new List<long>() { HashCode };
         }
 
         private ulong GetEnPassantFromFen(char enPassantFile, bool whiteToMove)
         {
-            int rank = 8 * (whiteToMove ? 3 : 6);
+            if (enPassantFile == '-') return 0;
+
+            int rank = whiteToMove ? 3 : 6;
             int file = enPassantFile - 'a';
-            return 1ul << (rank - file - 1);
+            return 1ul << (8 * rank - file - 1);
         }
 
         private static byte GetCastlingRulesFromFen(string fenCastling)
