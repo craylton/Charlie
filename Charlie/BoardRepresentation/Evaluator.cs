@@ -125,15 +125,23 @@ namespace Charlie.BoardRepresentation
             for (int i = 0; i < 64; i++)
             {
                 ulong thisSquare = 1ul << i;
-
-                if (board.IsUnderAttack(thisSquare, PieceColour.White)) whiteAttacks |= thisSquare;
-                if (board.IsUnderAttack(thisSquare, PieceColour.Black)) blackAttacks |= thisSquare;
-
                 if ((unoccupiedBb & thisSquare) != 0) continue;
 
                 // Assign values to each piece according to its position
                 whiteScore += CalculateWhitePsqt(board, isOpening, isEndgame, i, thisSquare);
                 blackScore += CalculateBlackPsqt(board, isOpening, isEndgame, i, thisSquare);
+            }
+
+            //lazy eval
+            if (whiteScore > blackScore + 300 || whiteScore < blackScore - 300)
+                return (whiteScore - blackScore) * (board.ToMove == PieceColour.White ? 1 : -1);
+
+            for (int i = 0; i < 64; i++)
+            {
+                ulong thisSquare = 1ul << i;
+
+                if (board.IsUnderAttack(thisSquare, PieceColour.White)) whiteAttacks |= thisSquare;
+                if (board.IsUnderAttack(thisSquare, PieceColour.Black)) blackAttacks |= thisSquare;
             }
 
             ulong whiteTerritory = whiteAttacks & ~blackAttacks;
