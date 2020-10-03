@@ -164,7 +164,7 @@ namespace Charlie
 
         private async Task Perft(string[] @params, BoardState boardState)
         {
-            int targetDepth = 4;
+            int targetDepth = 5;
 
             if (@params.Length >= 1)
                 targetDepth = int.Parse(@params[0]);
