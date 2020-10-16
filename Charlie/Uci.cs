@@ -17,7 +17,7 @@ namespace Charlie
 
         public void Initialise()
         {
-            searcher.BestMoveChanged += Searcher_BestMoveChanged;
+            searcher.IterationCompleted += Searcher_IterationCompleted;
             searcher.SearchComplete += Searcher_SearchComplete;
             searcher.PerftComplete += Searcher_PerftComplete;
             bench.BenchComplete += Bench_BenchComplete;
@@ -177,7 +177,7 @@ namespace Charlie
             Console.WriteLine("bestmove " + results.BestMove.ToString());
         }
 
-        private void Searcher_BestMoveChanged(object sender, MoveInfo moveInfo)
+        private void Searcher_IterationCompleted(object sender, MoveInfo moveInfo)
         {
             var sb = new StringBuilder("info");
             sb.Append(" depth " + moveInfo.Depth);

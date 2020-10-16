@@ -23,7 +23,7 @@ namespace Charlie.Search
 
         private readonly HashTable HashTable = new HashTable();
 
-        public event EventHandler<MoveInfo> BestMoveChanged;
+        public event EventHandler<MoveInfo> IterationCompleted;
         public event EventHandler<SearchResults> SearchComplete;
         public event EventHandler<PerftResults> PerftComplete;
 
@@ -73,7 +73,7 @@ namespace Charlie.Search
 
                 // Report the pv
                 var moveInfo = new MoveInfo(depth, prevPv, eval, sw.ElapsedMilliseconds, nodesSearched);
-                BestMoveChanged?.Invoke(this, moveInfo);
+                IterationCompleted?.Invoke(this, moveInfo);
 
                 // Set new aspiration windows
                 alpha = eval - 30;
