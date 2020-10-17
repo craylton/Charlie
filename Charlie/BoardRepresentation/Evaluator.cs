@@ -115,7 +115,7 @@ namespace Charlie.BoardRepresentation
             blackScore += blackMaterial;
 
             bool isOpening = whiteMaterial + blackMaterial >= 6200;
-            bool isEndgame = whiteMaterial + blackMaterial <= 3600;
+            bool isEndgame = whiteMaterial + blackMaterial <= 3700;
 
             ulong unoccupiedBb = ~board.Board.Occupied;
 
@@ -177,7 +177,7 @@ namespace Charlie.BoardRepresentation
                     bool IsPawnToRight = i != Chessboard.Files.Length - 1 &&
                                         (board.Board.WhitePawn & Chessboard.Files[i + 1]) != 0;
 
-                    if (!isPawnToLeft && !IsPawnToRight) whiteScore -= 20;
+                    if (!isPawnToLeft && !IsPawnToRight) whiteScore -= 30;
                 }
 
                 if ((board.Board.BlackPawn & Chessboard.Files[i]) != 0)
@@ -186,12 +186,12 @@ namespace Charlie.BoardRepresentation
                     bool IsPawnToRight = i != Chessboard.Files.Length - 1 &&
                                         (board.Board.BlackPawn & Chessboard.Files[i + 1]) != 0;
 
-                    if (!isPawnToLeft && !IsPawnToRight) blackScore -= 20;
+                    if (!isPawnToLeft && !IsPawnToRight) blackScore -= 30;
                 }
 
                 // Check for doubled pawns
-                if (BitOperations.PopCount(board.Board.WhitePawn & Chessboard.Files[i]) > 1) whiteScore -= 20;
-                if (BitOperations.PopCount(board.Board.BlackPawn & Chessboard.Files[i]) > 1) blackScore -= 20;
+                if (BitOperations.PopCount(board.Board.WhitePawn & Chessboard.Files[i]) > 1) whiteScore -= 30;
+                if (BitOperations.PopCount(board.Board.BlackPawn & Chessboard.Files[i]) > 1) blackScore -= 30;
             }
 
             return (whiteScore - blackScore) * (board.ToMove == PieceColour.White ? 1 : -1);
