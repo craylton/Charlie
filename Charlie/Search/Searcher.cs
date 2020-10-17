@@ -170,7 +170,7 @@ namespace Charlie.Search
                 BoardState newBoard = boardState.MakeMove(move);
 
                 // Quiet move reduction
-                if (!isRoot && !isPvMove && childDepth == 2 && !move.IsCaptureOrPromotion(boardState))
+                if (!isRoot && !isPvMove && childDepth == 1 && !move.IsCaptureOrPromotion(boardState))
                     childDepth--;
 
                 if (newBoard.IsThreeMoveRepetition())
