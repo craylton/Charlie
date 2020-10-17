@@ -4,7 +4,7 @@ namespace Charlie.BoardRepresentation
 {
     public class Evaluator
     {
-        private const int pawn = 100, knight = 320, bishop = 330, rook = 580, queen = 900;
+        private const int pawn = 100, knight = 320, bishop = 330, rook = 550, queen = 900;
 
         private readonly int[] pawnPsqt = new[]
         {
