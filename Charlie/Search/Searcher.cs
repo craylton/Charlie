@@ -24,6 +24,8 @@ namespace Charlie.Search
         private readonly HashTable HashTable = new HashTable();
 
         public event EventHandler<MoveInfo> IterationCompleted;
+        public event EventHandler<MoveInfo> IterationFailedHigh;
+        public event EventHandler<MoveInfo> IterationFailedLow;
         public event EventHandler<SearchResults> SearchComplete;
         public event EventHandler<PerftResults> PerftComplete;
 
@@ -59,8 +61,30 @@ namespace Charlie.Search
                 if (cancel) break;
 
                 // If fail high/low, reset aspiration windows and try again
-                if (eval <= alpha || eval >= beta)
+                if (eval <= alpha)
                 {
+                    // Extract the pv
+                    prevPv = pv.ToArray();
+
+                    // Report the pv
+                    var failedSearchInfo = new MoveInfo(depth, prevPv, eval, sw.ElapsedMilliseconds, nodesSearched);
+                    IterationFailedLow?.Invoke(this, failedSearchInfo);
+
+                    alpha = Score.NegativeInfinity;
+                    beta = Score.Infinity;
+                    // Don't try again if we found mate because we won't find anything better
+                    if (!isMate) continue;
+                }
+
+                if (eval >= beta)
+                {
+                    // Extract the pv
+                    prevPv = pv.ToArray();
+
+                    // Report the pv
+                    var failedSearchInfo = new MoveInfo(depth, prevPv, eval, sw.ElapsedMilliseconds, nodesSearched);
+                    IterationFailedHigh?.Invoke(this, failedSearchInfo);
+
                     alpha = Score.NegativeInfinity;
                     beta = Score.Infinity;
                     // Don't try again if we found mate because we won't find anything better

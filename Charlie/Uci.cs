@@ -14,10 +14,13 @@ namespace Charlie
     {
         private readonly Searcher searcher = new Searcher();
         private readonly Bench bench = new Bench();
+        private Move lastBestMove;
 
         public void Initialise()
         {
             searcher.IterationCompleted += Searcher_IterationCompleted;
+            searcher.IterationFailedHigh += Searcher_IterationFailedHigh;
+            searcher.IterationFailedLow += Searcher_IterationFailedLow;
             searcher.SearchComplete += Searcher_SearchComplete;
             searcher.PerftComplete += Searcher_PerftComplete;
             bench.BenchComplete += Bench_BenchComplete;
@@ -183,8 +186,35 @@ namespace Charlie
             sb.Append(" depth " + moveInfo.Depth);
             sb.Append(" time " + moveInfo.Time);
             sb.Append(" nodes " + moveInfo.Nodes);
-            sb.Append(" pv " + string.Join(' ', moveInfo.Moves.Select(mi => mi.ToString())));
             sb.Append(" score " + moveInfo.Evaluation.ToString());
+            sb.Append(" pv " + string.Join(' ', moveInfo.Moves.Select(mi => mi.ToString())));
+
+            Console.WriteLine(sb.ToString());
+            lastBestMove = moveInfo.Moves.First();
+        }
+
+        private void Searcher_IterationFailedLow(object sender, MoveInfo moveInfo)
+        {
+            var sb = new StringBuilder("info");
+            sb.Append(" depth " + moveInfo.Depth);
+            sb.Append(" time " + moveInfo.Time);
+            sb.Append(" nodes " + moveInfo.Nodes);
+            sb.Append(" score " + moveInfo.Evaluation.ToString());
+            sb.Append(" lowerbound");
+            sb.Append(" pv " + lastBestMove);
+
+            Console.WriteLine(sb.ToString());
+        }
+
+        private void Searcher_IterationFailedHigh(object sender, MoveInfo moveInfo)
+        {
+            var sb = new StringBuilder("info");
+            sb.Append(" depth " + moveInfo.Depth);
+            sb.Append(" time " + moveInfo.Time);
+            sb.Append(" nodes " + moveInfo.Nodes);
+            sb.Append(" score " + moveInfo.Evaluation.ToString());
+            sb.Append(" upperbound");
+            sb.Append(" pv " + lastBestMove);
 
             Console.WriteLine(sb.ToString());
         }
