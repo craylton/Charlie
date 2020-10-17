@@ -119,9 +119,6 @@ namespace Charlie.BoardRepresentation
 
             ulong unoccupiedBb = ~board.Board.Occupied;
 
-            if (board.IsInPseudoCheck(PieceColour.White)) whiteScore += 25;
-            if (board.IsInPseudoCheck(PieceColour.Black)) blackScore += 25;
-
             for (int i = 0; i < 64; i++)
             {
                 ulong thisSquare = 1ul << i;

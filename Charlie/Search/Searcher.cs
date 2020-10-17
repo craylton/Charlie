@@ -178,7 +178,7 @@ namespace Charlie.Search
                     nodesSearched++;
                     eval = Score.Draw;
                 }
-                // Early quiescence - ~50 elo
+                // Early quiescence
                 else if (childDepth == 1 && move.IsCaptureOrPromotion(boardState))
                 {
                     nodesSearched++;
