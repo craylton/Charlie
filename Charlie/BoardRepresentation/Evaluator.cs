@@ -259,7 +259,7 @@ namespace Charlie.BoardRepresentation
         {
             Score psqt = Score.Draw;
 
-            if ((board.Board.WhitePawn & thisSquare) != 0) psqt += pawnPsqt[cellIndex];
+            if ((board.Board.WhitePawn & thisSquare) != 0) psqt += pawnPsqt[cellIndex] * (isEndgame ? 2 : 1);
             if ((board.Board.WhiteKnight & thisSquare) != 0) psqt += knightPsqt[cellIndex];
             if ((board.Board.WhiteBishop & thisSquare) != 0) psqt += bishopPsqt[cellIndex];
             if ((board.Board.WhiteRook & thisSquare) != 0) psqt += rookPsqt[cellIndex];
@@ -279,7 +279,7 @@ namespace Charlie.BoardRepresentation
         {
             Score psqt = Score.Draw;
 
-            if ((board.Board.BlackPawn & thisSquare) != 0) psqt += pawnPsqt[63 - cellIndex];
+            if ((board.Board.BlackPawn & thisSquare) != 0) psqt += pawnPsqt[63 - cellIndex] * (isEndgame ? 2 : 1);
             if ((board.Board.BlackKnight & thisSquare) != 0) psqt += knightPsqt[63 - cellIndex];
             if ((board.Board.BlackBishop & thisSquare) != 0) psqt += bishopPsqt[63 - cellIndex];
             if ((board.Board.BlackRook & thisSquare) != 0) psqt += rookPsqt[63 - cellIndex];
