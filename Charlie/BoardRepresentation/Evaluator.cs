@@ -130,7 +130,7 @@ namespace Charlie.BoardRepresentation
             }
 
             //lazy eval
-            if (whiteScore > blackScore + 300 || whiteScore < blackScore - 300)
+            if (whiteScore > blackScore + 250 || whiteScore < blackScore - 250)
                 return (whiteScore - blackScore) * (board.ToMove == PieceColour.White ? 1 : -1);
 
             for (int i = 0; i < 64; i++)
@@ -144,8 +144,8 @@ namespace Charlie.BoardRepresentation
             ulong whiteTerritory = whiteAttacks & ~blackAttacks;
             ulong blackTerritory = blackAttacks & ~whiteAttacks;
 
-            //whiteScore -= CalculateKingDanger(board.BitBoard.WhiteKing, blackAttacks) * 15;
-            //blackScore -= CalculateKingDanger(board.BitBoard.BlackKing, whiteAttacks) * 15;
+            //whiteScore -= CalculateKingDanger(board.Board.WhiteKing, blackAttacks) * 5;
+            //blackScore -= CalculateKingDanger(board.Board.BlackKing, whiteAttacks) * 5;
 
             whiteScore += BitOperations.PopCount(whiteAttacks) * 5 + BitOperations.PopCount(whiteTerritory) * 5;
             blackScore += BitOperations.PopCount(blackAttacks) * 5 + BitOperations.PopCount(blackTerritory) * 5;
