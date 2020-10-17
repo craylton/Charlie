@@ -100,8 +100,8 @@ namespace Charlie.Search
                 IterationCompleted?.Invoke(this, moveInfo);
 
                 // Set new aspiration windows
-                alpha = eval - 30;
-                beta = eval + 30;
+                alpha = eval - 100;
+                beta = eval + 100;
                 depth++;
 
                 // Check if we need to abort search
@@ -142,7 +142,7 @@ namespace Charlie.Search
                 return await Quiesce(boardState, alpha, beta);
             }
 
-            // Check extension - ~200 elo
+            // Check extension - ~50 elo
             if (boardState.IsInCheck(boardState.ToMove) && !isRoot)
                 depth++;
 
@@ -164,9 +164,14 @@ namespace Charlie.Search
                 bool isPvMove = pvMoves.Length > 0 && pvMoves[0].Equals(move);
                 Move[] childPvMoves = isPvMove ? pvMoves[1..] : new Move[0];
                 var pvBuffer = new List<Move>();
+                var childDepth = depth - 1;
 
                 Score eval = Score.Draw;
                 BoardState newBoard = boardState.MakeMove(move);
+
+                // Quiet move reduction
+                if (!isRoot && !isPvMove && childDepth == 2 && !move.IsCaptureOrPromotion(boardState))
+                    childDepth--;
 
                 if (newBoard.IsThreeMoveRepetition())
                 {
@@ -174,21 +179,21 @@ namespace Charlie.Search
                     eval = Score.Draw;
                 }
                 // Early quiescence - ~50 elo
-                else if (depth == 2 && move.IsCaptureOrPromotion(boardState))
+                else if (childDepth == 1 && move.IsCaptureOrPromotion(boardState))
                 {
                     nodesSearched++;
                     eval = -await Quiesce(newBoard, -beta, -alpha);
                 }
                 else if (foundPv)
                 {
-                    eval = -await AlphaBeta(newBoard, -alpha - 1, -alpha, depth - 1, height + 1, pvBuffer, childPvMoves);
+                    eval = -await AlphaBeta(newBoard, -alpha - 1, -alpha, childDepth, height + 1, pvBuffer, childPvMoves);
 
                     if (eval > alpha && eval < beta)
-                        eval = -await AlphaBeta(newBoard, -beta, -alpha, depth - 1, height + 1, pvBuffer, childPvMoves);
+                        eval = -await AlphaBeta(newBoard, -beta, -alpha, childDepth, height + 1, pvBuffer, childPvMoves);
                 }
                 else
                 {
-                    eval = -await AlphaBeta(newBoard, -beta, -alpha, depth - 1, height + 1, pvBuffer, childPvMoves);
+                    eval = -await AlphaBeta(newBoard, -beta, -alpha, childDepth, height + 1, pvBuffer, childPvMoves);
                 }
 
                 if (cancel) break;
