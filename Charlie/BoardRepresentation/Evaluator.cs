@@ -4,6 +4,7 @@ namespace Charlie.BoardRepresentation
 {
     public class Evaluator
     {
+        private static ulong[] _neighbours;
         private const int pawn = 100, knight = 320, bishop = 330, rook = 550, queen = 900;
 
         private readonly int[] pawnPsqt = new[]
@@ -144,11 +145,8 @@ namespace Charlie.BoardRepresentation
             ulong whiteTerritory = whiteAttacks & ~blackAttacks;
             ulong blackTerritory = blackAttacks & ~whiteAttacks;
 
-            //whiteScore -= CalculateKingDanger(board.Board.WhiteKing, blackAttacks) * 5;
-            //blackScore -= CalculateKingDanger(board.Board.BlackKing, whiteAttacks) * 5;
-
-            whiteScore += BitOperations.PopCount(whiteAttacks) * 5 + BitOperations.PopCount(whiteTerritory) * 5;
-            blackScore += BitOperations.PopCount(blackAttacks) * 5 + BitOperations.PopCount(blackTerritory) * 5;
+            //whiteScore -= CalculateKingDanger(board.Board.WhiteKing, blackAttacks) * 11;
+            //blackScore -= CalculateKingDanger(board.Board.BlackKing, whiteAttacks) * 11;
 
             // Hanging pieces are worth half value
             if (board.ToMove == PieceColour.Black)
@@ -203,7 +201,20 @@ namespace Charlie.BoardRepresentation
             return BitOperations.PopCount(kingRing & attacks);
         }
 
-        private static ulong GetNeighbours(ulong centre)
+        private static ulong GetNeighbours(ulong cell)
+        {
+            if (_neighbours is null)
+            {
+                _neighbours = new ulong[64];
+
+                for (int i = 0; i < 64; i++)
+                    _neighbours[i] = CalculateNeighbours(1ul << i);
+            }
+
+            return _neighbours[BitOperations.TrailingZeroCount(cell)];
+        }
+
+        private static ulong CalculateNeighbours(ulong centre)
         {
             ulong kingRing = centre;
             bool isOnAFile = (centre & Chessboard.AFile) != 0;
