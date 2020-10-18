@@ -137,7 +137,7 @@ namespace Charlie
                     ourIncrement = boardState.ToMove == PieceColour.White ? whiteIncrement : blackIncrement;
                 }
 
-                searchTime = new SearchTime(timeAvailable / 40, timeAvailable / 5, ourIncrement);
+                searchTime = new SearchTime(timeAvailable, ourIncrement);
             }
 
             var searchParameters = new SearchParameters(searchType, searchTime, targetDepth);
