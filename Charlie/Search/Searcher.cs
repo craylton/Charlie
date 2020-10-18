@@ -105,7 +105,7 @@ namespace Charlie.Search
                 depth++;
 
                 // Check if we need to abort search
-                if (!searchParameters.CanContinueSearching(depth, sw.ElapsedMilliseconds, isMate)) break;
+                if (!searchParameters.CanContinueSearching(depth, sw.ElapsedMilliseconds, eval, isMate)) break;
             }
 
             // Stop the search and report the results
