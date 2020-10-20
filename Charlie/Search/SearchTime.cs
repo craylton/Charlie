@@ -1,4 +1,6 @@
-﻿namespace Charlie.Search
+﻿using System;
+
+namespace Charlie.Search
 {
     public readonly struct SearchTime
     {
@@ -12,10 +14,8 @@
 
         public bool CanContinueSearching(long elapsedMs, Score eval)
         {
-            if (-50 < eval)
-                return elapsedMs <= IdealTime + Increment / 5;
-            else
-                return elapsedMs <= AvailableTime / 80 + Increment / 4;
+            var denominator = 120 + Math.Clamp((int)eval, -100, 100);
+            return elapsedMs <= AvailableTime / denominator + Increment / 4;
         }
     }
 }

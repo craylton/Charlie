@@ -13,6 +13,8 @@ namespace Charlie
 
         public Score(int score) => this.score = score;
 
+        public static explicit operator int(Score s) => s.score;
+
         public static Score operator +(Score score1, Score score2) => new Score(score1.score + score2.score);
         public static Score operator -(Score score1, Score score2) => new Score(score1.score - score2.score);
         public static Score operator *(Score score1, Score score2) => new Score(score1.score * score2.score);
