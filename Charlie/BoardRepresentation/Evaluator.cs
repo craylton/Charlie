@@ -148,6 +148,9 @@ namespace Charlie.BoardRepresentation
             //whiteScore -= CalculateKingDanger(board.Board.WhiteKing, blackAttacks) * 11;
             //blackScore -= CalculateKingDanger(board.Board.BlackKing, whiteAttacks) * 11;
 
+            whiteScore += BitOperations.PopCount(whiteAttacks) * 5 + BitOperations.PopCount(whiteTerritory) * 5;
+            blackScore += BitOperations.PopCount(blackAttacks) * 5 + BitOperations.PopCount(blackTerritory) * 5;
+
             // Hanging pieces are worth half value
             if (board.ToMove == PieceColour.Black)
             {
