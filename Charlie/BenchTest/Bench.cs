@@ -54,6 +54,9 @@ namespace Charlie.BenchTest
 
             // 7-man positions
             "8/R7/2q5/8/6k1/8/1P5p/K6R w - - 0 124", // Draw
+
+            // Not stolen
+            "r4bk1/r4pp1/R4nnp/2pPp3/2Q1P1bP/2B2N2/p1PN1PP1/6K1 w - - 2 35",
         };
 
         private static readonly string KiwiPete = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1";
