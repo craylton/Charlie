@@ -32,48 +32,48 @@ namespace Charlie.Moves
         {
             if (board.ToMove == PieceColour.White)
             {
-                foreach (Move move in GeneratePawnMoves(board.Board.WhitePawn, board))
+                foreach (Move move in GenerateKnightCaptures(board.Board.WhiteKnight, board.Board.BlackPieces))
                     yield return move;
 
-                foreach (Move move in GenerateKnightCaptures(board.Board.WhiteKnight, board.Board.BlackPieces))
+                foreach (Move move in GeneratePawnMoves(board.Board.WhitePawn, board))
                     yield return move;
 
                 foreach (Move move in GenerateBishopMoves(board.Board.WhiteBishop, board.Board.WhitePieces, board))
                     yield return move;
 
-                foreach (Move move in GenerateQueenMoves(board.Board.WhiteQueen, board.Board.WhitePieces, board))
-                    yield return move;
-
-                foreach (Move move in GenerateKingMoves(board.Board.WhiteKing, board.Board.WhitePieces, board))
-                    yield return move;
-
                 foreach (Move move in GenerateRookMoves(board.Board.WhiteRook, board.Board.WhitePieces, board))
+                    yield return move;
+
+                foreach (Move move in GenerateQueenMoves(board.Board.WhiteQueen, board.Board.WhitePieces, board))
                     yield return move;
 
                 foreach (Move move in GenerateKnightNonCaptures(board.Board.WhiteKnight, board.Board.Occupied))
                     yield return move;
+
+                foreach (Move move in GenerateKingMoves(board.Board.WhiteKing, board.Board.WhitePieces, board))
+                    yield return move;
             }
             else
             {
-                foreach (Move move in GeneratePawnMoves(board.Board.BlackPawn, board))
+                foreach (Move move in GenerateKnightCaptures(board.Board.BlackKnight, board.Board.WhitePieces))
                     yield return move;
 
-                foreach (Move move in GenerateKnightCaptures(board.Board.BlackKnight, board.Board.WhitePieces))
+                foreach (Move move in GeneratePawnMoves(board.Board.BlackPawn, board))
                     yield return move;
 
                 foreach (Move move in GenerateBishopMoves(board.Board.BlackBishop, board.Board.BlackPieces, board))
                     yield return move;
 
-                foreach (Move move in GenerateQueenMoves(board.Board.BlackQueen, board.Board.BlackPieces, board))
-                    yield return move;
-
-                foreach (Move move in GenerateKingMoves(board.Board.BlackKing, board.Board.BlackPieces, board))
-                    yield return move;
-
                 foreach (Move move in GenerateRookMoves(board.Board.BlackRook, board.Board.BlackPieces, board))
                     yield return move;
 
+                foreach (Move move in GenerateQueenMoves(board.Board.BlackQueen, board.Board.BlackPieces, board))
+                    yield return move;
+
                 foreach (Move move in GenerateKnightNonCaptures(board.Board.BlackKnight, board.Board.Occupied))
+                    yield return move;
+
+                foreach (Move move in GenerateKingMoves(board.Board.BlackKing, board.Board.BlackPieces, board))
                     yield return move;
             }
         }
