@@ -8,21 +8,17 @@ namespace Charlie.Moves
     public class MoveGenerator
     {
         public IEnumerable<Move> GenerateLegalMoves(BoardState board) =>
-            TrimIllegalMoves(GeneratePseudoLegalMoves(board), board);
+            TrimIllegalMoves(GeneratePseudoLegalMoves(board), board).Distinct();
 
         public IEnumerable<Move> GenerateQuiescenceMoves(BoardState board) =>
             TrimIllegalMoves(GeneratePseudoLegalQuiescenceMoves(board), board);
 
         public IEnumerable<Move> GenerateLegalMoves(BoardState board, IEnumerable<Move> bestMoves)
         {
-            foreach (Move move in bestMoves)
-                yield return move;
-
             var pseudoLegalMoves = GeneratePseudoLegalMoves(board);
             var legalMoves = TrimIllegalMoves(pseudoLegalMoves, board);
 
-            foreach (Move move in legalMoves.Where(move => !bestMoves.Contains(move)))
-                yield return move;
+            return bestMoves.Concat(legalMoves).Distinct();
         }
 
         public IEnumerable<Move> TrimIllegalMoves(IEnumerable<Move> moves, BoardState board) =>
@@ -30,11 +26,11 @@ namespace Charlie.Moves
 
         public IEnumerable<Move> GeneratePseudoLegalMoves(BoardState board)
         {
+            foreach (Move move in GeneratePseudoLegalQuiescenceMoves(board))
+                yield return move;
+
             if (board.ToMove == PieceColour.White)
             {
-                foreach (Move move in GenerateKnightCaptures(board.Board.WhiteKnight, board.Board.BlackPieces))
-                    yield return move;
-
                 foreach (Move move in GeneratePawnMoves(board.Board.WhitePawn, board))
                     yield return move;
 
@@ -55,9 +51,6 @@ namespace Charlie.Moves
             }
             else
             {
-                foreach (Move move in GenerateKnightCaptures(board.Board.BlackKnight, board.Board.WhitePieces))
-                    yield return move;
-
                 foreach (Move move in GeneratePawnMoves(board.Board.BlackPawn, board))
                     yield return move;
 

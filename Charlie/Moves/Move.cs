@@ -6,7 +6,7 @@ using System.Numerics;
 
 namespace Charlie.Moves
 {
-    public readonly struct Move
+    public readonly struct Move : IEquatable<Move>
     {
         public ulong FromCell { get; }
 
@@ -81,7 +81,7 @@ namespace Charlie.Moves
         public bool IsCaptureOrPromotion(BoardState board) =>
             IsCapture(board) || PromotionType != PromotionType.None;
 
-        public bool IsValidMove() => !Equals(default(Move));
+        public bool IsValidMove() => !Equals(default);
 
         public bool LeavesPlayerInCheck(BoardState board)
         {
@@ -95,14 +95,16 @@ namespace Charlie.Moves
             return false;
         }
 
+        public bool Equals(Move other) =>
+            FromCell == other.FromCell &&
+            ToCell == other.ToCell &&
+            IsEnPassant == other.IsEnPassant &&
+            IsCastle == other.IsCastle &&
+            IsDoublePush == other.IsDoublePush &&
+            PromotionType == other.PromotionType;
+
         public override bool Equals(object obj) =>
-            obj is Move move &&
-            FromCell == move.FromCell &&
-            ToCell == move.ToCell &&
-            IsEnPassant == move.IsEnPassant &&
-            IsCastle == move.IsCastle &&
-            IsDoublePush == move.IsDoublePush &&
-            PromotionType == move.PromotionType;
+            obj is Move move && Equals(move);
 
         public override int GetHashCode() =>
             HashCode.Combine(FromCell, ToCell, IsEnPassant, IsCastle, IsDoublePush, PromotionType);
