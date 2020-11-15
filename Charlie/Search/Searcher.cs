@@ -50,6 +50,7 @@ namespace Charlie.Search
             Score alpha = Score.NegativeInfinity;
             Score beta = Score.Infinity;
             int depth = 1;
+            int failedSearches = 0;
 
             while (true)
             {
@@ -61,36 +62,30 @@ namespace Charlie.Search
                 if (cancel) break;
 
                 // If fail high/low, reset aspiration windows and try again
-                if (eval <= alpha)
+                if (eval <= alpha || eval >= beta)
                 {
-                    HandleFailedSearch();
+                    failedSearches++;
 
-                    // Don't try again if we found mate because we won't find anything better
-                    if (!isMate) continue;
-                }
-
-                if (eval >= beta)
-                {
-                    HandleFailedSearch();
-
-                    // Don't try again if we found mate because we won't find anything better
-                    if (!isMate) continue;
-                }
-
-                void HandleFailedSearch()
-                {
                     // Extract the pv
                     prevPv = pv.ToArray();
 
                     // Report the pv
                     var failedSearchInfo = new MoveInfo(depth, prevPv, eval, sw.ElapsedMilliseconds, nodesSearched);
                     if (eval <= alpha)
+                    {
                         IterationFailedLow?.Invoke(this, failedSearchInfo);
-                    else
+                        alpha = failedSearches > 1 ? Score.NegativeInfinity : eval - 20;
+                        beta = failedSearches > 1 ? Score.Infinity : eval;
+                    }
+                    else if (eval >= beta)
+                    {
                         IterationFailedHigh?.Invoke(this, failedSearchInfo);
+                        alpha = failedSearches > 1 ? Score.NegativeInfinity : eval;
+                        beta = failedSearches > 1 ? Score.Infinity : eval + 20;
+                    }
 
-                    alpha = Score.NegativeInfinity;
-                    beta = Score.Infinity;
+                    // Don't try again if we found mate because we won't find anything better
+                    if (!isMate) continue;
                 }
 
                 // Extract the pv
@@ -102,9 +97,10 @@ namespace Charlie.Search
                 IterationCompleted?.Invoke(this, moveInfo);
 
                 // Set new aspiration windows
-                alpha = eval - 100;
-                beta = eval + 100;
+                alpha = eval - 40;
+                beta = eval + 40;
                 depth++;
+                failedSearches = 0;
 
                 // Check if we need to abort search
                 if (!searchParameters.CanContinueSearching(depth, sw.ElapsedMilliseconds, eval, isMate)) break;
