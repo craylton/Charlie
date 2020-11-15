@@ -157,7 +157,7 @@ namespace Charlie
 
         private async Task Bench(string[] @params)
         {
-            int targetDepth = 3;
+            int targetDepth = 4;
 
             if (@params.Length >= 2 && @params[0] == "depth")
                 targetDepth = int.Parse(@params[1]);

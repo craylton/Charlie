@@ -63,32 +63,34 @@ namespace Charlie.Search
                 // If fail high/low, reset aspiration windows and try again
                 if (eval <= alpha)
                 {
-                    // Extract the pv
-                    prevPv = pv.ToArray();
+                    HandleFailedSearch();
 
-                    // Report the pv
-                    var failedSearchInfo = new MoveInfo(depth, prevPv, eval, sw.ElapsedMilliseconds, nodesSearched);
-                    IterationFailedLow?.Invoke(this, failedSearchInfo);
-
-                    alpha = Score.NegativeInfinity;
-                    beta = Score.Infinity;
                     // Don't try again if we found mate because we won't find anything better
                     if (!isMate) continue;
                 }
 
                 if (eval >= beta)
                 {
+                    HandleFailedSearch();
+
+                    // Don't try again if we found mate because we won't find anything better
+                    if (!isMate) continue;
+                }
+
+                void HandleFailedSearch()
+                {
                     // Extract the pv
                     prevPv = pv.ToArray();
 
                     // Report the pv
                     var failedSearchInfo = new MoveInfo(depth, prevPv, eval, sw.ElapsedMilliseconds, nodesSearched);
-                    IterationFailedHigh?.Invoke(this, failedSearchInfo);
+                    if (eval <= alpha)
+                        IterationFailedLow?.Invoke(this, failedSearchInfo);
+                    else
+                        IterationFailedHigh?.Invoke(this, failedSearchInfo);
 
                     alpha = Score.NegativeInfinity;
                     beta = Score.Infinity;
-                    // Don't try again if we found mate because we won't find anything better
-                    if (!isMate) continue;
                 }
 
                 // Extract the pv
@@ -128,7 +130,7 @@ namespace Charlie.Search
             var foundPv = false;
             var isRoot = height == 0;
 
-            if (depth == 0)
+            if (depth <= 0)
             {
                 nodesSearched++;
                 return await Quiesce(boardState, alpha, beta);
