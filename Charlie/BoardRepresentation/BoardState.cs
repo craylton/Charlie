@@ -49,23 +49,6 @@ namespace Charlie.BoardRepresentation
             this.previousStates = new List<long>(previousStates) { HashCode };
         }
 
-        private BoardState(
-            List<long> previousStates,
-            Board bitBoard,
-            PieceColour toMove,
-            byte castleRules,
-            ulong whiteEnPassant,
-            ulong blackEnPassant,
-            Move move) : this(
-                previousStates,
-                new Board(bitBoard, move),
-                toMove,
-                castleRules,
-                whiteEnPassant,
-                blackEnPassant)
-        {
-        }
-
         public BoardState(string[] fenElements)
         {
             string pieces = fenElements[0];
@@ -145,12 +128,11 @@ namespace Charlie.BoardRepresentation
 
             return new BoardState(
                 previousStates,
-                Board,
+                new Board(Board, move),
                 nextToMove,
                 castleRules,
                 whiteEP,
-                blackEP,
-                move);
+                blackEP);
         }
 
         internal bool IsThreeMoveRepetition()

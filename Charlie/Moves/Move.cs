@@ -108,5 +108,9 @@ namespace Charlie.Moves
 
         public override int GetHashCode() =>
             HashCode.Combine(FromCell, ToCell, IsEnPassant, IsCastle, IsDoublePush, PromotionType);
+
+        public static bool operator ==(Move left, Move right) => left.Equals(right);
+
+        public static bool operator !=(Move left, Move right) => !(left == right);
     }
 }

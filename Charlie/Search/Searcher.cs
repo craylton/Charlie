@@ -45,7 +45,7 @@ namespace Charlie.Search
 
             Move bestMove = default;
             List<Move> pv;
-            Move[] prevPv = new Move[0];
+            Move[] prevPv = Array.Empty<Move>();
             Score eval;
             Score alpha = Score.NegativeInfinity;
             Score beta = Score.Infinity;
@@ -152,7 +152,7 @@ namespace Charlie.Search
             foreach (Move move in moves)
             {
                 bool isPvMove = pvMoves.Length > 0 && pvMoves[0].Equals(move);
-                Move[] childPvMoves = isPvMove ? pvMoves[1..] : new Move[0];
+                Move[] childPvMoves = isPvMove ? pvMoves[1..] : Array.Empty<Move>();
                 var pvBuffer = new List<Move>();
                 var childDepth = depth - 1;
 
