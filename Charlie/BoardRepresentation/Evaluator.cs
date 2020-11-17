@@ -154,19 +154,19 @@ namespace Charlie.BoardRepresentation
             // Hanging pieces are worth half value
             if (board.ToMove == PieceColour.Black)
             {
-                whiteScore -= BitOperations.PopCount(blackTerritory & board.Board.WhitePawn) * pawn / 2;
-                whiteScore -= BitOperations.PopCount(blackTerritory & board.Board.WhiteKnight) * knight / 2;
-                whiteScore -= BitOperations.PopCount(blackTerritory & board.Board.WhiteBishop) * bishop / 2;
-                whiteScore -= BitOperations.PopCount(blackTerritory & board.Board.WhiteRook) * rook / 2;
-                whiteScore -= BitOperations.PopCount(blackTerritory & board.Board.WhiteQueen) * queen / 2;
+                whiteScore -= BitOperations.PopCount(blackTerritory & board.Board.WhitePawn) * pawn / 3;
+                whiteScore -= BitOperations.PopCount(blackTerritory & board.Board.WhiteKnight) * knight / 3;
+                whiteScore -= BitOperations.PopCount(blackTerritory & board.Board.WhiteBishop) * bishop / 3;
+                whiteScore -= BitOperations.PopCount(blackTerritory & board.Board.WhiteRook) * rook / 3;
+                whiteScore -= BitOperations.PopCount(blackTerritory & board.Board.WhiteQueen) * queen / 3;
             }
             else if (board.ToMove == PieceColour.White)
             {
-                blackScore -= BitOperations.PopCount(whiteTerritory & board.Board.BlackPawn) * pawn / 2;
-                blackScore -= BitOperations.PopCount(whiteTerritory & board.Board.BlackKnight) * knight / 2;
-                blackScore -= BitOperations.PopCount(whiteTerritory & board.Board.BlackBishop) * bishop / 2;
-                blackScore -= BitOperations.PopCount(whiteTerritory & board.Board.BlackRook) * rook / 2;
-                blackScore -= BitOperations.PopCount(whiteTerritory & board.Board.BlackQueen) * queen / 2;
+                blackScore -= BitOperations.PopCount(whiteTerritory & board.Board.BlackPawn) * pawn / 3;
+                blackScore -= BitOperations.PopCount(whiteTerritory & board.Board.BlackKnight) * knight / 3;
+                blackScore -= BitOperations.PopCount(whiteTerritory & board.Board.BlackBishop) * bishop / 3;
+                blackScore -= BitOperations.PopCount(whiteTerritory & board.Board.BlackRook) * rook / 3;
+                blackScore -= BitOperations.PopCount(whiteTerritory & board.Board.BlackQueen) * queen / 3;
             }
 
             for (int i = 0; i < Chessboard.Files.Length; i++)
