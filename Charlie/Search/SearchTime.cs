@@ -2,14 +2,9 @@
 
 namespace Charlie.Search
 {
-    public readonly struct SearchTime
+    public record SearchTime(int AvailableTime, int Increment)
     {
-        public int AvailableTime { get; }
-        public int Increment { get; }
         public int MaxTime => AvailableTime / 5;
-
-        public SearchTime(int availableTime, int increment) =>
-            (AvailableTime, Increment) = (availableTime, increment);
 
         public bool CanContinueSearching(long elapsedMs, Score eval)
         {
