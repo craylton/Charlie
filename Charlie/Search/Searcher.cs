@@ -164,7 +164,7 @@ namespace Charlie.Search
                     childDepth--;
 
                 // Promotion extension
-                if (!isRoot && childDepth == 1 && move.PromotionType != PromotionType.None)
+                if (!isRoot && move.PromotionType != PromotionType.None)
                     childDepth++;
 
                 if (newBoard.IsThreeMoveRepetition())
