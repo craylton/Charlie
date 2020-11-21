@@ -97,8 +97,8 @@ namespace Charlie.Search
                 IterationCompleted?.Invoke(this, moveInfo);
 
                 // Set new aspiration windows
-                alpha = eval - 40;
-                beta = eval + 40;
+                alpha = eval - 20;
+                beta = eval + 20;
                 depth++;
                 failedSearches = 0;
 
