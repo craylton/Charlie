@@ -163,6 +163,10 @@ namespace Charlie.Search
                 if (!isRoot && !isPvMove && childDepth == 1 && !move.IsCaptureOrPromotion(boardState))
                     childDepth--;
 
+                // Promotion extension
+                if (!isRoot && childDepth == 1 && move.PromotionType != PromotionType.None)
+                    childDepth++;
+
                 if (newBoard.IsThreeMoveRepetition())
                 {
                     nodesSearched++;
