@@ -67,7 +67,7 @@ namespace Charlie.Search
                     failedSearches++;
 
                     // Extract the pv
-                    prevPv = pv.ToArray();
+                    prevPv = new[] { bestMove };
 
                     // Report the pv
                     var failedSearchInfo = new MoveInfo(depth, prevPv, eval, sw.ElapsedMilliseconds, nodesSearched);

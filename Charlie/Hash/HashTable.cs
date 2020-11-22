@@ -17,9 +17,8 @@ namespace Charlie.Hash
 
         public void RecordHash(long hashKey, int depth, Move move)
         {
-            if (!hashTable.ContainsKey(hashKey) || hashTable[hashKey].Depth < depth)
+            if ((!hashTable.ContainsKey(hashKey) || hashTable[hashKey].Depth < depth) && move.IsValidMove())
                 hashTable[hashKey] = new HashElement(depth, move);
         }
-
     }
 }
