@@ -167,6 +167,10 @@ namespace Charlie.Search
                 if (!isRoot && move.PromotionType != PromotionType.None)
                     childDepth++;
 
+                // PV extension
+                if (!isRoot && isPvMove && childDepth == 1)
+                    childDepth++;
+
                 if (newBoard.IsThreeMoveRepetition())
                 {
                     nodesSearched++;
