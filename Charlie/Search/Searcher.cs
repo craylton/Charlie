@@ -148,6 +148,7 @@ namespace Charlie.Search
             }
 
             Move bestMove = default;
+            bool isFirstMove = true;
 
             foreach (Move move in moves)
             {
@@ -159,18 +160,25 @@ namespace Charlie.Search
                 Score eval = Score.Draw;
                 BoardState newBoard = boardState.MakeMove(move);
 
-                // Quiet move reduction
-                if (!isRoot && !isPvMove && childDepth == 1 && !move.IsCaptureOrPromotion(boardState))
-                    childDepth--;
+                // Reductions and extensions
+                if (!isRoot)
+                {
+                    // Quiet move reduction
+                    if (!isPvMove && childDepth == 1 && !move.IsCaptureOrPromotion(boardState))
+                        childDepth--;
 
-                // Promotion extension
-                if (!isRoot && move.PromotionType != PromotionType.None)
-                    childDepth++;
+                    // Promotion extension
+                    if (move.PromotionType != PromotionType.None)
+                        childDepth++;
 
-                // PV extension
-                if (!isRoot && isPvMove && childDepth == 1)
-                    childDepth++;
+                    // PV extension
+                    if (isPvMove && childDepth == 1)
+                        childDepth++;
 
+                    // Latter move reduction (we assume that the first move generated will be the best)
+                    if (!isFirstMove && height > childDepth)
+                        childDepth--;
+                }
                 if (newBoard.IsThreeMoveRepetition())
                 {
                     nodesSearched++;
@@ -212,6 +220,8 @@ namespace Charlie.Search
                     pv.Add(move);
                     pv.AddRange(pvBuffer);
                 }
+
+                isFirstMove = false;
             }
 
             HashTable.RecordHash(boardState.HashCode, depth, bestMove);
