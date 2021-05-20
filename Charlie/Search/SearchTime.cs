@@ -4,7 +4,7 @@ namespace Charlie.Search
 {
     public record SearchTime(int AvailableTime, int Increment)
     {
-        public int MaxTime => Math.Max(AvailableTime / 5, 1);
+        public int MaxTime => Math.Max(AvailableTime / 4, 1);
 
         public bool CanContinueSearching(long elapsedMs, Score eval)
         {
@@ -14,7 +14,7 @@ namespace Charlie.Search
             if (AvailableTime < 5000)
                 denominator -= (AvailableTime - 5000) / 100;
 
-            return elapsedMs <= AvailableTime / denominator + Increment / 4;
+            return elapsedMs <= AvailableTime / denominator + Increment / 5;
         }
     }
 }
