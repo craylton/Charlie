@@ -172,11 +172,11 @@ namespace Charlie.Search
                         childDepth++;
 
                     // PV extension
-                    if (isPvMove && childDepth == 1)
+                    if (isPvMove && childDepth < 2)
                         childDepth++;
 
                     // Latter move reduction (we assume that the first move generated will be the best)
-                    if (!isFirstMove && height > childDepth)
+                    if (!isFirstMove && height > childDepth && !move.IsCaptureOrPromotion(boardState))
                         childDepth--;
                 }
                 if (newBoard.IsThreeMoveRepetition())
