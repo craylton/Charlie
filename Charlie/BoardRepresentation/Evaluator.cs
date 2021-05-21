@@ -5,7 +5,7 @@ namespace Charlie.BoardRepresentation
     public class Evaluator
     {
         private static ulong[] _neighbours;
-        private const int pawn = 100, knight = 320, bishop = 330, rook = 550, queen = 900;
+        private const int pawn = 100, knight = 320, bishop = 330, rook = 525, queen = 920;
 
         private readonly int[] pawnPsqt = new[]
         {
@@ -130,7 +130,7 @@ namespace Charlie.BoardRepresentation
                 blackScore += CalculateBlackPsqt(board, isOpening, isEndgame, i, thisSquare);
             }
 
-            //lazy eval
+            // Lazy eval
             if (whiteScore > blackScore + 250 || whiteScore < blackScore - 250)
                 return (whiteScore - blackScore) * (board.ToMove == PieceColour.White ? 1 : -1);
 
