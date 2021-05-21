@@ -161,24 +161,28 @@ namespace Charlie.Search
                 BoardState newBoard = boardState.MakeMove(move);
 
                 // Reductions and extensions
+                int extension = 0;
                 if (!isRoot)
                 {
                     // Quiet move reduction
                     if (!isPvMove && childDepth == 1 && !move.IsCaptureOrPromotion(boardState))
-                        childDepth--;
+                        extension--;
 
                     // Promotion extension
                     if (move.PromotionType != PromotionType.None)
-                        childDepth++;
+                        extension++;
 
                     // PV extension
-                    if (isPvMove && childDepth < 2)
-                        childDepth++;
+                    if (isPvMove && childDepth == 1)
+                        extension++;
 
                     // Latter move reduction (we assume that the first move generated will be the best)
-                    if (!isFirstMove && height > childDepth && !move.IsCaptureOrPromotion(boardState))
-                        childDepth--;
+                    if (!isFirstMove && childDepth >= 2 && !move.IsCaptureOrPromotion(boardState))
+                        extension--;
+
+                    childDepth += extension;
                 }
+
                 if (newBoard.IsThreeMoveRepetition())
                 {
                     nodesSearched++;
