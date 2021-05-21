@@ -26,7 +26,9 @@ namespace Charlie.Search
             if (Increment > 0)
                 denominator -= (int)Math.Log10(Increment) * 15;
 
-            return elapsedMs <= AvailableTime / denominator + Increment / 5;
+            denominator = Math.Max(denominator, 5);
+
+            return elapsedMs <= AvailableTime / denominator + 30;
         }
     }
 }
