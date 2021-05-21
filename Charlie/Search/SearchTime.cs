@@ -20,7 +20,11 @@ namespace Charlie.Search
 
             // Use lower proportion of time when clock is very low
             if (AvailableTime < 5000)
-                denominator -= (AvailableTime - 5000) / 100;
+                denominator += (5000 - AvailableTime) / 100;
+
+            // Use more time depending on size of increment
+            if (Increment > 0)
+                denominator -= (int)Math.Log10(Increment) * 15;
 
             return elapsedMs <= AvailableTime / denominator + Increment / 5;
         }
