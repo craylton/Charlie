@@ -4,12 +4,12 @@ namespace Charlie.Search
 {
     public record SearchTime(int AvailableTime, int Increment)
     {
-        public int MaxTime => Math.Max(AvailableTime / 3, 1);
+        public int MaxTime => Math.Max(AvailableTime / 2, 1);
 
         public bool CanContinueSearching(long elapsedMs, Score eval)
         {
             // Don't start searching another depth if it's unlikely we'll finish it
-            if (elapsedMs > MaxTime / 3)
+            if (elapsedMs > MaxTime / 4)
                 return false;
 
             var denominator = 130;
