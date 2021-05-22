@@ -185,47 +185,15 @@ namespace Charlie.Moves
         {
             for (int i = 0; i < 64; i++)
             {
-                ulong bishop = bishops & (1ul << i);
-                if (bishop == 0) continue;
+                if ((bishops & (1ul << i)) == 0) continue;
 
-                // scan up right
-                int distance = 0;
-                while (((bishop >> distance) & ~Chessboard.Rank8 & ~Chessboard.HFile) != 0)
+                for (int direction = 0; direction < 4; direction++)
                 {
-                    distance += 9;
-                    ulong newSq = bishop >> distance;
-                    if ((newSq & ~friendlyPieces) != 0) yield return new Move(bishop, newSq);
-                    if ((newSq & board.Board.Occupied) != 0) break;
-                }
-
-                // scan up left
-                distance = 0;
-                while (((bishop >> distance) & ~Chessboard.Rank8 & ~Chessboard.AFile) != 0)
-                {
-                    distance += 7;
-                    ulong newSq = bishop >> distance;
-                    if ((newSq & ~friendlyPieces) != 0) yield return new Move(bishop, newSq);
-                    if ((newSq & board.Board.Occupied) != 0) break;
-                }
-
-                // scan down right
-                distance = 0;
-                while (((bishop << distance) & ~Chessboard.Rank1 & ~Chessboard.HFile) != 0)
-                {
-                    distance += 7;
-                    ulong newSq = bishop << distance;
-                    if ((newSq & ~friendlyPieces) != 0) yield return new Move(bishop, newSq);
-                    if ((newSq & board.Board.Occupied) != 0) break;
-                }
-
-                // scan down left
-                distance = 0;
-                while (((bishop << distance) & ~Chessboard.Rank1 & ~Chessboard.AFile) != 0)
-                {
-                    distance += 9;
-                    ulong newSq = bishop << distance;
-                    if ((newSq & ~friendlyPieces) != 0) yield return new Move(bishop, newSq);
-                    if ((newSq & board.Board.Occupied) != 0) break;
+                    foreach (var cell in Magics.TargetedBishopAttacks[i, direction])
+                    {
+                        if ((cell & ~friendlyPieces) != 0) yield return new Move(1ul << i, cell);
+                        if ((cell & board.Board.Occupied) != 0) break;
+                    }
                 }
             }
         }
@@ -506,47 +474,15 @@ namespace Charlie.Moves
         {
             for (int i = 0; i < 64; i++)
             {
-                ulong bishop = bishops & (1ul << i);
-                if (bishop == 0) continue;
+                if ((bishops & (1ul << i)) == 0) continue;
 
-                // scan up right
-                int distance = 0;
-                while (((bishop >> distance) & ~Chessboard.Rank8 & ~Chessboard.HFile) != 0)
+                for (int direction = 0; direction < 4; direction++)
                 {
-                    distance += 9;
-                    ulong newSq = bishop >> distance;
-                    if ((newSq & enemyPieces) != 0) yield return new Move(bishop, newSq);
-                    if ((newSq & board.Board.Occupied) != 0) break;
-                }
-
-                // scan up left
-                distance = 0;
-                while (((bishop >> distance) & ~Chessboard.Rank8 & ~Chessboard.AFile) != 0)
-                {
-                    distance += 7;
-                    ulong newSq = bishop >> distance;
-                    if ((newSq & enemyPieces) != 0) yield return new Move(bishop, newSq);
-                    if ((newSq & board.Board.Occupied) != 0) break;
-                }
-
-                // scan down right
-                distance = 0;
-                while (((bishop << distance) & ~Chessboard.Rank1 & ~Chessboard.HFile) != 0)
-                {
-                    distance += 7;
-                    ulong newSq = bishop << distance;
-                    if ((newSq & enemyPieces) != 0) yield return new Move(bishop, newSq);
-                    if ((newSq & board.Board.Occupied) != 0) break;
-                }
-
-                // scan down left
-                distance = 0;
-                while (((bishop << distance) & ~Chessboard.Rank1 & ~Chessboard.AFile) != 0)
-                {
-                    distance += 9;
-                    ulong newSq = bishop << distance;
-                    if ((newSq & enemyPieces) != 0) yield return new Move(bishop, newSq);
-                    if ((newSq & board.Board.Occupied) != 0) break;
+                    foreach (var cell in Magics.TargetedBishopAttacks[i, direction])
+                    {
+                        if ((cell & enemyPieces) != 0) yield return new Move(1ul << i, cell);
+                        if ((cell & board.Board.Occupied) != 0) break;
+                    }
                 }
             }
         }

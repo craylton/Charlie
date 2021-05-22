@@ -170,7 +170,7 @@ namespace Charlie.BoardRepresentation
 
                 int cellIndex = BitOperations.TrailingZeroCount(Board.WhiteKing);
 
-                if ((Magics.BishopAttacks[cellIndex] & (Board.BlackBishop | Board.BlackQueen)) != 0) return true;
+                if ((Magics.AllBishopAttacks[cellIndex] & (Board.BlackBishop | Board.BlackQueen)) != 0) return true;
                 if ((Magics.AllRookAttacks[cellIndex] & (Board.BlackRook | Board.BlackQueen)) != 0) return true;
             }
             else
@@ -180,7 +180,7 @@ namespace Charlie.BoardRepresentation
 
                 int cellIndex = BitOperations.TrailingZeroCount(Board.BlackKing);
 
-                if ((Magics.BishopAttacks[cellIndex] & (Board.WhiteBishop | Board.WhiteQueen)) != 0) return true;
+                if ((Magics.AllBishopAttacks[cellIndex] & (Board.WhiteBishop | Board.WhiteQueen)) != 0) return true;
                 if ((Magics.AllRookAttacks[cellIndex] & (Board.WhiteRook | Board.WhiteQueen)) != 0) return true;
             }
 
@@ -254,48 +254,15 @@ namespace Charlie.BoardRepresentation
                 }
             }
 
-            int distance;
-
-            if ((Magics.BishopAttacks[cellIndex] & diagonalSliders) != 0)
+            if ((Magics.AllBishopAttacks[cellIndex] & diagonalSliders) != 0)
             {
-                // scan up right
-                distance = 0;
-                while (((cell >> distance) & ~Chessboard.Rank8 & ~Chessboard.HFile) != 0)
+                for (int direction = 0; direction < 4; direction++)
                 {
-                    distance += 9;
-                    ulong cellToCheck = cell >> distance;
-                    if ((cellToCheck & diagonalSliders) != 0) return true;
-                    if ((cellToCheck & occupiedBb) != 0) break;
-                }
-
-                // scan up left
-                distance = 0;
-                while (((cell >> distance) & ~Chessboard.Rank8 & ~Chessboard.AFile) != 0)
-                {
-                    distance += 7;
-                    ulong cellToCheck = cell >> distance;
-                    if ((cellToCheck & diagonalSliders) != 0) return true;
-                    if ((cellToCheck & occupiedBb) != 0) break;
-                }
-
-                // scan down right
-                distance = 0;
-                while (((cell << distance) & ~Chessboard.Rank1 & ~Chessboard.HFile) != 0)
-                {
-                    distance += 7;
-                    ulong cellToCheck = cell << distance;
-                    if ((cellToCheck & diagonalSliders) != 0) return true;
-                    if ((cellToCheck & occupiedBb) != 0) break;
-                }
-
-                // scan down left
-                distance = 0;
-                while (((cell << distance) & ~Chessboard.Rank1 & ~Chessboard.AFile) != 0)
-                {
-                    distance += 9;
-                    ulong cellToCheck = cell << distance;
-                    if ((cellToCheck & diagonalSliders) != 0) return true;
-                    if ((cellToCheck & occupiedBb) != 0) break;
+                    foreach (var c in Magics.TargetedBishopAttacks[cellIndex, direction])
+                    {
+                        if ((c & diagonalSliders) != 0) return true;
+                        if ((c & occupiedBb) != 0) break;
+                    }
                 }
             }
 
