@@ -12,23 +12,30 @@ namespace Charlie.Search
             if (elapsedMs > MaxTime / 4)
                 return false;
 
-            var denominator = 130;
+            double timeForMove = AvailableTime / 100;
 
             // Use more time if we aren't doing well
             if ((int)eval < 50)
-                denominator += Math.Max((int)eval - 50, -100) / 2;
+            {
+                double multiplier = (450 - (int)eval) / 400d;
+                timeForMove *= Math.Clamp(multiplier, 1.0, 1.5);
+            }
 
             // Use lower proportion of time when clock is very low
             if (AvailableTime < 5000)
-                denominator += (5000 - AvailableTime) / 100;
+            {
+                double multiplier = (AvailableTime + 5000) / 10000d;
+                timeForMove *= multiplier;
+            }
 
             // Use more time depending on size of increment
             if (Increment > 0)
-                denominator -= (int)Math.Log10(Increment) * 15;
+            {
+                double multiplier = (Increment + 10000) / 10000d;
+                timeForMove *= Math.Clamp(multiplier, 1.0, 1.3);
+            }
 
-            denominator = Math.Max(denominator, 5);
-
-            return elapsedMs <= AvailableTime / denominator + 30;
+            return elapsedMs <= timeForMove + Increment / 4 + 10;
         }
     }
 }
