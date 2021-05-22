@@ -1,4 +1,5 @@
-﻿using Charlie.Hash;
+﻿using Charlie.BoardRepresentation;
+using Charlie.Hash;
 using System.Threading.Tasks;
 
 namespace Charlie
@@ -8,6 +9,7 @@ namespace Charlie
         private static async Task Main(string[] args)
         {
             Zobrist.Initialise();
+            Magics.Initialise();
 
             var uci = new Uci();
             uci.Initialise();

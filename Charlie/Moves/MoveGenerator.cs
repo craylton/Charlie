@@ -134,6 +134,7 @@ namespace Charlie.Moves
                 }
             }
         }
+
         private IEnumerable<Move> GenerateKnightNonCaptures(ulong knights, ulong occupied)
         {
             for (int i = 0; i < 64; i++)
@@ -167,47 +168,15 @@ namespace Charlie.Moves
         {
             for (int i = 0; i < 64; i++)
             {
-                ulong rook = rooks & (1ul << i);
-                if (rook == 0) continue;
+                if ((rooks & (1ul << i)) == 0) continue;
 
-                // scan up
-                int distance = 0;
-                while (((rook >> distance) & ~Chessboard.Rank8) != 0)
+                for (int direction = 0; direction < 4; direction++)
                 {
-                    distance += 8;
-                    ulong newSq = rook >> distance;
-                    if ((newSq & ~friendlyPieces) != 0) yield return new Move(rook, newSq);
-                    if ((newSq & board.Board.Occupied) != 0) break;
-                }
-
-                // scan right
-                distance = 0;
-                while (((rook >> distance) & ~Chessboard.HFile) != 0)
-                {
-                    distance++;
-                    ulong newSq = rook >> distance;
-                    if ((newSq & ~friendlyPieces) != 0) yield return new Move(rook, newSq);
-                    if ((newSq & board.Board.Occupied) != 0) break;
-                }
-
-                // scan left
-                distance = 0;
-                while (((rook << distance) & ~Chessboard.AFile) != 0)
-                {
-                    distance++;
-                    ulong newSq = rook << distance;
-                    if ((newSq & ~friendlyPieces) != 0) yield return new Move(rook, newSq);
-                    if ((newSq & board.Board.Occupied) != 0) break;
-                }
-
-                // scan down
-                distance = 0;
-                while (((rook << distance) & ~Chessboard.Rank1) != 0)
-                {
-                    distance += 8;
-                    ulong newSq = rook << distance;
-                    if ((newSq & ~friendlyPieces) != 0) yield return new Move(rook, newSq);
-                    if ((newSq & board.Board.Occupied) != 0) break;
+                    foreach (var cell in Magics.TargetedRookAttacks[i, direction])
+                    {
+                        if ((cell & ~friendlyPieces) != 0) yield return new Move(1ul << i, cell);
+                        if ((cell & board.Board.Occupied) != 0) break;
+                    }
                 }
             }
         }
@@ -520,47 +489,15 @@ namespace Charlie.Moves
         {
             for (int i = 0; i < 64; i++)
             {
-                ulong rook = rooks & (1ul << i);
-                if (rook == 0) continue;
+                if ((rooks & (1ul << i)) == 0) continue;
 
-                // scan up
-                int distance = 0;
-                while (((rook >> distance) & ~Chessboard.Rank8) != 0)
+                for (int direction = 0; direction < 4; direction++)
                 {
-                    distance += 8;
-                    ulong newSq = rook >> distance;
-                    if ((newSq & enemyPieces) != 0) yield return new Move(rook, newSq);
-                    if ((newSq & board.Board.Occupied) != 0) break;
-                }
-
-                // scan right
-                distance = 0;
-                while (((rook >> distance) & ~Chessboard.HFile) != 0)
-                {
-                    distance++;
-                    ulong newSq = rook >> distance;
-                    if ((newSq & enemyPieces) != 0) yield return new Move(rook, newSq);
-                    if ((newSq & board.Board.Occupied) != 0) break;
-                }
-
-                // scan left
-                distance = 0;
-                while (((rook << distance) & ~Chessboard.AFile) != 0)
-                {
-                    distance++;
-                    ulong newSq = rook << distance;
-                    if ((newSq & enemyPieces) != 0) yield return new Move(rook, newSq);
-                    if ((newSq & board.Board.Occupied) != 0) break;
-                }
-
-                // scan down
-                distance = 0;
-                while (((rook << distance) & ~Chessboard.Rank1) != 0)
-                {
-                    distance += 8;
-                    ulong newSq = rook << distance;
-                    if ((newSq & enemyPieces) != 0) yield return new Move(rook, newSq);
-                    if ((newSq & board.Board.Occupied) != 0) break;
+                    foreach (var cell in Magics.TargetedRookAttacks[i, direction])
+                    {
+                        if ((cell & enemyPieces) != 0) yield return new Move(1ul << i, cell);
+                        if ((cell & board.Board.Occupied) != 0) break;
+                    }
                 }
             }
         }
