@@ -52,7 +52,7 @@ namespace Charlie.BoardRepresentation
             -5,  0,  0,  0,  0,  0,  0, -5,
             -5,  0,  0,  0,  0,  0,  0, -5,
             -5,  0,  0,  0,  0,  0,  0, -5,
-             0,  0,  0,  5,  5,  0,  0,  0,
+            -9,  0,  0,  5,  5,  0,  0, -9,
         };
 
         private readonly int[] queenPsqt = new[]
