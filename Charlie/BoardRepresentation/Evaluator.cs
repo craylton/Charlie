@@ -131,8 +131,9 @@ namespace Charlie.BoardRepresentation
             }
 
             // Lazy eval
-            if (whiteScore > blackScore + 250 || whiteScore < blackScore - 250)
-                return (whiteScore - blackScore) * (board.ToMove == PieceColour.White ? 1 : -1);
+            Score psqt = whiteScore - blackScore;
+            if (psqt > 250 || psqt < -250)
+                return psqt * (board.ToMove == PieceColour.White ? 1 : -1);
 
             for (int i = 0; i < 64; i++)
             {
