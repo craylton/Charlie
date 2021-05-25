@@ -146,8 +146,8 @@ namespace Charlie.BoardRepresentation
             ulong whiteTerritory = whiteAttacks & ~blackAttacks;
             ulong blackTerritory = blackAttacks & ~whiteAttacks;
 
-            //whiteScore -= CalculateKingDanger(board.Board.WhiteKing, blackAttacks) * 11;
-            //blackScore -= CalculateKingDanger(board.Board.BlackKing, whiteAttacks) * 11;
+            whiteScore -= CalculateKingDanger(board.Board.WhiteKing, blackAttacks) * 9;
+            blackScore -= CalculateKingDanger(board.Board.BlackKing, whiteAttacks) * 9;
 
             whiteScore += (BitOperations.PopCount(whiteAttacks) + BitOperations.PopCount(whiteTerritory)) * 2;
             blackScore += (BitOperations.PopCount(blackAttacks) + BitOperations.PopCount(blackTerritory)) * 2;
