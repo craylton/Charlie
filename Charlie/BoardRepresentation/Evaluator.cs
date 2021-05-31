@@ -115,7 +115,7 @@ namespace Charlie.BoardRepresentation
             blackScore += blackMaterial;
 
             bool isOpening = whiteMaterial + blackMaterial >= 6200;
-            bool isEndgame = whiteMaterial + blackMaterial <= 3700;
+            bool isEndgame = whiteMaterial + blackMaterial <= 3450;
 
             ulong unoccupiedBb = ~board.Board.Occupied;
 
