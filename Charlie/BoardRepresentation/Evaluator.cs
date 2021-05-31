@@ -4,7 +4,6 @@ namespace Charlie.BoardRepresentation
 {
     public class Evaluator
     {
-        private static ulong[] _neighbours;
         private const int pawn = 100, knight = 320, bishop = 330, rook = 525, queen = 920;
 
         private readonly int[] pawnPsqt = new[]
@@ -199,53 +198,10 @@ namespace Charlie.BoardRepresentation
             return (whiteScore - blackScore) * (board.ToMove == PieceColour.White ? 1 : -1);
         }
 
-        private int CalculateKingDanger(ulong king, ulong attacks)
+        private static int CalculateKingDanger(ulong king, ulong attacks)
         {
-            ulong kingRing = GetNeighbours(king);
+            var kingRing = Magics.Neighbours[BitOperations.TrailingZeroCount(king)];
             return BitOperations.PopCount(kingRing & attacks);
-        }
-
-        private static ulong GetNeighbours(ulong cell)
-        {
-            if (_neighbours is null)
-            {
-                _neighbours = new ulong[64];
-
-                for (int i = 0; i < 64; i++)
-                    _neighbours[i] = CalculateNeighbours(1ul << i);
-            }
-
-            return _neighbours[BitOperations.TrailingZeroCount(cell)];
-        }
-
-        private static ulong CalculateNeighbours(ulong centre)
-        {
-            ulong kingRing = centre;
-            bool isOnAFile = (centre & Chessboard.AFile) != 0;
-            bool isOnHFile = (centre & Chessboard.HFile) != 0;
-            bool isOnFirstRank = (centre & Chessboard.Rank1) != 0;
-            bool isOnEighthRank = (centre & Chessboard.Rank8) != 0;
-
-            if (!isOnAFile)
-            {
-                kingRing |= centre << 1;
-
-                if (!isOnFirstRank) kingRing |= centre << 9;
-                if (!isOnEighthRank) kingRing |= centre >> 7;
-            }
-
-            if (!isOnHFile)
-            {
-                kingRing |= centre >> 1;
-
-                if (!isOnFirstRank) kingRing |= centre << 7;
-                if (!isOnEighthRank) kingRing |= centre >> 9;
-            }
-
-            kingRing |= centre << 8;
-            kingRing |= centre >> 8;
-
-            return kingRing;
         }
 
         private static int GetWhiteMaterialCount(BoardState board)

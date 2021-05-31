@@ -14,10 +14,13 @@ namespace Charlie.BoardRepresentation
 
         public static ulong[] AllBishopAttacks { get; private set; }
 
+        public static ulong[] Neighbours { get; private set; }
+
         public static void Initialise()
         {
             GenerateRookAttacks();
             GenerateBishopAttacks();
+            GenerateNeighbours();
         }
 
         private static void GenerateRookAttacks()
@@ -96,6 +99,42 @@ namespace Charlie.BoardRepresentation
                     foreach (var c in TargetedBishopAttacks[i, direction])
                         AllBishopAttacks[i] |= c;
                 }
+            }
+        }
+
+        private static void GenerateNeighbours()
+        {
+            Neighbours = new ulong[64];
+
+            for (int i = 0; i < 64; i++)
+            {
+                ulong centre = 1ul << i;
+
+                Neighbours[i] = centre;
+
+                bool isOnAFile = (centre & Chessboard.AFile) != 0;
+                bool isOnHFile = (centre & Chessboard.HFile) != 0;
+                bool isOnFirstRank = (centre & Chessboard.Rank1) != 0;
+                bool isOnEighthRank = (centre & Chessboard.Rank8) != 0;
+
+                if (!isOnAFile)
+                {
+                    Neighbours[i] |= centre << 1;
+
+                    if (!isOnFirstRank) Neighbours[i] |= centre << 9;
+                    if (!isOnEighthRank) Neighbours[i] |= centre >> 7;
+                }
+
+                if (!isOnHFile)
+                {
+                    Neighbours[i] |= centre >> 1;
+
+                    if (!isOnFirstRank) Neighbours[i] |= centre << 7;
+                    if (!isOnEighthRank) Neighbours[i] |= centre >> 9;
+                }
+
+                Neighbours[i] |= centre << 8;
+                Neighbours[i] |= centre >> 8;
             }
         }
 

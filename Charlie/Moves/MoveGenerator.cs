@@ -200,42 +200,13 @@ namespace Charlie.Moves
 
         private IEnumerable<Move> GenerateKingMoves(ulong king, ulong friendlyPieces, BoardState board)
         {
-            bool up = (king & ~Chessboard.Rank8) != 0,
-            down = (king & ~Chessboard.Rank1) != 0,
-            right = (king & ~Chessboard.HFile) != 0,
-            left = (king & ~Chessboard.AFile) != 0;
-
-            // if can move up
-            if (up && ((king >> 8) & ~friendlyPieces) != 0)
-                yield return new Move(king, king >> 8);
-
-            // if can move down
-            if (down && ((king << 8) & ~friendlyPieces) != 0)
-                yield return new Move(king, king << 8);
-
-            // if can move right
-            if (right && ((king >> 1) & ~friendlyPieces) != 0)
-                yield return new Move(king, king >> 1);
-
-            // if can move left
-            if (left && ((king << 1) & ~friendlyPieces) != 0)
-                yield return new Move(king, king << 1);
-
-            // up right
-            if (up && right && ((king >> 9) & ~friendlyPieces) != 0)
-                yield return new Move(king, king >> 9);
-
-            // up left
-            if (up && left && ((king >> 7) & ~friendlyPieces) != 0)
-                yield return new Move(king, king >> 7);
-
-            // down right
-            if (down && right && ((king << 7) & ~friendlyPieces) != 0)
-                yield return new Move(king, king << 7);
-
-            // down left
-            if (down && left && ((king << 9) & ~friendlyPieces) != 0)
-                yield return new Move(king, king << 9);
+            ulong neighbours = Magics.Neighbours[BitOperations.TrailingZeroCount(king)] & ~friendlyPieces;
+            while (neighbours != 0)
+            {
+                var toSquare = 1ul << BitOperations.TrailingZeroCount(neighbours);
+                yield return new Move(king, toSquare);
+                neighbours ^= toSquare;
+            }
 
             if (board.ToMove == PieceColour.White)
             {

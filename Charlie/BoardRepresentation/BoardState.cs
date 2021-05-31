@@ -212,21 +212,17 @@ namespace Charlie.BoardRepresentation
             right = (cell & ~Chessboard.HFile) != 0,
             left = (cell & ~Chessboard.AFile) != 0;
 
-            if (up && ((cell >> 8) & theirKing) != 0) return true;
-            if (down && ((cell << 8) & theirKing) != 0) return true;
-            if (right && ((cell >> 1) & theirKing) != 0) return true;
-            if (left && ((cell << 1) & theirKing) != 0) return true;
-            if (up && right && ((cell >> 9) & theirKing) != 0) return true;
-            if (up && left && ((cell >> 7) & theirKing) != 0) return true;
-            if (down && right && ((cell << 7) & theirKing) != 0) return true;
-            if (down && left && ((cell << 9) & theirKing) != 0) return true;
+            ulong neighbours = Magics.Neighbours[BitOperations.TrailingZeroCount(cell)];
 
-            if (attacker == PieceColour.Black)
+            if ((neighbours & theirKing) != 0)
+                return true;
+
+            if (attacker == PieceColour.Black && (neighbours & Board.BlackPawn) != 0)
             {
                 if (up && right && ((cell >> 9) & Board.BlackPawn) != 0) return true;
                 if (up && left && ((cell >> 7) & Board.BlackPawn) != 0) return true;
             }
-            else
+            else if (attacker == PieceColour.White && (neighbours & Board.WhitePawn) != 0)
             {
                 if (down && right && ((cell << 7) & Board.WhitePawn) != 0) return true;
                 if (down && left && ((cell << 9) & Board.WhitePawn) != 0) return true;
