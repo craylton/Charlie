@@ -28,6 +28,13 @@ namespace Charlie.Search
                 timeForMove *= multiplier;
             }
 
+            // Use higher proportion of time when we have plenty of time left
+            if (AvailableTime > 10000)
+            {
+                double multiplier = (Math.Sqrt(AvailableTime) + 400) / 500;
+                timeForMove *= Math.Clamp(multiplier, 1.0, 1.5);
+            }
+
             // Use more time depending on size of increment
             if (Increment > 0)
             {
