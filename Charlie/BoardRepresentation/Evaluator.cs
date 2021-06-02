@@ -129,6 +129,12 @@ namespace Charlie.BoardRepresentation
                 blackScore += CalculateBlackPsqt(board, isOpening, isEndgame, i, thisSquare);
             }
 
+            //if (isEndgame)
+            //{
+            //    whiteScore += WhiteEndgame(board);
+            //    blackScore += BlackEndgame(board);
+            //}
+
             // Lazy eval
             Score psqt = whiteScore - blackScore;
             if (psqt > 250 || psqt < -250)
@@ -151,7 +157,10 @@ namespace Charlie.BoardRepresentation
             whiteScore += (BitOperations.PopCount(whiteAttacks) + BitOperations.PopCount(whiteTerritory)) * 2;
             blackScore += (BitOperations.PopCount(blackAttacks) + BitOperations.PopCount(blackTerritory)) * 2;
 
-            // Hanging pieces are worth half value
+            whiteScore += BitOperations.PopCount((board.Board.WhitePawn >> 8) & whiteTerritory) * 3;
+            blackScore += BitOperations.PopCount((board.Board.BlackPawn >> 8) & blackTerritory) * 3;
+
+            // Hanging pieces are less valuable
             if (board.ToMove == PieceColour.Black)
             {
                 whiteScore -= BitOperations.PopCount(blackTerritory & board.Board.WhitePawn) * pawn / 3;
@@ -196,6 +205,38 @@ namespace Charlie.BoardRepresentation
             }
 
             return (whiteScore - blackScore) * (board.ToMove == PieceColour.White ? 1 : -1);
+        }
+
+        private Score WhiteEndgame(BoardState board)
+        {
+            Score score = Score.Draw;
+            foreach (ulong file in Chessboard.Files)
+            {
+                if ((board.Board.WhitePawn & file) != 0 && (board.Board.WhiteRook & file) != 0)
+                    score += 21;
+            }
+
+            var kingRing = Magics.Neighbours[BitOperations.TrailingZeroCount(board.Board.WhiteKing)];
+            if (BitOperations.PopCount(kingRing & board.Board.WhitePawn) != 0)
+                score += 45;
+
+            return score;
+        }
+
+        private Score BlackEndgame(BoardState board)
+        {
+            Score score = Score.Draw;
+            foreach (ulong file in Chessboard.Files)
+            {
+                if ((board.Board.BlackPawn & file) != 0 && (board.Board.BlackRook & file) != 0)
+                    score += 21;
+            }
+
+            var kingRing = Magics.Neighbours[BitOperations.TrailingZeroCount(board.Board.BlackKing)];
+            if (BitOperations.PopCount(kingRing & board.Board.BlackPawn) != 0)
+                score += 45;
+
+            return score;
         }
 
         private static int CalculateKingDanger(ulong king, ulong attacks)

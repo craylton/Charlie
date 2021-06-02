@@ -7,7 +7,7 @@
             if (SearchType == SearchType.Time)
                 return !isMate && SearchTime.CanContinueSearching(elapsedMs, eval);
 
-            if (SearchType == SearchType.Depth) 
+            if (SearchType == SearchType.Depth)
                 return nextDepth <= DepthLimit;
 
             return true;
