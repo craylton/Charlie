@@ -173,7 +173,7 @@ namespace Charlie.Search
                         extension++;
 
                     // PV extension
-                    if (isPvMove && childDepth == 1)
+                    if (isPvMove && childDepth == 2)
                         extension++;
 
                     // Latter move reduction (we assume that the first move generated will be the best)
