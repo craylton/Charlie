@@ -180,6 +180,10 @@ namespace Charlie.Search
                     if (!isFirstMove && childDepth >= 2 && !move.IsCaptureOrPromotion(boardState))
                         extension--;
 
+                    // Check extension
+                    if (childDepth == 1 && newBoard.IsInCheck(newBoard.ToMove))
+                        extension++;
+
                     childDepth += extension;
                 }
 
