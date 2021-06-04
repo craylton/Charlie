@@ -74,14 +74,14 @@ namespace Charlie.Search
                     if (eval <= alpha)
                     {
                         IterationFailedLow?.Invoke(this, failedSearchInfo);
-                        alpha = failedSearches > 1 ? Score.NegativeInfinity : eval - 23;
-                        beta = failedSearches > 1 ? Score.Infinity : eval;
+                        alpha = failedSearches > 2 ? Score.NegativeInfinity : eval - 10;
+                        beta = failedSearches > 2 ? Score.Infinity : eval;
                     }
                     else if (eval >= beta)
                     {
                         IterationFailedHigh?.Invoke(this, failedSearchInfo);
-                        alpha = failedSearches > 1 ? Score.NegativeInfinity : eval;
-                        beta = failedSearches > 1 ? Score.Infinity : eval + 23;
+                        alpha = failedSearches > 2 ? Score.NegativeInfinity : eval;
+                        beta = failedSearches > 2 ? Score.Infinity : eval + 10;
                     }
 
                     // Don't try again if we found mate because we won't find anything better
@@ -99,8 +99,8 @@ namespace Charlie.Search
                 IterationCompleted?.Invoke(this, moveInfo);
 
                 // Set new aspiration windows
-                alpha = eval - 27;
-                beta = eval + 27;
+                alpha = eval - 18;
+                beta = eval + 18;
                 depth++;
                 failedSearches = 0;
 
