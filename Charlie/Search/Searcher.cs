@@ -89,7 +89,9 @@ namespace Charlie.Search
                 }
 
                 // Extract the pv
+                bool bestMoveChanged = false;
                 prevPv = pv.ToArray();
+                if (bestMove.IsValidMove() && prevPv[0] != bestMove) bestMoveChanged = true;
                 bestMove = prevPv[0];
 
                 // Report the pv
@@ -103,7 +105,7 @@ namespace Charlie.Search
                 failedSearches = 0;
 
                 // Check if we need to abort search
-                if (!searchParameters.CanContinueSearching(depth, sw.ElapsedMilliseconds, eval, isMate)) break;
+                if (!searchParameters.CanContinueSearching(depth, sw.ElapsedMilliseconds, eval, bestMoveChanged, isMate)) break;
             }
 
             // Stop the search and report the results
