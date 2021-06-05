@@ -136,9 +136,13 @@ namespace Charlie.BoardRepresentation
             //}
 
             // Lazy eval
-            Score psqt = whiteScore - blackScore;
-            if (psqt > 250 || psqt < -250)
-                return psqt * (board.ToMove == PieceColour.White ? 1 : -1);
+            if ((whiteScore - blackScore) > 270 || (whiteScore - blackScore) < -270)
+            {
+                if (isEndgame)
+                    CalculatePawnScores(board, ref whiteScore, ref blackScore);
+
+                return (whiteScore - blackScore) * (board.ToMove == PieceColour.White ? 1 : -1);
+            }
 
             for (int i = 0; i < 64; i++)
             {
@@ -178,33 +182,53 @@ namespace Charlie.BoardRepresentation
                 blackScore -= BitOperations.PopCount(whiteTerritory & board.Board.BlackQueen) * queen / 3;
             }
 
-            for (int i = 0; i < Chessboard.Files.Length; i++)
-            {
-                // Check for isolated pawns
-                if ((board.Board.WhitePawn & Chessboard.Files[i]) != 0)
-                {
-                    bool isPawnToLeft = i != 0 && (board.Board.WhitePawn & Chessboard.Files[i - 1]) != 0;
-                    bool IsPawnToRight = i != Chessboard.Files.Length - 1 &&
-                                        (board.Board.WhitePawn & Chessboard.Files[i + 1]) != 0;
-
-                    if (!isPawnToLeft && !IsPawnToRight) whiteScore -= 30;
-                }
-
-                if ((board.Board.BlackPawn & Chessboard.Files[i]) != 0)
-                {
-                    bool isPawnToLeft = i != 0 && (board.Board.BlackPawn & Chessboard.Files[i - 1]) != 0;
-                    bool IsPawnToRight = i != Chessboard.Files.Length - 1 &&
-                                        (board.Board.BlackPawn & Chessboard.Files[i + 1]) != 0;
-
-                    if (!isPawnToLeft && !IsPawnToRight) blackScore -= 30;
-                }
-
-                // Check for doubled pawns
-                if (BitOperations.PopCount(board.Board.WhitePawn & Chessboard.Files[i]) > 1) whiteScore -= 30;
-                if (BitOperations.PopCount(board.Board.BlackPawn & Chessboard.Files[i]) > 1) blackScore -= 30;
-            }
+            CalculatePawnScores(board, ref whiteScore, ref blackScore);
 
             return (whiteScore - blackScore) * (board.ToMove == PieceColour.White ? 1 : -1);
+        }
+
+        private static void CalculatePawnScores(BoardState board, ref Score whiteScore, ref Score blackScore)
+        {
+            bool[] whitePawnsOnFiles = new bool[8];
+            bool[] blackPawnsOnFiles = new bool[8];
+            for (int i = 0; i < Chessboard.Files.Length; i++)
+            {
+                whitePawnsOnFiles[i] = (board.Board.WhitePawn & Chessboard.Files[i]) != 0;
+                blackPawnsOnFiles[i] = (board.Board.BlackPawn & Chessboard.Files[i]) != 0;
+            }
+
+            for (int i = 0; i < Chessboard.Files.Length; i++)
+            {
+                bool isWhitePawnToLeft = i != 0 && whitePawnsOnFiles[i - 1];
+                bool isWhitePawnToRight = i != Chessboard.Files.Length - 1 && whitePawnsOnFiles[i + 1];
+
+                bool isBlackPawnToLeft = i != 0 && blackPawnsOnFiles[i - 1];
+                bool isBlackPawnToRight = i != Chessboard.Files.Length - 1 && blackPawnsOnFiles[i + 1];
+
+                if (whitePawnsOnFiles[i])
+                {
+                    // Isolated pawns
+                    if (!isWhitePawnToLeft && !isWhitePawnToRight) whiteScore -= 30;
+
+                    // Doubled pawns
+                    if (BitOperations.PopCount(board.Board.WhitePawn & Chessboard.Files[i]) > 1) whiteScore -= 30;
+
+                    // Passed pawns
+                    if (!blackPawnsOnFiles[i] && !isBlackPawnToLeft && !isBlackPawnToRight) whiteScore += 28;
+                }
+
+                if (blackPawnsOnFiles[i])
+                {
+                    // Isolated pawns
+                    if (!isBlackPawnToLeft && !isBlackPawnToRight) blackScore -= 30;
+
+                    // Doubled pawns
+                    if (BitOperations.PopCount(board.Board.BlackPawn & Chessboard.Files[i]) > 1) blackScore -= 30;
+
+                    // Passed pawns
+                    if (!whitePawnsOnFiles[i] && !isWhitePawnToLeft && !isWhitePawnToRight) blackScore += 28;
+                }
+            }
         }
 
         private Score WhiteEndgame(BoardState board)
