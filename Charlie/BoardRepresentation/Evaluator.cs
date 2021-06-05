@@ -161,8 +161,8 @@ namespace Charlie.BoardRepresentation
             whiteScore += (BitOperations.PopCount(whiteAttacks) + BitOperations.PopCount(whiteTerritory)) * 2;
             blackScore += (BitOperations.PopCount(blackAttacks) + BitOperations.PopCount(blackTerritory)) * 2;
 
-            whiteScore += BitOperations.PopCount((board.Board.WhitePawn >> 8) & whiteTerritory) * 3;
-            blackScore += BitOperations.PopCount((board.Board.BlackPawn >> 8) & blackTerritory) * 3;
+            whiteScore += BitOperations.PopCount((board.Board.WhitePawn >> 8) & whiteTerritory) * 8;
+            blackScore += BitOperations.PopCount((board.Board.BlackPawn << 8) & blackTerritory) * 8;
 
             // Hanging pieces are less valuable
             if (board.ToMove == PieceColour.Black)
