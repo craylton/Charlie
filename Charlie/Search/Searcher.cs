@@ -134,10 +134,6 @@ namespace Charlie.Search
                 return await Quiesce(boardState, alpha, beta);
             }
 
-            // Check extension - ~50 elo
-            if (boardState.IsInCheck(boardState.ToMove) && !isRoot)
-                depth++;
-
             IEnumerable<Move> moves = GenerateOrderedMoves(boardState, pvMoves);
 
             if (!moves.Any())
@@ -183,8 +179,13 @@ namespace Charlie.Search
                         extension--;
 
                     // Check extension
-                    if (childDepth == 1 && newBoard.IsInCheck(newBoard.ToMove))
+                    if (newBoard.IsInCheck(newBoard.ToMove))
+                    {
                         extension++;
+
+                        if (childDepth == 1)
+                            extension++;
+                    }
 
                     childDepth += extension;
                 }
