@@ -55,7 +55,7 @@ namespace Charlie.Search
             while (true)
             {
                 pv = new List<Move>();
-                eval = await AlphaBeta(currentBoard, alpha, beta, depth, 0, pv, prevPv);
+                eval = await AlphaBeta(currentBoard, alpha, beta, depth, pv, prevPv);
                 bool isMate = eval.IsMateScore();
 
                 // Check if a stop command has been sent
@@ -123,7 +123,48 @@ namespace Charlie.Search
 
         public void ClearHash() => HashTable.Clear();
 
-        private async Task<Score> AlphaBeta(BoardState boardState, Score alpha, Score beta, int depth, int height, List<Move> pv, Move[] pvMoves)
+        private async Task<Score> AlphaBeta(BoardState boardState, Score alpha, Score beta, int depth, List<Move> pv, Move[] pvMoves)
+        {
+            IEnumerable<Move> moves = GenerateOrderedMoves(boardState, pvMoves);
+
+            Move bestMove = default;
+
+            foreach (Move move in moves)
+            {
+                bool isPvMove = pvMoves.Length > 0 && pvMoves[0].Equals(move);
+                Move[] childPvMoves = isPvMove ? pvMoves[1..] : Array.Empty<Move>();
+                var pvBuffer = new List<Move>();
+
+                Score eval = Score.Draw;
+                BoardState newBoard = boardState.MakeMove(move);
+
+                eval = -await AlphaBetaInternal(newBoard, -beta, -alpha, depth - 1, 1, pvBuffer, childPvMoves);
+
+                if (cancel) break;
+
+                if (eval >= beta)
+                {
+                    HashTable.RecordHash(boardState.HashCode, depth, move);
+                    return beta;
+                }
+
+                if (eval > alpha)
+                {
+                    alpha = eval;
+                    bestMove = move;
+
+                    pv.Clear();
+                    pv.Add(move);
+                    pv.AddRange(pvBuffer);
+                }
+            }
+
+            HashTable.RecordHash(boardState.HashCode, depth, bestMove);
+
+            return alpha;
+        }
+
+        private async Task<Score> AlphaBetaInternal(BoardState boardState, Score alpha, Score beta, int depth, int height, List<Move> pv, Move[] pvMoves)
         {
             var foundPv = false;
             var isRoot = height == 0;
@@ -203,14 +244,14 @@ namespace Charlie.Search
                 }
                 else if (foundPv)
                 {
-                    eval = -await AlphaBeta(newBoard, -alpha - 1, -alpha, childDepth, height + 1, pvBuffer, childPvMoves);
+                    eval = -await AlphaBetaInternal(newBoard, -alpha - 1, -alpha, childDepth, height + 1, pvBuffer, childPvMoves);
 
                     if (eval > alpha && eval < beta)
-                        eval = -await AlphaBeta(newBoard, -beta, -alpha, childDepth, height + 1, pvBuffer, childPvMoves);
+                        eval = -await AlphaBetaInternal(newBoard, -beta, -alpha, childDepth, height + 1, pvBuffer, childPvMoves);
                 }
                 else
                 {
-                    eval = -await AlphaBeta(newBoard, -beta, -alpha, childDepth, height + 1, pvBuffer, childPvMoves);
+                    eval = -await AlphaBetaInternal(newBoard, -beta, -alpha, childDepth, height + 1, pvBuffer, childPvMoves);
                 }
 
                 if (cancel) break;
