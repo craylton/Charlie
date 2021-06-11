@@ -51,11 +51,22 @@ namespace Charlie.Search
             Score beta = Score.Infinity;
             int depth = 1;
             int failedSearches = 0;
+            RootMoves rootMoves = new RootMoves();
+            rootMoves.Generate(currentBoard, generator);
 
             while (true)
             {
                 pv = new List<Move>();
-                eval = await AlphaBeta(currentBoard, alpha, beta, depth, pv, prevPv);
+                rootMoves.SortByPromise();
+                eval = await AlphaBeta(currentBoard, alpha, beta, depth, rootMoves, pv, prevPv);
+
+                //if (pv.Any())
+                //    eval = rootMoves.Single(move => move.Move == pv[0]).Score;
+                //else eval = rootMoves.Max(move => move.Score);
+
+                //rootMoves.SortByStrength();
+                //eval = rootMoves.First().Score;
+
                 bool isMate = eval.IsMateScore();
 
                 // Check if a stop command has been sent
@@ -74,14 +85,14 @@ namespace Charlie.Search
                     if (eval <= alpha)
                     {
                         IterationFailedLow?.Invoke(this, failedSearchInfo);
-                        alpha = failedSearches > 1 ? Score.NegativeInfinity : eval - 23;
+                        alpha = failedSearches > 1 ? Score.NegativeInfinity : eval - 28;
                         beta = failedSearches > 1 ? Score.Infinity : eval;
                     }
                     else if (eval >= beta)
                     {
                         IterationFailedHigh?.Invoke(this, failedSearchInfo);
                         alpha = failedSearches > 1 ? Score.NegativeInfinity : eval;
-                        beta = failedSearches > 1 ? Score.Infinity : eval + 23;
+                        beta = failedSearches > 1 ? Score.Infinity : eval + 28;
                     }
 
                     // Don't try again if we found mate because we won't find anything better
@@ -99,8 +110,8 @@ namespace Charlie.Search
                 IterationCompleted?.Invoke(this, moveInfo);
 
                 // Set new aspiration windows
-                alpha = eval - 27;
-                beta = eval + 27;
+                alpha = eval - 28;
+                beta = eval + 28;
                 depth++;
                 failedSearches = 0;
 
@@ -123,48 +134,104 @@ namespace Charlie.Search
 
         public void ClearHash() => HashTable.Clear();
 
-        private async Task<Score> AlphaBeta(BoardState boardState, Score alpha, Score beta, int depth, List<Move> pv, Move[] pvMoves)
+        private async Task<Score> AlphaBeta(
+            BoardState boardState,
+            Score alpha,
+            Score beta,
+            int depth,
+            RootMoves moves,
+            List<Move> pv,
+            Move[] pvMoves)
         {
-            IEnumerable<Move> moves = GenerateOrderedMoves(boardState, pvMoves);
-
+            var foundPv = false;
             Move bestMove = default;
+            Score bestScore = moves.Max(move => move.Score);
 
-            foreach (Move move in moves)
+            for (int moveIndex = 0; moveIndex < moves.Count; moveIndex++)
             {
+                Move move = moves[moveIndex].Move;
                 bool isPvMove = pvMoves.Length > 0 && pvMoves[0].Equals(move);
                 Move[] childPvMoves = isPvMove ? pvMoves[1..] : Array.Empty<Move>();
                 var pvBuffer = new List<Move>();
 
+                var childDepth = depth - 1;
+
+                //if (isPvMove) childDepth++;
+                //if (moves[moveIndex].AlphaCount > 1) childDepth++;
+                //if (moves[moveIndex].AlphaCount == 0)
+                //{
+                //    childDepth--;
+                //    if (moveIndex > moves.Count / 2) childDepth--;
+                //}
+
                 Score eval = Score.Draw;
                 BoardState newBoard = boardState.MakeMove(move);
 
-                eval = -await AlphaBetaInternal(newBoard, -beta, -alpha, depth - 1, 1, pvBuffer, childPvMoves);
+                if (foundPv)
+                {
+                    eval = -await AlphaBetaInternal(newBoard, -alpha - 1, -alpha, childDepth, 1, pvBuffer, childPvMoves);
+
+                    if (eval > alpha && eval < beta)
+                        eval = -await AlphaBetaInternal(newBoard, -beta, -alpha, childDepth, 1, pvBuffer, childPvMoves);
+                }
+                else
+                {
+                    eval = -await AlphaBetaInternal(newBoard, -beta, -alpha, childDepth, 1, pvBuffer, childPvMoves);
+                }
+
+                //eval = -await AlphaBetaInternal(
+                //    newBoard,
+                //    -beta,
+                //    -alpha,
+                //    childDepth,
+                //    1,
+                //    pvBuffer,
+                //    childPvMoves);
+
+                moves[moveIndex].Score = eval;
 
                 if (cancel) break;
 
                 if (eval >= beta)
                 {
+                    pv.Clear();
+                    pv.Add(move);
+                    pv.AddRange(pvBuffer);
+                    moves[moveIndex].AlphaCount++;
+
                     HashTable.RecordHash(boardState.HashCode, depth, move);
-                    return beta;
+                    return eval;
                 }
 
                 if (eval > alpha)
                 {
                     alpha = eval;
                     bestMove = move;
+                    moves[moveIndex].AlphaCount++;
+                    foundPv = true;
 
                     pv.Clear();
                     pv.Add(move);
                     pv.AddRange(pvBuffer);
                 }
+                else if (moveIndex >= moves.Count / 3 && !foundPv)
+                {
+                    return eval;
+                }
             }
 
             HashTable.RecordHash(boardState.HashCode, depth, bestMove);
-
             return alpha;
         }
 
-        private async Task<Score> AlphaBetaInternal(BoardState boardState, Score alpha, Score beta, int depth, int height, List<Move> pv, Move[] pvMoves)
+        private async Task<Score> AlphaBetaInternal(
+            BoardState boardState,
+            Score alpha,
+            Score beta,
+            int depth,
+            int height,
+            List<Move> pv,
+            Move[] pvMoves)
         {
             var foundPv = false;
             var isRoot = height == 0;

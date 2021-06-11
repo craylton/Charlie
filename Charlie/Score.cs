@@ -2,7 +2,7 @@
 
 namespace Charlie
 {
-    public readonly struct Score
+    public readonly struct Score : IComparable<Score>
     {
         public readonly static Score Mate = new Score(1 << 20);
         public readonly static Score Infinity = new Score(1 << 24);
@@ -59,6 +59,13 @@ namespace Charlie
             }
 
             return "cp " + score;
+        }
+
+        public int CompareTo(Score other)
+        {
+            if (score < other) return -1;
+            if (score > other) return 1;
+            return 0;
         }
     }
 }
