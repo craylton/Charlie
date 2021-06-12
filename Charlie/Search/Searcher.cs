@@ -60,13 +60,6 @@ namespace Charlie.Search
                 rootMoves.SortByPromise();
                 eval = await AlphaBeta(currentBoard, alpha, beta, depth, rootMoves, pv, prevPv);
 
-                //if (pv.Any())
-                //    eval = rootMoves.Single(move => move.Move == pv[0]).Score;
-                //else eval = rootMoves.Max(move => move.Score);
-
-                //rootMoves.SortByStrength();
-                //eval = rootMoves.First().Score;
-
                 bool isMate = eval.IsMateScore();
 
                 // Check if a stop command has been sent
@@ -156,37 +149,43 @@ namespace Charlie.Search
 
                 var childDepth = depth - 1;
 
-                //if (isPvMove) childDepth++;
-                //if (moves[moveIndex].AlphaCount > 1) childDepth++;
-                //if (moves[moveIndex].AlphaCount == 0)
-                //{
-                //    childDepth--;
-                //    if (moveIndex > moves.Count / 2) childDepth--;
-                //}
-
                 Score eval = Score.Draw;
                 BoardState newBoard = boardState.MakeMove(move);
 
                 if (foundPv)
                 {
-                    eval = -await AlphaBetaInternal(newBoard, -alpha - 1, -alpha, childDepth, 1, pvBuffer, childPvMoves);
+                    eval = -await AlphaBetaInternal(
+                        newBoard,
+                        -alpha - 1,
+                        -alpha,
+                        childDepth,
+                        1,
+                        pvBuffer,
+                        childPvMoves);
 
                     if (eval > alpha && eval < beta)
-                        eval = -await AlphaBetaInternal(newBoard, -beta, -alpha, childDepth, 1, pvBuffer, childPvMoves);
+                    {
+                        eval = -await AlphaBetaInternal(
+                            newBoard,
+                            -beta,
+                            -alpha,
+                            childDepth,
+                            1,
+                            pvBuffer,
+                            childPvMoves);
+                    }
                 }
                 else
                 {
-                    eval = -await AlphaBetaInternal(newBoard, -beta, -alpha, childDepth, 1, pvBuffer, childPvMoves);
+                    eval = -await AlphaBetaInternal(
+                        newBoard,
+                        -beta,
+                        -alpha,
+                        childDepth,
+                        1,
+                        pvBuffer,
+                        childPvMoves);
                 }
-
-                //eval = -await AlphaBetaInternal(
-                //    newBoard,
-                //    -beta,
-                //    -alpha,
-                //    childDepth,
-                //    1,
-                //    pvBuffer,
-                //    childPvMoves);
 
                 moves[moveIndex].Score = eval;
 
@@ -197,7 +196,7 @@ namespace Charlie.Search
                     pv.Clear();
                     pv.Add(move);
                     pv.AddRange(pvBuffer);
-                    moves[moveIndex].AlphaCount++;
+                    moves[moveIndex].IncreasePromise(3);
 
                     HashTable.RecordHash(boardState.HashCode, depth, move);
                     return eval;
@@ -207,7 +206,7 @@ namespace Charlie.Search
                 {
                     alpha = eval;
                     bestMove = move;
-                    moves[moveIndex].AlphaCount++;
+                    moves[moveIndex].IncreasePromise(2);
                     foundPv = true;
 
                     pv.Clear();
@@ -311,14 +310,37 @@ namespace Charlie.Search
                 }
                 else if (foundPv)
                 {
-                    eval = -await AlphaBetaInternal(newBoard, -alpha - 1, -alpha, childDepth, height + 1, pvBuffer, childPvMoves);
+                    eval = -await AlphaBetaInternal(
+                        newBoard,
+                        -alpha - 1,
+                        -alpha,
+                        childDepth,
+                        height + 1,
+                        pvBuffer,
+                        childPvMoves);
 
                     if (eval > alpha && eval < beta)
-                        eval = -await AlphaBetaInternal(newBoard, -beta, -alpha, childDepth, height + 1, pvBuffer, childPvMoves);
+                    {
+                        eval = -await AlphaBetaInternal(
+                            newBoard,
+                            -beta,
+                            -alpha,
+                            childDepth,
+                            height + 1,
+                            pvBuffer,
+                            childPvMoves);
+                    }
                 }
                 else
                 {
-                    eval = -await AlphaBetaInternal(newBoard, -beta, -alpha, childDepth, height + 1, pvBuffer, childPvMoves);
+                    eval = -await AlphaBetaInternal(
+                        newBoard,
+                        -beta,
+                        -alpha,
+                        childDepth,
+                        height + 1,
+                        pvBuffer,
+                        childPvMoves);
                 }
 
                 if (cancel) break;

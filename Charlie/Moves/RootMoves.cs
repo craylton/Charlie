@@ -14,32 +14,23 @@ namespace Charlie.Moves
             {
                 var newBoard = boardState.MakeMove(move);
 
-                var scoreEstimate = 0;
+                var promise = 0;
                 if (newBoard.IsInCheck(newBoard.ToMove))
-                    scoreEstimate += 5;
+                    promise += 5;
                 if (move.IsCaptureOrPromotion(boardState))
-                    scoreEstimate += 3;
+                    promise += 3;
                 if (move.IsCastle)
-                    scoreEstimate += 1;
+                    promise += 1;
                 if (move.IsDoublePush)
-                    scoreEstimate += 1;
+                    promise += 1;
 
-                Add(new EvaluatedMove(move, scoreEstimate));
+                Add(new EvaluatedMove(move, promise));
             }
-        }
-
-        public void SortByStrength()
-        {
-            var orderedMoves = this.OrderByDescending(evaluatedMove => evaluatedMove.Score)
-                .ThenByDescending(evaluatedMove => evaluatedMove.AlphaCount).ToList();
-
-            Clear();
-            foreach (var move in orderedMoves) Add(move);
         }
 
         public void SortByPromise()
         {
-            var orderedMoves = this.OrderByDescending(evaluatedMove => evaluatedMove.ScoreEstimate)
+            var orderedMoves = this.OrderByDescending(evaluatedMove => evaluatedMove.Promise)
                 .ThenByDescending(evaluatedMove => evaluatedMove.Score).ToList();
 
             Clear();
