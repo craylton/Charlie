@@ -78,14 +78,14 @@ namespace Charlie.Search
                     if (eval <= alpha)
                     {
                         IterationFailedLow?.Invoke(this, failedSearchInfo);
-                        alpha = failedSearches > 1 ? Score.NegativeInfinity : eval - 28;
+                        alpha = failedSearches > 1 ? Score.NegativeInfinity : eval - 30;
                         beta = failedSearches > 1 ? Score.Infinity : eval;
                     }
                     else if (eval >= beta)
                     {
                         IterationFailedHigh?.Invoke(this, failedSearchInfo);
                         alpha = failedSearches > 1 ? Score.NegativeInfinity : eval;
-                        beta = failedSearches > 1 ? Score.Infinity : eval + 28;
+                        beta = failedSearches > 1 ? Score.Infinity : eval + 25;
                     }
 
                     // Don't try again if we found mate because we won't find anything better
@@ -103,8 +103,8 @@ namespace Charlie.Search
                 IterationCompleted?.Invoke(this, moveInfo);
 
                 // Set new aspiration windows
-                alpha = eval - 28;
-                beta = eval + 28;
+                alpha = eval - 30;
+                beta = eval + 25;
                 depth++;
                 failedSearches = 0;
 
@@ -198,7 +198,7 @@ namespace Charlie.Search
                     pv.Clear();
                     pv.Add(move);
                     pv.AddRange(pvBuffer);
-                    moves[moveIndex].IncreasePromise(9);
+                    moves[moveIndex].IncreasePromise(10);
 
                     HashTable.RecordHash(boardState.HashCode, depth, move);
                     return eval;
@@ -208,14 +208,14 @@ namespace Charlie.Search
                 {
                     alpha = eval;
                     bestMove = move;
-                    moves[moveIndex].IncreasePromise(6);
+                    moves[moveIndex].IncreasePromise(7);
                     foundPv = true;
 
                     pv.Clear();
                     pv.Add(move);
                     pv.AddRange(pvBuffer);
                 }
-                else if (moveIndex >= moves.Count / 3 && !foundPv)
+                else if (moveIndex >= moves.Count / 4 && !foundPv)
                 {
                     return eval;
                 }
