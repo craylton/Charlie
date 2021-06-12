@@ -16,13 +16,15 @@ namespace Charlie.Moves
 
                 var promise = 0;
                 if (newBoard.IsInCheck(newBoard.ToMove))
-                    promise += 5;
+                    promise += 15;
                 if (move.IsCaptureOrPromotion(boardState))
+                    promise += 9;
+                if (move.IsAdvancedPawnPush(boardState))
                     promise += 3;
                 if (move.IsCastle)
-                    promise += 1;
+                    promise += 3;
                 if (move.IsDoublePush)
-                    promise += 1;
+                    promise += 3;
 
                 Add(new EvaluatedMove(move, promise));
             }

@@ -81,6 +81,19 @@ namespace Charlie.Moves
         public bool IsCaptureOrPromotion(BoardState board) =>
             IsCapture(board) || PromotionType != PromotionType.None;
 
+        public bool IsAdvancedPawnPush(BoardState board)
+        {
+            var whiteAdvancePush = Chessboard.Rank5 | Chessboard.Rank6 | Chessboard.Rank7;
+            if (board.ToMove == PieceColour.White && (board.Board.WhitePawn & FromCell & whiteAdvancePush) != 0)
+                return true;
+
+            var blackAdvancePush = Chessboard.Rank4 | Chessboard.Rank3 | Chessboard.Rank2;
+            if (board.ToMove == PieceColour.Black && (board.Board.BlackPawn & FromCell & blackAdvancePush) != 0)
+                return true;
+
+            return false;
+        }
+
         public bool IsValidMove() => !Equals(default);
 
         public bool LeavesPlayerInCheck(BoardState board)

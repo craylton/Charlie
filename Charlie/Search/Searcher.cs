@@ -149,6 +149,8 @@ namespace Charlie.Search
 
                 var childDepth = depth - 1;
 
+                if (moves[moveIndex].Promise == 0) childDepth--;
+
                 Score eval = Score.Draw;
                 BoardState newBoard = boardState.MakeMove(move);
 
@@ -196,7 +198,7 @@ namespace Charlie.Search
                     pv.Clear();
                     pv.Add(move);
                     pv.AddRange(pvBuffer);
-                    moves[moveIndex].IncreasePromise(3);
+                    moves[moveIndex].IncreasePromise(9);
 
                     HashTable.RecordHash(boardState.HashCode, depth, move);
                     return eval;
@@ -206,7 +208,7 @@ namespace Charlie.Search
                 {
                     alpha = eval;
                     bestMove = move;
-                    moves[moveIndex].IncreasePromise(2);
+                    moves[moveIndex].IncreasePromise(6);
                     foundPv = true;
 
                     pv.Clear();
