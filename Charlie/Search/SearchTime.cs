@@ -6,7 +6,11 @@ namespace Charlie.Search
     {
         public int MaxTime => Math.Max(AvailableTime / 2, 1);
 
-        public bool CanContinueSearching(long elapsedMs, Score eval, bool bestMoveChanged)
+        public bool CanContinueSearching(
+            long elapsedMs,
+            Score eval,
+            bool bestMoveChanged,
+            int bestMoveConfidence)
         {
             // Don't start searching another depth if it's unlikely we'll finish it
             if (elapsedMs > MaxTime / 4)
@@ -42,8 +46,12 @@ namespace Charlie.Search
                 timeForMove *= Math.Clamp(multiplier, 1.0, 1.3);
             }
 
+            // Use more time if we just changed our minds about the best move
             if (bestMoveChanged)
                 timeForMove *= 1.8;
+
+            // Use less time if we are very confident about the best move
+            timeForMove *= 26 / (Math.Pow(bestMoveConfidence, 2 / 3d) + 17);
 
             return elapsedMs <= timeForMove + Increment / 4 + 10;
         }

@@ -1,11 +1,9 @@
-﻿using System.Runtime.CompilerServices;
-
-namespace Charlie.Moves
+﻿namespace Charlie.Moves
 {
     public record EvaluatedMove
     {
         private readonly int basePromise;
-        public int dynamicPromise = 0;
+        private int dynamicPromise = 0;
 
         public Move Move { get; }
         public Score Score { get; set; } = Score.Draw;

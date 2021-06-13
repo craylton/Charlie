@@ -53,12 +53,13 @@ namespace Charlie.Search
             int failedSearches = 0;
             RootMoves rootMoves = new RootMoves();
             rootMoves.Generate(currentBoard, generator);
+            rootMoves.SortByPromise();
 
             while (true)
             {
                 pv = new List<Move>();
-                rootMoves.SortByPromise();
                 eval = await AlphaBeta(currentBoard, alpha, beta, depth, rootMoves, pv, prevPv);
+                rootMoves.SortByPromise();
 
                 bool isMate = eval.IsMateScore();
 
@@ -109,7 +110,13 @@ namespace Charlie.Search
                 failedSearches = 0;
 
                 // Check if we need to abort search
-                if (!searchParameters.CanContinueSearching(depth, sw.ElapsedMilliseconds, eval, bestMoveChanged, isMate)) break;
+                if (!searchParameters.CanContinueSearching(
+                    depth,
+                    sw.ElapsedMilliseconds,
+                    eval,
+                    bestMoveChanged,
+                    rootMoves.GetConfidence(bestMove),
+                    isMate)) break;
             }
 
             // Stop the search and report the results

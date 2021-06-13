@@ -38,5 +38,18 @@ namespace Charlie.Moves
             Clear();
             foreach (var move in orderedMoves) Add(move);
         }
+
+        public int GetConfidence(Move bestMove)
+        {
+            if (Count == 1) return 10000;
+
+            var bestMovePromise = this.Single(rootMove => rootMove.Move == bestMove).Promise;
+            var highestPromise = this.First().Promise;
+            var secondHighestPromise = this.ElementAt(1).Promise;
+
+            return bestMovePromise == highestPromise
+                ? bestMovePromise - secondHighestPromise
+                : 0;
+        }
     }
 }
