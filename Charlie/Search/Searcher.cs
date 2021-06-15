@@ -145,7 +145,6 @@ namespace Charlie.Search
         {
             var foundPv = false;
             Move bestMove = default;
-            Score bestScore = moves.Max(move => move.Score);
 
             for (int moveIndex = 0; moveIndex < moves.Count; moveIndex++)
             {
@@ -156,9 +155,10 @@ namespace Charlie.Search
 
                 var childDepth = depth - 1;
 
-                if (moves[moveIndex].Promise == 0) childDepth--;
+                if (moves[moveIndex].Promise == 0)
+                    childDepth--;
 
-                Score eval = Score.Draw;
+                Score eval;
                 BoardState newBoard = boardState.MakeMove(move);
 
                 if (foundPv)
@@ -222,7 +222,7 @@ namespace Charlie.Search
                     pv.Add(move);
                     pv.AddRange(pvBuffer);
                 }
-                else if (moveIndex >= moves.Count / 4 && !foundPv)
+                else if (moveIndex > moves.Count / 4 && !foundPv)
                 {
                     return eval;
                 }
