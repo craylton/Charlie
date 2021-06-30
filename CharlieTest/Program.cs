@@ -1,5 +1,4 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 
 namespace CharlieTest
 {
@@ -8,7 +7,7 @@ namespace CharlieTest
         static void Main(string[] args)
         {
             var cuteChessLocation = @"C:\Program Files (x86)\cutechess\cutechess-cli.exe";
-            var openingsLocation = @"F:\Documents\Simon\chess\Engines\Charlie\openings.pgn";
+            var openingsLocation = @"F:\Documents\Simon\chess\Engines\Charlie\noob_2moves.pgn";
             var pgnOutputLocation = @"F:\Documents\Simon\chess\Engines\Charlie\tournament.pgn";
             var numberOfMatches = 50;
 
@@ -18,7 +17,7 @@ namespace CharlieTest
                 Arguments =
                     "-engine conf=\"Charlie dev\" " +
                     "-engine conf=\"Charlie test\" " +
-                    "-each tc=10+0.1 " +
+                    "-each tc=8+0.08 " +
                     $"-openings file=\"{openingsLocation}\" " +
                     "format=pgn " +
                     "order=random " +
@@ -26,7 +25,7 @@ namespace CharlieTest
                     $"-rounds {numberOfMatches} " +
                     $"-pgnout \"{pgnOutputLocation}\" " +
                     "-recover " +
-                    "-concurrency 8"
+                    "-concurrency 10"
             };
 
             Process cuteChess = new Process { StartInfo = startInfo };
