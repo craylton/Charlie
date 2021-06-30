@@ -1,0 +1,208 @@
+﻿<Window x:Class="EvalComparisons.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:core="clr-namespace:System;assembly=mscorlib"
+        xmlns:chartingToolkit="clr-namespace:System.Windows.Controls.DataVisualization.Charting;assembly=System.Windows.Controls.DataVisualization.Toolkit"
+
+        DataContext="{StaticResource MainViewModel}"
+        xmlns:graph="clr-namespace:EvalComparisons.Filters"
+        mc:Ignorable="d"
+        Title="Hello" Height="640" Width="1024">
+
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+
+        <ObjectDataProvider x:Key="FilterSourceTypes" MethodName="GetValues" ObjectType="{x:Type core:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type Type="graph:FilterSourceType"/>
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+
+        <ObjectDataProvider x:Key="Comparisons" MethodName="GetValues" ObjectType="{x:Type core:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type Type="graph:FilterComparisonType"/>
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" MinHeight="50"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" MinWidth="300"/>
+            <ColumnDefinition Width="2*"/>
+        </Grid.ColumnDefinitions>
+
+        <StackPanel Grid.Column="0" Grid.Row="0"
+                    Margin="10"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Left">
+
+            <StackPanel Orientation="Horizontal"
+                        Margin="0,5">
+                <TextBlock Text="Compare: "/>
+                <TextBox Text="{Binding Filename}"
+                         Width="150"/>
+                <Button Content="Compare"
+                        Command="{Binding CompareCommand}"/>
+            </StackPanel>
+
+            <Expander BorderBrush="LightGray">
+                <Expander.Header>
+                    <TextBlock Text="Advanced..."
+                               Margin="10"/>
+                </Expander.Header>
+                <StackPanel>
+                    <CheckBox Content="Analyse first"
+                              IsChecked="{Binding IsAnalysisRequired}"
+                              Margin="0,5"/>
+
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="Compare against: "/>
+                        <TextBox Text="{Binding ComparisonFilename}"
+                                 Width="150"/>
+                    </StackPanel>
+                </StackPanel>
+            </Expander>
+
+        </StackPanel>
+
+        <StackPanel Grid.Column="0" Grid.Row="1"
+                    Orientation="Vertical"
+                    Margin="10"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Left"
+                    Visibility="{Binding HasAnalysed, Converter={StaticResource BoolToVisibilityConverter}}">
+
+            <StackPanel Margin="0,5">
+                <TextBlock Text="{Binding ImprovementStatistics.PercentImproved,
+                                          StringFormat=Improved: {0:0.0}%}"/>
+                <TextBlock Text="{Binding ImprovementStatistics.ImprovedMaterial,
+                                          StringFormat=Average material of improved positions: {0:0.00}}"/>
+                <TextBlock Text="{Binding ImprovementStatistics.ImprovedScore,
+                                          StringFormat=Average score of improved positions: {0:0.00}}"/>
+            </StackPanel>
+
+            <StackPanel Margin="0,5">
+                <TextBlock Text="{Binding ImprovementStatistics.PercentWorsened,
+                                          StringFormat=Worsened: {0:0.0}%}"/>
+                <TextBlock Text="{Binding ImprovementStatistics.WorsenedMaterial,
+                                          StringFormat=Average material of worsened positions: {0:0.00}}"/>
+                <TextBlock Text="{Binding ImprovementStatistics.WorsenedScore,
+                                          StringFormat=Average score of worsened positions: {0:0.00}}"/>
+            </StackPanel>
+
+            <StackPanel Margin="0,5">
+                <TextBlock Text="{Binding ImprovementStatistics.PercentUnchanged,
+                                          StringFormat=Unchanged: {0:0.0}%}"/>
+                <TextBlock Text="{Binding ImprovementStatistics.UnchangedMaterial,
+                                          StringFormat=Average material of unchanged positions: {0:0.00}}"/>
+                <TextBlock Text="{Binding ImprovementStatistics.UnchangedScore,
+                                          StringFormat=Average score of unchanged positions: {0:0.00}}"/>
+            </StackPanel>
+
+        </StackPanel>
+
+        <Grid Grid.Column="2" Grid.RowSpan="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="2*"/>
+                <RowDefinition Height="3*"/>
+            </Grid.RowDefinitions>
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="1*" MinWidth="240"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Row="0">
+                <DockPanel Margin="10">
+                    <TextBlock Text="Graph Improvement vs.: "/>
+                    <ComboBox ItemsSource="{Binding CustomGraphTypes}"
+                              SelectedItem="{Binding CustomGraphType}"
+                              Width="100"/>
+                    <Button Content="Filter"
+                            HorizontalAlignment="Right"
+                            Width="100"
+                            Command="{Binding FilterCommand}"/>
+                </DockPanel>
+
+                <TextBlock Text="Filters:"
+                           FontSize="20"/>
+                <DataGrid ItemsSource="{Binding Filters}"
+                          AutoGenerateColumns="False"
+                          CanUserAddRows="True">
+                    <DataGrid.Columns>
+                        <DataGridComboBoxColumn Header="Filter type"
+                                                Width="8*"
+                                                SelectedItemBinding="{Binding FilterType}"
+                                                ItemsSource="{Binding Source={StaticResource FilterSourceTypes}}"/>
+                        <DataGridComboBoxColumn Header="Comparison"
+                                                Width="5*"
+                                                SelectedItemBinding="{Binding Comparison}"
+                                                ItemsSource="{Binding Source={StaticResource Comparisons}}" />
+                        <DataGridTextColumn Header="Value"
+                                            Width="6*"
+                                            Binding="{Binding Value}"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </StackPanel>
+
+            <StackPanel Grid.Column="1"
+                        HorizontalAlignment="Right"
+                        Margin="10">
+
+                <TextBlock Text="Filter stats"
+                           FontSize="18"/>
+
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Number of positions in filter: "/>
+                    <TextBlock Text="{Binding FilterStatistics.PositionCount}"/>
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Average improvement in filter: "/>
+                    <TextBlock Text="{Binding FilterStatistics.AverageImprovement,
+                                              StringFormat={}{0:0.0000}}"/>
+                    <TextBlock Text="cp"/>
+                </StackPanel>
+
+            </StackPanel>
+
+            <chartingToolkit:Chart Grid.Row="1" Grid.ColumnSpan="2"
+                                   Title="Improvement by something">
+                <chartingToolkit:Chart.Template>
+                    <ControlTemplate TargetType="{x:Type chartingToolkit:Chart}"
+                                     xmlns:visualizationToolkit="clr-namespace:System.Windows.Controls.DataVisualization;assembly=System.Windows.Controls.DataVisualization.Toolkit"
+                                     xmlns:Primitives="clr-namespace:System.Windows.Controls.DataVisualization.Charting.Primitives;assembly=System.Windows.Controls.DataVisualization.Toolkit">
+                        <Border BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                Background="{TemplateBinding Background}"
+                                Padding="{TemplateBinding Padding}">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <visualizationToolkit:Title Content="{TemplateBinding Title}" Style="{TemplateBinding TitleStyle}"/>
+                                <Grid Grid.Row="1">
+                                    <Primitives:EdgePanel x:Name="ChartArea" Style="{TemplateBinding ChartAreaStyle}">
+                                        <Grid Style="{TemplateBinding PlotAreaStyle}" Panel.ZIndex="-1"/>
+                                        <Border BorderBrush="#FF919191" BorderThickness="1" Panel.ZIndex="10"/>
+                                    </Primitives:EdgePanel>
+                                </Grid>
+                            </Grid>
+                        </Border>
+                    </ControlTemplate>
+                </chartingToolkit:Chart.Template>
+                <chartingToolkit:LineSeries DependentValueBinding="{Binding Value}"
+                                            IndependentValueBinding="{Binding Key}"
+                                            ItemsSource="{Binding CustomGraphPoints}"/>
+            </chartingToolkit:Chart>
+        </Grid>
+    </Grid>
+</Window>
