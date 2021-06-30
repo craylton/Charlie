@@ -13,7 +13,7 @@ namespace EvalComparisons.Graph
 
         public List<GraphPoint> GetGraphPoints(int[] pointsToEvaluate)
         {
-            var points = new List<KeyValuePair<string, decimal>>();
+            var points = new List<GraphPoint>();
 
             foreach (var point in pointsToEvaluate)
             {

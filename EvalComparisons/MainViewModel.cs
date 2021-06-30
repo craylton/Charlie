@@ -56,13 +56,11 @@ namespace EvalComparisons
             }
         }
 
-        public ICommand CompareCommand =>
-            _compareCommand ?? (_compareCommand = new RelayCommand(_ => Compare()));
+        public ICommand CompareCommand => _compareCommand ??= new RelayCommand(_ => Compare());
 
-        public ICommand FilterCommand =>
-            _filterCommand ?? (_filterCommand = new RelayCommand(_ => Filter()));
+        public ICommand FilterCommand => _filterCommand ??= new RelayCommand(_ => Filter());
 
-        public string TruthFilePath => Constants.FileDirectory + Constants.TruthDataFilename;
+        public static string TruthFilePath => Constants.FileDirectory + Constants.TruthDataFilename;
         public string AnalysisFilePath => Constants.FileDirectory + Filename;
         public string ComparisonFilePath => Constants.FileDirectory + ComparisonFilename;
 
@@ -72,9 +70,7 @@ namespace EvalComparisons
 
             if (IsAnalysisRequired)
             {
-                var benchAnalyser = new BenchAnalysis(StockfishType.Test);
-                //var benchAnalyser = new BenchAnalysis(StockfishType.Official);
-                benchAnalyser.PerformStaticBench(AnalysisFilePath, dataRetriever.Truths);
+                BenchAnalysis.PerformStaticBench(AnalysisFilePath, dataRetriever.Truths);
             }
 
             dataRetriever.GenerateImprovementData(AnalysisFilePath, ComparisonFilePath);
@@ -95,11 +91,7 @@ namespace EvalComparisons
             if (!dataRetriever.HasData) return;
 
             List<Point> dataPoints = GetFilteredDataPoints(Filters, dataRetriever);
-
             UpdateFilterStatistics(dataPoints);
-
-            //var graph = new GraphEquation(dataPoints);
-            //CustomGraphPoints = graph.GetGraphPoints(new[] { firstPoint, lastPoint });
 
             var graph2 = new GraphPoints(dataPoints);
             int[] points = graph2.GetGraphSegments(dataPoints, Constants.NumberOfGraphSegments);
