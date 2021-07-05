@@ -242,7 +242,6 @@ namespace Charlie.Search
             Move[] pvMoves)
         {
             var foundPv = false;
-            var isRoot = height == 0;
 
             if (depth <= 0)
             {
@@ -275,36 +274,30 @@ namespace Charlie.Search
                 BoardState newBoard = boardState.MakeMove(move);
 
                 // Reductions and extensions
+
                 int extension = 0;
-                if (!isRoot)
+                // Promotion extension
+                if (move.PromotionType != PromotionType.None)
+                    extension++;
+
+                // PV extension
+                if (isPvMove && childDepth == 2)
+                    extension++;
+
+                // Latter move reduction (we assume that the first move generated will be the best)
+                if (!isFirstMove && !move.IsCaptureOrPromotion(boardState))
+                    extension--;
+
+                // Check extension
+                if (newBoard.IsInCheck(newBoard.ToMove))
                 {
-                    // Quiet move reduction
-                    if (!isPvMove && childDepth == 1 && !move.IsCaptureOrPromotion(boardState))
-                        extension--;
+                    extension++;
 
-                    // Promotion extension
-                    if (move.PromotionType != PromotionType.None)
+                    if (childDepth == 1)
                         extension++;
-
-                    // PV extension
-                    if (isPvMove && childDepth == 2)
-                        extension++;
-
-                    // Latter move reduction (we assume that the first move generated will be the best)
-                    if (!isFirstMove && childDepth >= 2 && !move.IsCaptureOrPromotion(boardState))
-                        extension--;
-
-                    // Check extension
-                    if (newBoard.IsInCheck(newBoard.ToMove))
-                    {
-                        extension++;
-
-                        if (childDepth == 1)
-                            extension++;
-                    }
-
-                    childDepth += extension;
                 }
+
+                childDepth += extension;
 
                 if (newBoard.IsThreeMoveRepetition())
                 {
