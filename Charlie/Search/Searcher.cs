@@ -155,7 +155,7 @@ namespace Charlie.Search
 
                 var childDepth = depth - 1;
 
-                if (moves[moveIndex].Promise == 0)
+                if (moves[moveIndex].Promise < Math.Sqrt(2*childDepth))
                     childDepth--;
 
                 Score eval;
@@ -274,8 +274,8 @@ namespace Charlie.Search
                 BoardState newBoard = boardState.MakeMove(move);
 
                 // Reductions and extensions
-
                 int extension = 0;
+
                 // Promotion extension
                 if (move.PromotionType != PromotionType.None)
                     extension++;
