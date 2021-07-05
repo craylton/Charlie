@@ -69,6 +69,9 @@ namespace Charlie
                     case "perft":
                         await Perft(@params[1..], boardState);
                         break;
+                    case "eval":
+                        Eval(@params[1..]);
+                        break;
                 }
             }
         }
@@ -173,6 +176,16 @@ namespace Charlie
                 targetDepth = int.Parse(@params[0]);
 
             await bench.PerfTest(searcher, boardState, targetDepth);
+        }
+
+        private static void Eval(string[] @params)
+        {
+            Evaluator evaluator = new Evaluator();
+            if (@params.Length >= 7 && @params[0] == "fen")
+            {
+                BoardState boardState = new BoardState(@params[1..7]);
+                Console.WriteLine(evaluator.Evaluate(boardState));
+            }
         }
 
         private void Searcher_SearchComplete(object sender, SearchResults results)
