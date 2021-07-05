@@ -158,6 +158,9 @@ namespace Charlie.Search
                 if (moves[moveIndex].Promise < Math.Sqrt(2*childDepth))
                     childDepth--;
 
+                if (!move.IsCaptureOrPromotion(boardState))
+                    childDepth--;
+
                 Score eval;
                 BoardState newBoard = boardState.MakeMove(move);
 
