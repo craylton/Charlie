@@ -208,7 +208,7 @@ namespace Charlie.Search
                     pv.Clear();
                     pv.Add(move);
                     pv.AddRange(pvBuffer);
-                    moves[moveIndex].IncreasePromise(10);
+                    moves[moveIndex].IncreasePromise(11);
 
                     HashTable.RecordHash(boardState.HashCode, depth, move);
                     return eval;
