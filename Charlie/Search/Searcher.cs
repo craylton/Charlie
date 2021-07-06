@@ -225,7 +225,7 @@ namespace Charlie.Search
                     pv.Add(move);
                     pv.AddRange(pvBuffer);
                 }
-                else if (moveIndex > moves.Count / 4 && !foundPv)
+                else if (moveIndex > moves.Count / 3 && !foundPv)
                 {
                     return eval;
                 }
