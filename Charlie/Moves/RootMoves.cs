@@ -41,7 +41,7 @@ namespace Charlie.Moves
 
         public int GetConfidence(Move bestMove)
         {
-            if (Count == 1) return 10000;
+            if (Count == 1) return 1000000;
 
             var bestMovePromise = this.Single(rootMove => rootMove.Move == bestMove).Promise;
             var highestPromise = this.First().Promise;

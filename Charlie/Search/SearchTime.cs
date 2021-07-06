@@ -16,7 +16,7 @@ namespace Charlie.Search
             if (elapsedMs > MaxTime / 4)
                 return false;
 
-            double timeForMove = AvailableTime / 120;
+            double timeForMove = AvailableTime / 80;
 
             // Use more time if we aren't doing well
             if ((int)eval < 50)
@@ -26,17 +26,10 @@ namespace Charlie.Search
             }
 
             // Use lower proportion of time when clock is very low
-            if (AvailableTime < 5000)
+            if (AvailableTime < 10000)
             {
-                double multiplier = (AvailableTime + 5000) / 10000d;
+                double multiplier = Math.Sqrt(AvailableTime) / 125 + 0.2;
                 timeForMove *= multiplier;
-            }
-
-            // Use higher proportion of time when we have plenty of time left
-            if (AvailableTime > 10000)
-            {
-                double multiplier = (Math.Sqrt(AvailableTime) + 400) / 500;
-                timeForMove *= Math.Clamp(multiplier, 1.0, 1.5);
             }
 
             // Use more time depending on size of increment
