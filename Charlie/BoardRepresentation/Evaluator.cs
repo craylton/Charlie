@@ -208,7 +208,7 @@ namespace Charlie.BoardRepresentation
                 if (whitePawnsOnFiles[i])
                 {
                     // Isolated pawns
-                    if (!isWhitePawnToLeft && !isWhitePawnToRight) whiteScore -= 30;
+                    if (!isWhitePawnToLeft && !isWhitePawnToRight) whiteScore -= 10;
 
                     // Doubled pawns
                     if (BitOperations.PopCount(board.Board.WhitePawn & Chessboard.Files[i]) > 1) whiteScore -= 30;
@@ -220,7 +220,7 @@ namespace Charlie.BoardRepresentation
                 if (blackPawnsOnFiles[i])
                 {
                     // Isolated pawns
-                    if (!isBlackPawnToLeft && !isBlackPawnToRight) blackScore -= 30;
+                    if (!isBlackPawnToLeft && !isBlackPawnToRight) blackScore -= 10;
 
                     // Doubled pawns
                     if (BitOperations.PopCount(board.Board.BlackPawn & Chessboard.Files[i]) > 1) blackScore -= 30;
