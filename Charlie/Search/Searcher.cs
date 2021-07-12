@@ -293,12 +293,7 @@ namespace Charlie.Search
 
                 // Check extension
                 if (newBoard.IsInCheck(newBoard.ToMove))
-                {
                     extension++;
-
-                    if (childDepth == 1)
-                        extension++;
-                }
 
                 childDepth += extension;
 
