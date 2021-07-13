@@ -50,7 +50,6 @@ namespace Charlie.Search
             Score alpha = Score.NegativeInfinity;
             Score beta = Score.Infinity;
             int depth = 1;
-            int failedSearches = 0;
             RootMoves rootMoves = new RootMoves();
             rootMoves.Generate(currentBoard, generator);
             rootMoves.SortByPromise();
@@ -69,25 +68,17 @@ namespace Charlie.Search
                 // If fail high/low, reset aspiration windows and try again
                 if (eval <= alpha || eval >= beta)
                 {
-                    failedSearches++;
-
                     // Extract the pv
                     prevPv = new[] { bestMove };
 
                     // Report the pv
                     var failedSearchInfo = new MoveInfo(depth, prevPv, eval, sw.ElapsedMilliseconds, nodesSearched);
-                    if (eval <= alpha)
-                    {
-                        IterationFailedLow?.Invoke(this, failedSearchInfo);
-                        alpha = failedSearches > 1 ? Score.NegativeInfinity : eval - 30;
-                        beta = failedSearches > 1 ? Score.Infinity : eval;
-                    }
-                    else if (eval >= beta)
-                    {
-                        IterationFailedHigh?.Invoke(this, failedSearchInfo);
-                        alpha = failedSearches > 1 ? Score.NegativeInfinity : eval;
-                        beta = failedSearches > 1 ? Score.Infinity : eval + 25;
-                    }
+
+                    if (eval <= alpha) IterationFailedLow?.Invoke(this, failedSearchInfo);
+                    else if (eval >= beta) IterationFailedHigh?.Invoke(this, failedSearchInfo);
+
+                    alpha = Score.NegativeInfinity;
+                    beta = Score.Infinity;
 
                     // Don't try again if we found mate because we won't find anything better
                     if (!isMate) continue;
@@ -104,10 +95,9 @@ namespace Charlie.Search
                 IterationCompleted?.Invoke(this, moveInfo);
 
                 // Set new aspiration windows
-                alpha = eval - 30;
-                beta = eval + 25;
+                alpha = eval - 35;
+                beta = eval + 30;
                 depth++;
-                failedSearches = 0;
 
                 // Check if we need to abort search
                 if (!searchParameters.CanContinueSearching(
@@ -155,7 +145,7 @@ namespace Charlie.Search
 
                 var childDepth = depth - 1;
 
-                if (moves[moveIndex].Promise < Math.Sqrt(2*childDepth))
+                if (moves[moveIndex].Promise < Math.Sqrt(2 * childDepth))
                     childDepth--;
 
                 if (!move.IsCaptureOrPromotion(boardState))
