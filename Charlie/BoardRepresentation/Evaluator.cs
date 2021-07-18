@@ -4,7 +4,7 @@ namespace Charlie.BoardRepresentation
 {
     public class Evaluator
     {
-        private const int pawn = 100, knight = 320, bishop = 330, rook = 525, queen = 920;
+        private const int pawn = 100, knight = 320, bishop = 338, rook = 525, queen = 920;
 
         private readonly int[] pawnPsqt = new[]
         {
@@ -115,7 +115,7 @@ namespace Charlie.BoardRepresentation
             blackScore += blackMaterial;
 
             bool isOpening = whiteMaterial + blackMaterial >= 6200;
-            bool isEndgame = whiteMaterial + blackMaterial <= 3450;
+            bool isEndgame = whiteMaterial + blackMaterial <= 3500;
 
             ulong unoccupiedBb = ~board.Board.Occupied;
 
@@ -159,16 +159,16 @@ namespace Charlie.BoardRepresentation
             if (board.ToMove == PieceColour.Black)
             {
                 whiteScore -= BitOperations.PopCount(blackTerritory & board.Board.WhitePawn) * pawn / 3;
-                whiteScore -= BitOperations.PopCount(blackTerritory & board.Board.WhiteKnight) * knight / 3;
-                whiteScore -= BitOperations.PopCount(blackTerritory & board.Board.WhiteBishop) * bishop / 3;
+                whiteScore -= BitOperations.PopCount(blackTerritory & board.Board.WhiteKnight) * knight / 2;
+                whiteScore -= BitOperations.PopCount(blackTerritory & board.Board.WhiteBishop) * bishop / 2;
                 whiteScore -= BitOperations.PopCount(blackTerritory & board.Board.WhiteRook) * rook / 3;
                 whiteScore -= BitOperations.PopCount(blackTerritory & board.Board.WhiteQueen) * queen / 3;
             }
             else if (board.ToMove == PieceColour.White)
             {
                 blackScore -= BitOperations.PopCount(whiteTerritory & board.Board.BlackPawn) * pawn / 3;
-                blackScore -= BitOperations.PopCount(whiteTerritory & board.Board.BlackKnight) * knight / 3;
-                blackScore -= BitOperations.PopCount(whiteTerritory & board.Board.BlackBishop) * bishop / 3;
+                blackScore -= BitOperations.PopCount(whiteTerritory & board.Board.BlackKnight) * knight / 2;
+                blackScore -= BitOperations.PopCount(whiteTerritory & board.Board.BlackBishop) * bishop / 2;
                 blackScore -= BitOperations.PopCount(whiteTerritory & board.Board.BlackRook) * rook / 3;
                 blackScore -= BitOperations.PopCount(whiteTerritory & board.Board.BlackQueen) * queen / 3;
             }
