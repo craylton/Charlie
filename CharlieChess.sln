@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CharlieTest", "CharlieTest\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EvalComparisons", "EvalComparisons\EvalComparisons.csproj", "{BE6961FF-615A-4EF1-AA5A-4C41A311DDE7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BenchComparisons", "BenchComparisons\BenchComparisons.csproj", "{F4E937AB-0DE2-4995-B9EC-72AC994DB732}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{BE6961FF-615A-4EF1-AA5A-4C41A311DDE7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BE6961FF-615A-4EF1-AA5A-4C41A311DDE7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BE6961FF-615A-4EF1-AA5A-4C41A311DDE7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F4E937AB-0DE2-4995-B9EC-72AC994DB732}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F4E937AB-0DE2-4995-B9EC-72AC994DB732}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F4E937AB-0DE2-4995-B9EC-72AC994DB732}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F4E937AB-0DE2-4995-B9EC-72AC994DB732}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

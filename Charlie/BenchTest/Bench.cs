@@ -66,17 +66,21 @@ namespace Charlie.BenchTest
 
         public event EventHandler<BenchResults> BenchComplete;
 
-        public async Task BenchTest(Searcher search, int targetDepth)
+        public async Task BenchTest(Searcher search, int targetDepth) =>
+            await BenchTest(search, TestFens, targetDepth);
+
+        public async Task BenchTest(Searcher search, string[] fens, int targetDepth)
         {
             search.SearchComplete += Searcher_SearchComplete;
             var searchParameters = new SearchParameters(SearchType.Depth, default, targetDepth);
             nodesSearched = 0;
             benchTimeMs = 0;
 
-            foreach (string fen in TestFens)
+            foreach (string fen in fens)
             {
                 var boardState = new BoardState(fen.Split(' '));
                 await search.Start(boardState, searchParameters);
+                search.ClearHash();
             }
 
             BenchComplete?.Invoke(this, new BenchResults(nodesSearched, benchTimeMs));

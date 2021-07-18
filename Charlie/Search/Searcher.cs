@@ -54,7 +54,7 @@ namespace Charlie.Search
             rootMoves.Generate(currentBoard, generator);
             rootMoves.SortByPromise();
 
-            while (true)
+            while (rootMoves.Count > 0)
             {
                 pv = new List<Move>();
                 eval = await AlphaBeta(currentBoard, alpha, beta, depth, rootMoves, pv, prevPv);
