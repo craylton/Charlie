@@ -13,15 +13,14 @@ namespace Charlie.Search
     public class Searcher
     {
         private bool cancel;
-        private readonly Timer timer = new Timer() { AutoReset = false };
-        private readonly Stopwatch sw = new Stopwatch();
+        private readonly Timer timer = new() { AutoReset = false };
+        private readonly Stopwatch sw = new();
 
-        private readonly Evaluator evaluator = new Evaluator();
-        private readonly MoveGenerator generator = new MoveGenerator();
+        private readonly Evaluator evaluator = new();
 
         private ulong nodesSearched;
 
-        private readonly HashTable HashTable = new HashTable();
+        private readonly HashTable HashTable = new();
 
         public event EventHandler<MoveInfo> IterationCompleted;
         public event EventHandler<MoveInfo> IterationFailedHigh;
@@ -50,8 +49,8 @@ namespace Charlie.Search
             Score alpha = Score.NegativeInfinity;
             Score beta = Score.Infinity;
             int depth = 1;
-            RootMoves rootMoves = new RootMoves();
-            rootMoves.Generate(currentBoard, generator);
+            var rootMoves = new RootMoves();
+            rootMoves.Generate(currentBoard);
             rootMoves.SortByPromise();
 
             while (rootMoves.Count > 0)
@@ -110,7 +109,7 @@ namespace Charlie.Search
             }
 
             // Stop the search and report the results
-            SearchResults results = new SearchResults(bestMove, nodesSearched, sw.ElapsedMilliseconds);
+            var results = new SearchResults(bestMove, nodesSearched, sw.ElapsedMilliseconds);
             SearchComplete?.Invoke(this, results);
             Stop();
         }
@@ -367,7 +366,7 @@ namespace Charlie.Search
             if (eval >= beta) return beta;
             if (eval > alpha) alpha = eval;
 
-            IEnumerable<Move> moves = generator.GenerateQuiescenceMoves(boardState);
+            IEnumerable<Move> moves = MoveGenerator.GenerateQuiescenceMoves(boardState);
 
             foreach (Move move in moves)
             {
@@ -385,7 +384,7 @@ namespace Charlie.Search
         private IEnumerable<Move> GenerateOrderedMoves(BoardState boardState, Move[] pvMoves)
         {
             Move ttBestMove = HashTable.ProbeHash(boardState.HashCode);
-            List<Move> bestMoves = new List<Move>();
+            var bestMoves = new List<Move>();
 
             if (pvMoves.Length > 0 && !pvMoves[0].Equals(ttBestMove))
                 bestMoves.Add(pvMoves[0]);
@@ -393,7 +392,7 @@ namespace Charlie.Search
             if (ttBestMove.IsValidMove())
                 bestMoves.Add(ttBestMove);
 
-            return generator.GenerateLegalMoves(boardState, bestMoves);
+            return MoveGenerator.GenerateLegalMoves(boardState, bestMoves);
         }
 
         public async Task PerfTest(BoardState currentBoard, int rootDepth)
@@ -414,7 +413,7 @@ namespace Charlie.Search
 
                 if (subDepth == 0) return 1;
 
-                var moves = generator.GenerateLegalMoves(boardState);
+                var moves = MoveGenerator.GenerateLegalMoves(boardState);
 
                 foreach (Move move in moves)
                 {

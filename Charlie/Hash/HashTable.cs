@@ -5,7 +5,7 @@ namespace Charlie.Hash
 {
     public class HashTable
     {
-        private readonly Dictionary<long, HashElement> hashTable = new Dictionary<long, HashElement>();
+        private readonly Dictionary<long, HashElement> hashTable = new();
 
         public void Clear() => hashTable.Clear();
 

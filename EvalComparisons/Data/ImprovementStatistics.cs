@@ -46,10 +46,10 @@ namespace EvalComparisons.Data
         /// <summary>
         /// 0 = we are better, 1 = we are worse, 2 = they are the same
         /// </summary>
-        private int GetImprovementCategory(int improvement) =>
+        private static int GetImprovementCategory(int improvement) =>
             (improvement > 0) ? 0 : (improvement < 0) ? 1 : 2;
 
-        private decimal GetProportion(int numerator, int denominator) =>
+        private static decimal GetProportion(int numerator, int denominator) =>
             denominator == 0 ? 0 : (decimal)numerator / denominator;
     }
 }

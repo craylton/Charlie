@@ -15,7 +15,7 @@ namespace EvalComparisons.Data
         public AnalysedFenData() { }
 
         public static AnalysedFenData FromFenData(FenData fenData) =>
-            new AnalysedFenData
+            new()
             {
                 Id = 0,
                 Fen = fenData.Fen,
@@ -27,7 +27,7 @@ namespace EvalComparisons.Data
             };
 
         public AnalysedFenData StoreAnalysis(int score) =>
-            new AnalysedFenData
+            new()
             {
                 Id = 0,
                 Fen = Fen,

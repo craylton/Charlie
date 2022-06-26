@@ -33,7 +33,7 @@ namespace EvalComparisons.Data
             Improvements = GetImprovementList(truths, file1Scores, file2Scores);
         }
 
-        private int[] GetImprovementList(AnalysedFenData[] truths, int[] compareeScores, int[] comparisonScores)
+        private static int[] GetImprovementList(AnalysedFenData[] truths, int[] compareeScores, int[] comparisonScores)
         {
             var improvements = new int[truths.Length];
 

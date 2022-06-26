@@ -6,9 +6,9 @@ namespace Charlie.Moves
 {
     public class RootMoves : List<EvaluatedMove>
     {
-        public void Generate(BoardState boardState, MoveGenerator moveGenerator)
+        public void Generate(BoardState boardState)
         {
-            var moves = moveGenerator.GenerateLegalMoves(boardState);
+            var moves = MoveGenerator.GenerateLegalMoves(boardState);
 
             foreach (Move move in moves)
             {

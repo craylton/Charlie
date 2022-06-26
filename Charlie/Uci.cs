@@ -12,8 +12,8 @@ namespace Charlie
 {
     public class Uci
     {
-        private readonly Searcher searcher = new Searcher();
-        private readonly Bench bench = new Bench();
+        private readonly Searcher searcher = new();
+        private readonly Bench bench = new();
         private Move lastBestMove;
 
         public void Initialise()
@@ -76,7 +76,7 @@ namespace Charlie
             }
         }
 
-        private BoardState Position(string[] @params)
+        private static BoardState Position(string[] @params)
         {
             BoardState boardState;
             int movesIndicatorIndex;
@@ -98,11 +98,9 @@ namespace Charlie
 
             if (@params.Length > movesIndicatorIndex && @params[movesIndicatorIndex] == "moves")
             {
-                var generator = new MoveGenerator();
-
                 foreach (string moveInput in @params[(movesIndicatorIndex + 1)..])
                 {
-                    IEnumerable<Move> moves = generator.GenerateLegalMoves(boardState);
+                    IEnumerable<Move> moves = MoveGenerator.GenerateLegalMoves(boardState);
                     Move move = Move.FromString(moves, moveInput);
                     boardState = boardState.MakeMove(move);
                 }
@@ -175,15 +173,15 @@ namespace Charlie
             if (@params.Length >= 1)
                 targetDepth = int.Parse(@params[0]);
 
-            await bench.PerfTest(searcher, boardState, targetDepth);
+            await BenchTest.Bench.PerfTest(searcher, boardState, targetDepth);
         }
 
         private static void Eval(string[] @params)
         {
-            Evaluator evaluator = new Evaluator();
+            var evaluator = new Evaluator();
             if (@params.Length >= 7 && @params[0] == "fen")
             {
-                BoardState boardState = new BoardState(@params[1..7]);
+                var boardState = new BoardState(@params[1..7]);
                 Console.WriteLine(evaluator.Evaluate(boardState));
             }
         }

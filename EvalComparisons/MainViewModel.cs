@@ -11,8 +11,8 @@ namespace EvalComparisons
 {
     public class MainViewModel : BindableBase
     {
-        private readonly DataRetriever dataRetriever = new DataRetriever();
-        private readonly GraphType graphType = new GraphType();
+        private readonly DataRetriever dataRetriever = new();
+        private readonly GraphType graphType = new();
 
         private bool _hasAnalysed;
         private bool _isAnalysisRequired = true;
@@ -94,7 +94,7 @@ namespace EvalComparisons
             UpdateFilterStatistics(dataPoints);
 
             var graph2 = new GraphPoints(dataPoints);
-            int[] points = graph2.GetGraphSegments(dataPoints, Constants.NumberOfGraphSegments);
+            int[] points = GraphPoints.GetGraphSegments(dataPoints, Constants.NumberOfGraphSegments);
             CustomGraphPoints = graph2.GetGraphPoints(points);
         }
 

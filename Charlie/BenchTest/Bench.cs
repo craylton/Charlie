@@ -87,7 +87,7 @@ namespace Charlie.BenchTest
             search.SearchComplete -= Searcher_SearchComplete;
         }
 
-        public async Task PerfTest(Searcher search, BoardState boardState, int depth)
+        public static async Task PerfTest(Searcher search, BoardState boardState, int depth)
         {
             if (boardState == default)
                 boardState = new BoardState(KiwiPete.Split(' '));

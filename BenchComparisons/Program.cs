@@ -10,8 +10,8 @@ namespace BenchComparisons
 {
     class Program
     {
-        private static readonly Searcher searcher = new Searcher();
-        private static readonly Bench bench = new Bench();
+        private static readonly Searcher searcher = new();
+        private static readonly Bench bench = new();
 
         static async Task Main(string[] args)
         {

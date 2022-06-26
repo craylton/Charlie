@@ -67,7 +67,7 @@ namespace Charlie.BoardRepresentation
             previousStates = new List<long>() { HashCode };
         }
 
-        private ulong GetEnPassantFromFen(char enPassantFile, bool whiteToMove)
+        private static ulong GetEnPassantFromFen(char enPassantFile, bool whiteToMove)
         {
             if (enPassantFile == '-') return 0;
 
@@ -265,7 +265,7 @@ namespace Charlie.BoardRepresentation
             return false;
         }
 
-        private bool IsUnderKnightAttack(ulong cell, ulong theirKnight)
+        private static bool IsUnderKnightAttack(ulong cell, ulong theirKnight)
         {
             int cellIndex = BitOperations.TrailingZeroCount(cell);
             return (Magics.KnightAttacks[cellIndex] & theirKnight) != 0;

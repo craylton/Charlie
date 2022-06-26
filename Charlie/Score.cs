@@ -4,10 +4,10 @@ namespace Charlie
 {
     public readonly struct Score : IComparable<Score>
     {
-        public readonly static Score Mate = new Score(1 << 20);
-        public readonly static Score Infinity = new Score(1 << 24);
+        public readonly static Score Mate = new(1 << 20);
+        public readonly static Score Infinity = new(1 << 24);
         public readonly static Score NegativeInfinity = -Infinity;
-        public readonly static Score Draw = new Score(0);
+        public readonly static Score Draw = new(0);
 
         private readonly int score;
 
@@ -15,18 +15,18 @@ namespace Charlie
 
         public static explicit operator int(Score s) => s.score;
 
-        public static Score operator +(Score score1, Score score2) => new Score(score1.score + score2.score);
-        public static Score operator -(Score score1, Score score2) => new Score(score1.score - score2.score);
-        public static Score operator *(Score score1, Score score2) => new Score(score1.score * score2.score);
-        public static Score operator -(Score score1) => new Score(-score1.score);
+        public static Score operator +(Score score1, Score score2) => new(score1.score + score2.score);
+        public static Score operator -(Score score1, Score score2) => new(score1.score - score2.score);
+        public static Score operator *(Score score1, Score score2) => new(score1.score * score2.score);
+        public static Score operator -(Score score1) => new(-score1.score);
 
-        public static Score operator +(Score score1, int score2) => new Score(score1.score + score2);
-        public static Score operator -(Score score1, int score2) => new Score(score1.score - score2);
-        public static Score operator *(Score score1, int score2) => new Score(score1.score * score2);
+        public static Score operator +(Score score1, int score2) => new(score1.score + score2);
+        public static Score operator -(Score score1, int score2) => new(score1.score - score2);
+        public static Score operator *(Score score1, int score2) => new(score1.score * score2);
 
-        public static Score operator +(int score1, Score score2) => new Score(score1 + score2.score);
-        public static Score operator -(int score1, Score score2) => new Score(score1 - score2.score);
-        public static Score operator *(int score1, Score score2) => new Score(score1 * score2.score);
+        public static Score operator +(int score1, Score score2) => new(score1 + score2.score);
+        public static Score operator -(int score1, Score score2) => new(score1 - score2.score);
+        public static Score operator *(int score1, Score score2) => new(score1 * score2.score);
 
         public static bool operator >(Score score1, Score score2) => score1.score > score2.score;
         public static bool operator <(Score score1, Score score2) => score1.score < score2.score;

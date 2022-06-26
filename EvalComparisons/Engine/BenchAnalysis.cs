@@ -16,7 +16,7 @@ namespace EvalComparisons.Stockfish
             string[] fens = truths.Select(fenData => fenData.Fen).ToArray();
             File.WriteAllLines(tempFileName, fens);
 
-            List<int> scores = new List<int>();
+            var scores = new List<int>();
             Zobrist.Initialise();
             Magics.Initialise();
             var evaluator = new Evaluator();

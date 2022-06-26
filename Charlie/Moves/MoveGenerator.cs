@@ -7,13 +7,13 @@ namespace Charlie.Moves
 {
     public class MoveGenerator
     {
-        public IEnumerable<Move> GenerateLegalMoves(BoardState board) =>
+        public static IEnumerable<Move> GenerateLegalMoves(BoardState board) =>
             TrimIllegalMoves(GeneratePseudoLegalMoves(board), board).Distinct();
 
-        public IEnumerable<Move> GenerateQuiescenceMoves(BoardState board) =>
+        public static IEnumerable<Move> GenerateQuiescenceMoves(BoardState board) =>
             TrimIllegalMoves(GeneratePseudoLegalQuiescenceMoves(board), board);
 
-        public IEnumerable<Move> GenerateLegalMoves(BoardState board, IEnumerable<Move> bestMoves)
+        public static IEnumerable<Move> GenerateLegalMoves(BoardState board, IEnumerable<Move> bestMoves)
         {
             var pseudoLegalMoves = GeneratePseudoLegalMoves(board);
             var legalMoves = TrimIllegalMoves(pseudoLegalMoves, board);
@@ -21,10 +21,10 @@ namespace Charlie.Moves
             return bestMoves.Concat(legalMoves).Distinct();
         }
 
-        public IEnumerable<Move> TrimIllegalMoves(IEnumerable<Move> moves, BoardState board) =>
+        public static IEnumerable<Move> TrimIllegalMoves(IEnumerable<Move> moves, BoardState board) =>
             moves.Where(m => !m.LeavesPlayerInCheck(board));
 
-        public IEnumerable<Move> GeneratePseudoLegalMoves(BoardState board)
+        public static IEnumerable<Move> GeneratePseudoLegalMoves(BoardState board)
         {
             foreach (Move move in GeneratePseudoLegalQuiescenceMoves(board))
                 yield return move;
@@ -71,7 +71,7 @@ namespace Charlie.Moves
             }
         }
 
-        public IEnumerable<Move> GeneratePseudoLegalQuiescenceMoves(BoardState board)
+        public static IEnumerable<Move> GeneratePseudoLegalQuiescenceMoves(BoardState board)
         {
             if (board.ToMove == PieceColour.White)
             {
@@ -115,7 +115,7 @@ namespace Charlie.Moves
             }
         }
 
-        private IEnumerable<Move> GenerateKnightCaptures(ulong knights, ulong enemyPieces)
+        private static IEnumerable<Move> GenerateKnightCaptures(ulong knights, ulong enemyPieces)
         {
             for (int i = 0; i < 64; i++)
             {
@@ -135,7 +135,7 @@ namespace Charlie.Moves
             }
         }
 
-        private IEnumerable<Move> GenerateKnightNonCaptures(ulong knights, ulong occupied)
+        private static IEnumerable<Move> GenerateKnightNonCaptures(ulong knights, ulong occupied)
         {
             for (int i = 0; i < 64; i++)
             {
@@ -155,7 +155,7 @@ namespace Charlie.Moves
             }
         }
 
-        private IEnumerable<Move> GenerateQueenMoves(ulong queens, ulong friendlyPieces, BoardState board)
+        private static IEnumerable<Move> GenerateQueenMoves(ulong queens, ulong friendlyPieces, BoardState board)
         {
             foreach (Move move in GenerateBishopMoves(queens, friendlyPieces, board))
                 yield return move;
@@ -164,7 +164,7 @@ namespace Charlie.Moves
                 yield return move;
         }
 
-        private IEnumerable<Move> GenerateRookMoves(ulong rooks, ulong friendlyPieces, BoardState board)
+        private static IEnumerable<Move> GenerateRookMoves(ulong rooks, ulong friendlyPieces, BoardState board)
         {
             for (int i = 0; i < 64; i++)
             {
@@ -181,7 +181,7 @@ namespace Charlie.Moves
             }
         }
 
-        private IEnumerable<Move> GenerateBishopMoves(ulong bishops, ulong friendlyPieces, BoardState board)
+        private static IEnumerable<Move> GenerateBishopMoves(ulong bishops, ulong friendlyPieces, BoardState board)
         {
             for (int i = 0; i < 64; i++)
             {
@@ -198,7 +198,7 @@ namespace Charlie.Moves
             }
         }
 
-        private IEnumerable<Move> GenerateKingMoves(ulong king, ulong friendlyPieces, BoardState board)
+        private static IEnumerable<Move> GenerateKingMoves(ulong king, ulong friendlyPieces, BoardState board)
         {
             ulong neighbours = Magics.Neighbours[BitOperations.TrailingZeroCount(king)] & ~friendlyPieces;
             while (neighbours != 0)
@@ -258,7 +258,7 @@ namespace Charlie.Moves
             }
         }
 
-        private IEnumerable<Move> GeneratePawnMoves(ulong pawns, BoardState board)
+        private static IEnumerable<Move> GeneratePawnMoves(ulong pawns, BoardState board)
         {
             ulong occupiedBb = board.Board.Occupied;
             ulong blackPiecesBb = board.Board.BlackPieces;
@@ -415,7 +415,7 @@ namespace Charlie.Moves
             }
         }
 
-        private IEnumerable<Move> GenerateQueenCaptures(ulong queens, ulong enemyPieces, BoardState board)
+        private static IEnumerable<Move> GenerateQueenCaptures(ulong queens, ulong enemyPieces, BoardState board)
         {
             foreach (Move move in GenerateBishopCaptures(queens, enemyPieces, board))
                 yield return move;
@@ -424,7 +424,7 @@ namespace Charlie.Moves
                 yield return move;
         }
 
-        private IEnumerable<Move> GenerateRookCaptures(ulong rooks, ulong enemyPieces, BoardState board)
+        private static IEnumerable<Move> GenerateRookCaptures(ulong rooks, ulong enemyPieces, BoardState board)
         {
             for (int i = 0; i < 64; i++)
             {
@@ -441,7 +441,7 @@ namespace Charlie.Moves
             }
         }
 
-        private IEnumerable<Move> GenerateBishopCaptures(ulong bishops, ulong enemyPieces, BoardState board)
+        private static IEnumerable<Move> GenerateBishopCaptures(ulong bishops, ulong enemyPieces, BoardState board)
         {
             for (int i = 0; i < 64; i++)
             {
@@ -458,7 +458,7 @@ namespace Charlie.Moves
             }
         }
 
-        private IEnumerable<Move> GenerateKingCaptures(ulong king, ulong enemyPieces)
+        private static IEnumerable<Move> GenerateKingCaptures(ulong king, ulong enemyPieces)
         {
             bool up = (king & ~Chessboard.Rank8) != 0,
             down = (king & ~Chessboard.Rank1) != 0,
@@ -498,7 +498,7 @@ namespace Charlie.Moves
                 yield return new Move(king, king << 9);
         }
 
-        private IEnumerable<Move> GeneratePawnQuiescenceMoves(ulong pawns, BoardState board)
+        private static IEnumerable<Move> GeneratePawnQuiescenceMoves(ulong pawns, BoardState board)
         {
             ulong occupiedBb = board.Board.Occupied;
             ulong blackPiecesBb = board.Board.BlackPieces;

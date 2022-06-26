@@ -11,7 +11,7 @@ namespace CharlieTest
             var pgnOutputLocation = @"tournament.pgn";
             var numberOfMatches = 10;
 
-            ProcessStartInfo startInfo = new ProcessStartInfo
+            var startInfo = new ProcessStartInfo
             {
                 FileName = cuteChessLocation,
                 Arguments =
@@ -28,7 +28,7 @@ namespace CharlieTest
                     "-concurrency 10"
             };
 
-            Process cuteChess = new Process { StartInfo = startInfo };
+            var cuteChess = new Process { StartInfo = startInfo };
 
             cuteChess.Start();
         }
