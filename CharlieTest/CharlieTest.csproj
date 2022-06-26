@@ -5,4 +5,14 @@
     <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Remove="noob_2moves.pgn" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="noob_2moves.pgn">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>

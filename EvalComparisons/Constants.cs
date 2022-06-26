@@ -2,8 +2,7 @@
 {
     class Constants
     {
-        public const string FileDirectory =
-            @"C:\Users\Simon\source\repos\CharlieChess\EvalComparisons\bin\Debug\net5.0-windows\output\";
+        public const string FileDirectory = @"output\";
 
         public const string DefaultComparisonFilename = "Charlie48.txt";
 
