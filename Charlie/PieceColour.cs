@@ -1,9 +1,8 @@
-﻿namespace Charlie
+﻿namespace Charlie;
+
+public enum PieceColour
 {
-    public enum PieceColour
-    {
-        White,
-        Black,
-        None,
-    }
+    White,
+    Black,
+    None,
 }

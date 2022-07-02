@@ -1,9 +1,8 @@
-﻿namespace Charlie.Search
+﻿namespace Charlie.Search;
+
+public enum SearchType
 {
-    public enum SearchType
-    {
-        Infinite,
-        Time,
-        Depth,
-    }
+    Infinite,
+    Time,
+    Depth,
 }

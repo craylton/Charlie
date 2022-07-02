@@ -1,11 +1,10 @@
-﻿namespace Charlie
+﻿namespace Charlie;
+
+public enum PromotionType
 {
-    public enum PromotionType
-    {
-        None,
-        Knight,
-        Bishop,
-        Rook,
-        Queen,
-    }
+    None,
+    Knight,
+    Bishop,
+    Rook,
+    Queen,
 }
