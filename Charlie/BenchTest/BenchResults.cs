@@ -1,7 +1,6 @@
-﻿namespace Charlie.BenchTest
+﻿namespace Charlie.BenchTest;
+
+public record BenchResults(ulong NodesSearched, ulong BenchTimeMs)
 {
-    public record BenchResults(ulong NodesSearched, ulong BenchTimeMs)
-    {
-        public ulong NodesPerSecond => 1000 * NodesSearched / BenchTimeMs;
-    }
+    public ulong NodesPerSecond => 1000 * NodesSearched / BenchTimeMs;
 }

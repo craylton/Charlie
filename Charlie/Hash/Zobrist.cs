@@ -1,29 +1,28 @@
 ﻿using System;
 
-namespace Charlie.Hash
+namespace Charlie.Hash;
+
+public static class Zobrist
 {
-    public static class Zobrist
+    public static long[,] Keys { get; private set; } = new long[12, 64];
+
+    public static void Initialise()
     {
-        public static long[,] Keys { get; private set; } = new long[12, 64];
+        var rng = new Random(56810);
 
-        public static void Initialise()
+        for (int pieceType = (int)PieceType.WhiteKing; pieceType <= (int)PieceType.BlackPawn; pieceType++)
         {
-            var rng = new Random(56810);
-
-            for (int pieceType = (int)PieceType.WhiteKing; pieceType <= (int)PieceType.BlackPawn; pieceType++)
+            for (int cellNumber = 0; cellNumber < 64; cellNumber++)
             {
-                for (int cellNumber = 0; cellNumber < 64; cellNumber++)
-                {
-                    Keys[pieceType, cellNumber] = RandomLong(rng);
-                }
+                Keys[pieceType, cellNumber] = RandomLong(rng);
             }
         }
+    }
 
-        private static long RandomLong(Random rng)
-        {
-            byte[] buf = new byte[8];
-            rng.NextBytes(buf);
-            return BitConverter.ToInt64(buf, 0);
-        }
+    private static long RandomLong(Random rng)
+    {
+        byte[] buf = new byte[8];
+        rng.NextBytes(buf);
+        return BitConverter.ToInt64(buf, 0);
     }
 }

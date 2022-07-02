@@ -1,18 +1,17 @@
-﻿namespace Charlie
+﻿namespace Charlie;
+
+public enum PieceType
 {
-    public enum PieceType
-    {
-        WhiteKing,
-        BlackKing,
-        WhiteQueen,
-        BlackQueen,
-        WhiteRook,
-        BlackRook,
-        WhiteBishop,
-        BlackBishop,
-        WhiteKnight,
-        BlackKnight,
-        WhitePawn,
-        BlackPawn,
-    }
+    WhiteKing,
+    BlackKing,
+    WhiteQueen,
+    BlackQueen,
+    WhiteRook,
+    BlackRook,
+    WhiteBishop,
+    BlackBishop,
+    WhiteKnight,
+    BlackKnight,
+    WhitePawn,
+    BlackPawn,
 }
