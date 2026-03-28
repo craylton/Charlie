@@ -105,8 +105,7 @@ public class Evaluator
     public Score Evaluate(BoardState board)
     {
         Score whiteScore = Score.Draw, blackScore = Score.Draw;
-
-        ulong whiteAttacks = 0ul, blackAttacks = 0ul;
+        Board position = board.Board;
 
         int whiteMaterial = GetWhiteMaterialCount(board);
         int blackMaterial = GetBlackMaterialCount(board);
@@ -117,7 +116,7 @@ public class Evaluator
         bool isOpening = whiteMaterial + blackMaterial >= 6200;
         bool isEndgame = whiteMaterial + blackMaterial <= 3500;
 
-        ulong unoccupiedBb = ~board.Board.Occupied;
+        ulong unoccupiedBb = ~position.Occupied;
 
         for (int i = 0; i < 64; i++)
         {
@@ -138,13 +137,8 @@ public class Evaluator
             return (whiteScore - blackScore) * (board.ToMove == PieceColour.White ? 1 : -1);
         }
 
-        for (int i = 0; i < 64; i++)
-        {
-            ulong thisSquare = 1ul << i;
-
-            if (board.IsUnderAttack(thisSquare, PieceColour.White)) whiteAttacks |= thisSquare;
-            if (board.IsUnderAttack(thisSquare, PieceColour.Black)) blackAttacks |= thisSquare;
-        }
+        ulong whiteAttacks = GetWhiteAttacks(position);
+        ulong blackAttacks = GetBlackAttacks(position);
 
         ulong whiteTerritory = whiteAttacks & ~blackAttacks;
         ulong blackTerritory = blackAttacks & ~whiteAttacks;
@@ -152,25 +146,25 @@ public class Evaluator
         whiteScore += (BitOperations.PopCount(whiteAttacks) + BitOperations.PopCount(whiteTerritory)) * 2;
         blackScore += (BitOperations.PopCount(blackAttacks) + BitOperations.PopCount(blackTerritory)) * 2;
 
-        whiteScore += BitOperations.PopCount((board.Board.WhitePawn >> 8) & whiteTerritory) * 8;
-        blackScore += BitOperations.PopCount((board.Board.BlackPawn << 8) & blackTerritory) * 8;
+        whiteScore += BitOperations.PopCount((position.WhitePawn >> 8) & whiteTerritory) * 8;
+        blackScore += BitOperations.PopCount((position.BlackPawn << 8) & blackTerritory) * 8;
 
         // Hanging pieces are less valuable
         if (board.ToMove == PieceColour.Black)
         {
-            whiteScore -= BitOperations.PopCount(blackTerritory & board.Board.WhitePawn) * pawn / 3;
-            whiteScore -= BitOperations.PopCount(blackTerritory & board.Board.WhiteKnight) * knight / 2;
-            whiteScore -= BitOperations.PopCount(blackTerritory & board.Board.WhiteBishop) * bishop / 2;
-            whiteScore -= BitOperations.PopCount(blackTerritory & board.Board.WhiteRook) * rook / 3;
-            whiteScore -= BitOperations.PopCount(blackTerritory & board.Board.WhiteQueen) * queen / 3;
+            whiteScore -= BitOperations.PopCount(blackTerritory & position.WhitePawn) * pawn / 3;
+            whiteScore -= BitOperations.PopCount(blackTerritory & position.WhiteKnight) * knight / 2;
+            whiteScore -= BitOperations.PopCount(blackTerritory & position.WhiteBishop) * bishop / 2;
+            whiteScore -= BitOperations.PopCount(blackTerritory & position.WhiteRook) * rook / 3;
+            whiteScore -= BitOperations.PopCount(blackTerritory & position.WhiteQueen) * queen / 3;
         }
         else if (board.ToMove == PieceColour.White)
         {
-            blackScore -= BitOperations.PopCount(whiteTerritory & board.Board.BlackPawn) * pawn / 3;
-            blackScore -= BitOperations.PopCount(whiteTerritory & board.Board.BlackKnight) * knight / 2;
-            blackScore -= BitOperations.PopCount(whiteTerritory & board.Board.BlackBishop) * bishop / 2;
-            blackScore -= BitOperations.PopCount(whiteTerritory & board.Board.BlackRook) * rook / 3;
-            blackScore -= BitOperations.PopCount(whiteTerritory & board.Board.BlackQueen) * queen / 3;
+            blackScore -= BitOperations.PopCount(whiteTerritory & position.BlackPawn) * pawn / 3;
+            blackScore -= BitOperations.PopCount(whiteTerritory & position.BlackKnight) * knight / 2;
+            blackScore -= BitOperations.PopCount(whiteTerritory & position.BlackBishop) * bishop / 2;
+            blackScore -= BitOperations.PopCount(whiteTerritory & position.BlackRook) * rook / 3;
+            blackScore -= BitOperations.PopCount(whiteTerritory & position.BlackQueen) * queen / 3;
         }
 
         CalculatePawnScores(board, ref whiteScore, ref blackScore);
@@ -242,6 +236,67 @@ public class Evaluator
         blackMaterial += BitOperations.PopCount(board.Board.BlackRook) * rook;
         blackMaterial += BitOperations.PopCount(board.Board.BlackQueen) * queen;
         return blackMaterial;
+    }
+
+    private static ulong GetWhiteAttacks(Board board)
+    {
+        ulong attacks = Magics.Neighbours[BitOperations.TrailingZeroCount(board.WhiteKing)];
+        attacks |= GetPieceAttacks(board.WhiteKnight, Magics.KnightAttacks);
+        attacks |= ((board.WhitePawn & ~Chessboard.AFile) >> 7) | ((board.WhitePawn & ~Chessboard.HFile) >> 9);
+        attacks |= GetSlidingAttacks(board.WhiteRook | board.WhiteQueen, board.Occupied, Magics.TargetedRookAttacks);
+        attacks |= GetSlidingAttacks(board.WhiteBishop | board.WhiteQueen, board.Occupied, Magics.TargetedBishopAttacks);
+        return attacks;
+    }
+
+    private static ulong GetBlackAttacks(Board board)
+    {
+        ulong attacks = Magics.Neighbours[BitOperations.TrailingZeroCount(board.BlackKing)];
+        attacks |= GetPieceAttacks(board.BlackKnight, Magics.KnightAttacks);
+        attacks |= ((board.BlackPawn & ~Chessboard.AFile) << 9) | ((board.BlackPawn & ~Chessboard.HFile) << 7);
+        attacks |= GetSlidingAttacks(board.BlackRook | board.BlackQueen, board.Occupied, Magics.TargetedRookAttacks);
+        attacks |= GetSlidingAttacks(board.BlackBishop | board.BlackQueen, board.Occupied, Magics.TargetedBishopAttacks);
+        return attacks;
+    }
+
+    private static ulong GetPieceAttacks(ulong pieces, ulong[] attacksBySquare)
+    {
+        ulong attacks = 0;
+
+        while (pieces != 0)
+        {
+            int square = BitOperations.TrailingZeroCount(pieces);
+            attacks |= attacksBySquare[square];
+            pieces &= pieces - 1;
+        }
+
+        return attacks;
+    }
+
+    private static ulong GetSlidingAttacks(ulong sliders, ulong occupied, ulong[,][] attacksBySquare)
+    {
+        ulong attacks = 0;
+
+        while (sliders != 0)
+        {
+            int square = BitOperations.TrailingZeroCount(sliders);
+
+            for (int direction = 0; direction < 4; direction++)
+            {
+                foreach (ulong attackedSquare in attacksBySquare[square, direction])
+                {
+                    attacks |= attackedSquare;
+
+                    if ((attackedSquare & occupied) != 0)
+                    {
+                        break;
+                    }
+                }
+            }
+
+            sliders &= sliders - 1;
+        }
+
+        return attacks;
     }
 
     private Score CalculateWhitePsqt(BoardState board, bool isOpening, bool isEndgame, int cellIndex, ulong thisSquare)
