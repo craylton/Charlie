@@ -6,8 +6,8 @@ public class Evaluator
 {
     private const int pawn = 100, knight = 320, bishop = 338, rook = 525, queen = 920;
 
-    private readonly int[] pawnPsqt = new[]
-    {
+    private readonly int[] pawnPsqt =
+    [
         0,  0,  0,  0,  0,  0,  0,  0,
         70, 70, 70, 70, 70, 70, 70, 70,
         15, 15, 25, 40, 40, 25, 15, 15,
@@ -16,10 +16,10 @@ public class Evaluator
         5, -5, -10, 0,  0, -10,-5,  5,
         5, 10, 10, -20,-20, 10,10,  5,
         0,  0,  0,  0,  0,  0,  0,  0,
-    };
+    ];
 
-    private readonly int[] knightPsqt = new[]
-    {
+    private readonly int[] knightPsqt =
+    [
         -50,-40,-30,-30,-30,-30,-40,-50,
         -40,-20,  0,  0,  0,  0,-20,-40,
         -30,  0, 10, 15, 15, 10,  0,-30,
@@ -28,10 +28,10 @@ public class Evaluator
         -30,  5, 10, 15, 15, 10,  5,-30,
         -40,-20,  0,  5,  5,  0,-20,-40,
         -50,-40,-30,-30,-30,-30,-40,-50,
-    };
+    ];
 
-    private readonly int[] bishopPsqt = new[]
-    {
+    private readonly int[] bishopPsqt =
+    [
         -20,-10,-10,-10,-10,-10,-10,-20,
         -10,  0,  0,  0,  0,  0,  0,-10,
         -10,  0,  5, 10, 10,  5,  0,-10,
@@ -40,10 +40,10 @@ public class Evaluator
         -10, 10, 10, 10, 10, 10, 10,-10,
         -10,  5,  0,  0,  0,  0,  5,-10,
         -20,-10,-10,-10,-10,-10,-10,-20,
-    };
+    ];
 
-    private readonly int[] rookPsqt = new[]
-    {
+    private readonly int[] rookPsqt =
+    [
          4,  6, 12, 14, 14, 12,  6,  4,
          4, 12, 21, 10, 10, 21, 12,  4,
         -5,  3,  3, 14, 14,  3,  3, -5,
@@ -52,10 +52,10 @@ public class Evaluator
         -6, -6,  2,  2,  2,  2, -6, -6,
        -13, -8, -1,  5,  5, -1, -8,-13,
        -17,-13, -9, -4, -4, -9,-13,-17,
-    };
+    ];
 
-    private readonly int[] queenPsqt = new[]
-    {
+    private readonly int[] queenPsqt =
+    [
         -20,-10,-10, -5, -5,-10,-10,-20,
         -10,  0,  0,  0,  0,  0,  0,-10,
         -10,  0,  5,  5,  5,  5,  0,-10,
@@ -64,10 +64,10 @@ public class Evaluator
         -10,  5,  5,  5,  5,  5,  0,-10,
         -10,  0,  5,  0,  0,  0,  0,-10,
         -20,-10,-10, -5, -5,-10,-10,-20,
-    };
+    ];
 
-    private readonly int[] openingQueenPsqt = new[]
-    {
+    private readonly int[] openingQueenPsqt =
+    [
         -20,-20,-20,-20,-20,-20,-20,-20,
         -20,-20,-20,-20,-20,-20,-20,-20,
         -30,-30,-30,-30,-30,-30,-30,-30,
@@ -76,10 +76,10 @@ public class Evaluator
          -5, -3,  0,  1,  1,  0, -3, -5,
           0,  2,  5,  7,  7,  5,  2,  0,
           2,  5, 11, 17, 17, 11,  5,  2,
-    };
+    ];
 
-    private readonly int[] kingPsqt = new[]
-    {
+    private readonly int[] kingPsqt =
+    [
         -30,-40,-40,-50,-50,-40,-40,-30,
         -30,-40,-40,-50,-50,-40,-40,-30,
         -30,-40,-40,-50,-50,-40,-40,-30,
@@ -88,10 +88,10 @@ public class Evaluator
         -10,-20,-20,-20,-20,-20,-20,-10,
          20, 20,  0,  0,  0,  0, 20, 20,
          20, 30, 10,  0,  0, 10, 30, 20
-    };
+    ];
 
-    private readonly int[] endgameKingPsqt = new[]
-    {
+    private readonly int[] endgameKingPsqt =
+    [
         -10,-5,  0,  5,  5,  0,-5, -10,
         -5,  0,  5,  8,  8,  5, 0, -5,
          0,  5,  8, 10, 10,  8, 5,  0,
@@ -100,7 +100,7 @@ public class Evaluator
          0,  5,  8, 10, 10,  8, 5,  0,
         -5,  0,  5,  8,  8,  5, 0, -5,
         -10,-5,  0,  5,  5,  0,-5, -10,
-    };
+    ];
 
     public Score Evaluate(BoardState board)
     {

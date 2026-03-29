@@ -62,10 +62,10 @@ public class MoveGenerator
             foreach (Move move in GeneratePawnQuietMoves(board.Board.WhitePawn, board))
                 yield return move;
 
-            foreach (Move move in GenerateBishopNonCaptures(board.Board.WhiteBishop, board.Board.Occupied, board))
+            foreach (Move move in GenerateBishopNonCaptures(board.Board.WhiteBishop, board.Board.Occupied))
                 yield return move;
 
-            foreach (Move move in GenerateRookNonCaptures(board.Board.WhiteRook, board.Board.Occupied, board))
+            foreach (Move move in GenerateRookNonCaptures(board.Board.WhiteRook, board.Board.Occupied))
                 yield return move;
 
             foreach (Move move in GenerateQueenNonCaptures(board.Board.WhiteQueen, board.Board.Occupied, board))
@@ -82,10 +82,10 @@ public class MoveGenerator
             foreach (Move move in GeneratePawnQuietMoves(board.Board.BlackPawn, board))
                 yield return move;
 
-            foreach (Move move in GenerateBishopNonCaptures(board.Board.BlackBishop, board.Board.Occupied, board))
+            foreach (Move move in GenerateBishopNonCaptures(board.Board.BlackBishop, board.Board.Occupied))
                 yield return move;
 
-            foreach (Move move in GenerateRookNonCaptures(board.Board.BlackRook, board.Board.Occupied, board))
+            foreach (Move move in GenerateRookNonCaptures(board.Board.BlackRook, board.Board.Occupied))
                 yield return move;
 
             foreach (Move move in GenerateQueenNonCaptures(board.Board.BlackQueen, board.Board.Occupied, board))
@@ -187,14 +187,14 @@ public class MoveGenerator
 
     private static IEnumerable<Move> GenerateQueenNonCaptures(ulong queens, ulong occupied, BoardState board)
     {
-        foreach (Move move in GenerateBishopNonCaptures(queens, occupied, board))
+        foreach (Move move in GenerateBishopNonCaptures(queens, occupied))
             yield return move;
 
-        foreach (Move move in GenerateRookNonCaptures(queens, occupied, board))
+        foreach (Move move in GenerateRookNonCaptures(queens, occupied))
             yield return move;
     }
 
-    private static IEnumerable<Move> GenerateRookNonCaptures(ulong rooks, ulong occupied, BoardState board)
+    private static IEnumerable<Move> GenerateRookNonCaptures(ulong rooks, ulong occupied)
     {
         while (rooks != 0)
         {
@@ -218,7 +218,7 @@ public class MoveGenerator
         }
     }
 
-    private static IEnumerable<Move> GenerateBishopNonCaptures(ulong bishops, ulong occupied, BoardState board)
+    private static IEnumerable<Move> GenerateBishopNonCaptures(ulong bishops, ulong occupied)
     {
         while (bishops != 0)
         {

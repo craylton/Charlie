@@ -50,17 +50,17 @@ public readonly struct Move : IEquatable<Move>
 
     public static Move FromString(IEnumerable<Move> possibleMoves, string move)
     {
-        var from = new string(move.Take(2).ToArray());
-        var to = new string(new string(move.Take(4).ToArray()).TakeLast(2).ToArray());
+        var from = new string([.. move.Take(2)]);
+        var to = new string([.. new string([.. move.Take(4)]).TakeLast(2)]);
 
         ulong fromCell = 0, toCell = 0;
 
         for (int i = 0; i < Chessboard.CellNames.Length; i++)
         {
-            if (from.ToUpper() == Chessboard.CellNames[i].ToUpper())
+            if (from.Equals(Chessboard.CellNames[i], StringComparison.CurrentCultureIgnoreCase))
                 fromCell = 1ul << (63 - i);
 
-            if (to.ToUpper() == Chessboard.CellNames[i].ToUpper())
+            if (to.Equals(Chessboard.CellNames[i], StringComparison.CurrentCultureIgnoreCase))
                 toCell = 1ul << (63 - i);
         }
 
@@ -70,7 +70,7 @@ public readonly struct Move : IEquatable<Move>
         if (matches.Count() > 1 && move.Length >= 5)
         {
             string promotion = move[^1].ToString().ToUpper();
-            return matches.Single(m => m.PromotionType.GetSuffix().ToUpper() == promotion);
+            return matches.Single(m => m.PromotionType.GetSuffix().Equals(promotion, StringComparison.CurrentCultureIgnoreCase));
         }
 
         return matches.Single();

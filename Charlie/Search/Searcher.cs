@@ -44,7 +44,7 @@ public class Searcher
 
         Move bestMove = default;
         List<Move> pv;
-        Move[] prevPv = Array.Empty<Move>();
+        Move[] prevPv = [];
         Score eval;
         Score alpha = Score.NegativeInfinity;
         Score beta = Score.Infinity;
@@ -55,7 +55,7 @@ public class Searcher
 
         while (rootMoves.Count > 0)
         {
-            pv = new List<Move>();
+            pv = [];
             eval = await AlphaBeta(currentBoard, alpha, beta, depth, rootMoves, pv, prevPv);
             rootMoves.SortByPromise();
 
@@ -68,7 +68,7 @@ public class Searcher
             if (eval <= alpha || eval >= beta)
             {
                 // Extract the pv
-                prevPv = new[] { bestMove };
+                prevPv = [bestMove];
 
                 // Report the pv
                 var failedSearchInfo = new MoveInfo(depth, prevPv, eval, sw.ElapsedMilliseconds, nodesSearched);
@@ -85,7 +85,7 @@ public class Searcher
 
             // Extract the pv
             bool bestMoveChanged = false;
-            prevPv = pv.ToArray();
+            prevPv = [.. pv];
             if (bestMove.IsValidMove() && prevPv[0] != bestMove) bestMoveChanged = true;
             bestMove = prevPv[0];
 
@@ -139,7 +139,7 @@ public class Searcher
         {
             Move move = moves[moveIndex].Move;
             bool isPvMove = pvMoves.Length > 0 && pvMoves[0].Equals(move);
-            Move[] childPvMoves = isPvMove ? pvMoves[1..] : Array.Empty<Move>();
+            Move[] childPvMoves = isPvMove ? pvMoves[1..] : [];
             var pvBuffer = new List<Move>();
 
             var childDepth = depth - 1;
@@ -258,7 +258,7 @@ public class Searcher
         foreach (Move move in moves)
         {
             bool isPvMove = pvMoves.Length > 0 && pvMoves[0].Equals(move);
-            Move[] childPvMoves = isPvMove ? pvMoves[1..] : Array.Empty<Move>();
+            Move[] childPvMoves = isPvMove ? pvMoves[1..] : [];
             var pvBuffer = new List<Move>();
             var childDepth = depth - 1;
 
