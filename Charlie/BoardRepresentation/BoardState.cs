@@ -1,5 +1,4 @@
 ﻿using Charlie.Moves;
-using System.Collections.Generic;
 using System.Numerics;
 
 namespace Charlie.BoardRepresentation;
@@ -9,7 +8,9 @@ public class BoardState
     private static string StartPositionFen { get; } =
         "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
-    private readonly List<long> previousStates;
+    private readonly HistoryNode previousStates;
+
+    private sealed record HistoryNode(long Hash, HistoryNode Previous);
 
     public Board Board { get; }
 
@@ -29,7 +30,7 @@ public class BoardState
     }
 
     private BoardState(
-        List<long> previousStates,
+        HistoryNode previousStates,
         Board bitBoard,
         PieceColour toMove,
         byte castleRules,
@@ -46,7 +47,7 @@ public class BoardState
         ToMove = toMove;
 
         HashCode = CalculateLongHashCode();
-        this.previousStates = new List<long>(previousStates) { HashCode };
+        this.previousStates = new HistoryNode(HashCode, previousStates);
     }
 
     public BoardState(string[] fenElements)
@@ -64,7 +65,7 @@ public class BoardState
         WhiteEnPassant = GetEnPassantFromFen(enPassant[0], ToMove == PieceColour.White);
         BlackEnPassant = GetEnPassantFromFen(enPassant[0], ToMove == PieceColour.Black);
         HashCode = CalculateLongHashCode();
-        previousStates = new List<long>() { HashCode };
+        previousStates = new HistoryNode(HashCode, null);
     }
 
     private static ulong GetEnPassantFromFen(char enPassantFile, bool whiteToMove)
@@ -139,9 +140,9 @@ public class BoardState
     {
         int count = 0;
 
-        foreach (long state in previousStates)
+        for (HistoryNode state = previousStates; state is not null; state = state.Previous)
         {
-            if (state.Equals(HashCode))
+            if (state.Hash.Equals(HashCode))
             {
                 count++;
 
