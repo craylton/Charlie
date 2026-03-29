@@ -4,7 +4,6 @@ using Charlie.Moves;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading.Tasks;
 using System.Timers;
 
@@ -65,7 +64,7 @@ public class Searcher
         while (rootMoves.Count > 0)
         {
             pv = [];
-            eval = await AlphaBeta(searchPosition, alpha, beta, depth, rootMoves, pv, prevPv);
+            eval = await AlphaBeta(searchPosition, alpha, beta, depth, rootMoves, pv, prevPv, 0);
             rootMoves.SortByPromise();
 
             bool isMate = eval.IsMateScore();
@@ -132,14 +131,15 @@ public class Searcher
 
     public void ClearHash() => HashTable.Clear();
 
-    private async Task<Score> AlphaBeta(
+    private async ValueTask<Score> AlphaBeta(
         SearchPosition boardState,
         Score alpha,
         Score beta,
         int depth,
         RootMoves moves,
         List<Move> pv,
-        Move[] pvMoves)
+        Move[] pvMoves,
+        int pvIndex)
     {
         var foundPv = false;
         Move bestMove = default;
@@ -147,9 +147,9 @@ public class Searcher
         for (int moveIndex = 0; moveIndex < moves.Count; moveIndex++)
         {
             Move move = moves[moveIndex].Move;
-            bool isPvMove = pvMoves.Length > 0 && pvMoves[0].Equals(move);
-            Move[] childPvMoves = isPvMove ? pvMoves[1..] : [];
-            var pvBuffer = new List<Move>();
+            bool isPvMove = pvIndex < pvMoves.Length && pvMoves[pvIndex].Equals(move);
+            int childPvIndex = isPvMove ? pvIndex + 1 : pvMoves.Length;
+            List<Move> pvBuffer = [];
 
             var childDepth = depth - 1;
 
@@ -175,7 +175,8 @@ public class Searcher
                         1,
                         1,
                         pvBuffer,
-                        childPvMoves);
+                        pvMoves,
+                        childPvIndex);
 
                     if (eval > alpha && eval < beta)
                     {
@@ -187,7 +188,8 @@ public class Searcher
                             1,
                             1,
                             pvBuffer,
-                            childPvMoves);
+                            pvMoves,
+                            childPvIndex);
                     }
                 }
                 else
@@ -200,7 +202,8 @@ public class Searcher
                         1,
                         1,
                         pvBuffer,
-                        childPvMoves);
+                        pvMoves,
+                        childPvIndex);
                 }
             }
             finally
@@ -244,7 +247,7 @@ public class Searcher
         return alpha;
     }
 
-    private async Task<Score> AlphaBetaInternal(
+    private async ValueTask<Score> AlphaBetaInternal(
         SearchPosition boardState,
         Score alpha,
         Score beta,
@@ -252,7 +255,8 @@ public class Searcher
         int height,
         int ply,
         List<Move> pv,
-        Move[] pvMoves)
+        Move[] pvMoves,
+        int pvIndex)
     {
         var foundPv = false;
 
@@ -262,9 +266,9 @@ public class Searcher
             return await Quiesce(boardState, alpha, beta, ply);
         }
 
-        IEnumerable<Move> moves = GenerateOrderedMoves(boardState, pvMoves);
+        using IEnumerator<Move> moveEnumerator = GenerateOrderedMoves(boardState, pvMoves, pvIndex).GetEnumerator();
 
-        if (!moves.Any())
+        if (!moveEnumerator.MoveNext())
         {
             nodesSearched++;
 
@@ -276,11 +280,12 @@ public class Searcher
         Move bestMove = default;
         bool isFirstMove = true;
 
-        foreach (Move move in moves)
+        do
         {
-            bool isPvMove = pvMoves.Length > 0 && pvMoves[0].Equals(move);
-            Move[] childPvMoves = isPvMove ? pvMoves[1..] : [];
-            var pvBuffer = new List<Move>();
+            Move move = moveEnumerator.Current;
+            bool isPvMove = pvIndex < pvMoves.Length && pvMoves[pvIndex].Equals(move);
+            int childPvIndex = isPvMove ? pvIndex + 1 : pvMoves.Length;
+            List<Move> pvBuffer = [];
             var childDepth = depth - 1;
             bool isCaptureOrPromotion = move.IsCaptureOrPromotion(boardState);
 
@@ -332,7 +337,8 @@ public class Searcher
                         height + 1,
                         ply + 1,
                         pvBuffer,
-                        childPvMoves);
+                        pvMoves,
+                        childPvIndex);
 
                     if (eval > alpha && eval < beta)
                     {
@@ -344,7 +350,8 @@ public class Searcher
                             height + 1,
                             ply + 1,
                             pvBuffer,
-                            childPvMoves);
+                            pvMoves,
+                            childPvIndex);
                     }
                 }
                 else
@@ -357,7 +364,8 @@ public class Searcher
                         height + 1,
                         ply + 1,
                         pvBuffer,
-                        childPvMoves);
+                        pvMoves,
+                        childPvIndex);
                 }
             }
             finally
@@ -386,13 +394,14 @@ public class Searcher
 
             isFirstMove = false;
         }
+        while (moveEnumerator.MoveNext());
 
         HashTable.RecordHash(boardState.HashCode, depth, bestMove);
 
         return alpha;
     }
 
-    private async Task<Score> Quiesce(SearchPosition boardState, Score alpha, Score beta, int ply)
+    private async ValueTask<Score> Quiesce(SearchPosition boardState, Score alpha, Score beta, int ply)
     {
         Score eval = Evaluator.Evaluate(boardState);
 
@@ -422,18 +431,14 @@ public class Searcher
         return alpha;
     }
 
-    private IEnumerable<Move> GenerateOrderedMoves(SearchPosition boardState, Move[] pvMoves)
+    private IEnumerable<Move> GenerateOrderedMoves(SearchPosition boardState, Move[] pvMoves, int pvIndex)
     {
         Move ttBestMove = HashTable.ProbeHash(boardState.HashCode);
-        var bestMoves = new List<Move>();
+        bool hasPvMove = pvIndex < pvMoves.Length && !pvMoves[pvIndex].Equals(ttBestMove);
+        Move pvMove = hasPvMove ? pvMoves[pvIndex] : default;
+        bool hasTtBestMove = ttBestMove.IsValidMove();
 
-        if (pvMoves.Length > 0 && !pvMoves[0].Equals(ttBestMove))
-            bestMoves.Add(pvMoves[0]);
-
-        if (ttBestMove.IsValidMove())
-            bestMoves.Add(ttBestMove);
-
-        return MoveGenerator.GenerateLegalMoves(boardState, bestMoves);
+        return MoveGenerator.GenerateLegalMoves(boardState, pvMove, hasPvMove, ttBestMove, hasTtBestMove);
     }
 
     public async Task PerfTest(BoardState currentBoard, int rootDepth)
@@ -449,7 +454,7 @@ public class Searcher
         var results = new PerftResults(permutationCount, (ulong)timeTaken);
         PerftComplete?.Invoke(this, results);
 
-        async Task<ulong> PerfTestInner(SearchPosition boardState, int subDepth, int ply)
+        async ValueTask<ulong> PerfTestInner(SearchPosition boardState, int subDepth, int ply)
         {
             ulong count = 0;
 

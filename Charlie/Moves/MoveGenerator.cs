@@ -61,19 +61,28 @@ public class MoveGenerator
         }
     }
 
-    public static IEnumerable<Move> GenerateLegalMoves(SearchPosition board, IEnumerable<Move> bestMoves)
+    public static IEnumerable<Move> GenerateLegalMoves(
+        SearchPosition board,
+        Move firstBestMove,
+        bool hasFirstBestMove,
+        Move secondBestMove,
+        bool hasSecondBestMove)
     {
-        var seenMoves = new HashSet<Move>();
+        if (hasFirstBestMove)
+            yield return firstBestMove;
 
-        foreach (Move move in bestMoves)
-        {
-            if (seenMoves.Add(move))
-                yield return move;
-        }
+        if (hasSecondBestMove && (!hasFirstBestMove || !secondBestMove.Equals(firstBestMove)))
+            yield return secondBestMove;
 
         foreach (Move move in GeneratePseudoLegalMoves(board))
         {
-            if (move.LeavesPlayerInCheck(board) || !seenMoves.Add(move))
+            if (move.LeavesPlayerInCheck(board))
+                continue;
+
+            if (hasFirstBestMove && move.Equals(firstBestMove))
+                continue;
+
+            if (hasSecondBestMove && move.Equals(secondBestMove))
                 continue;
 
             yield return move;
@@ -107,7 +116,7 @@ public class MoveGenerator
             foreach (Move move in GenerateRookNonCaptures(position.WhiteRook, position.Occupied))
                 yield return move;
 
-            foreach (Move move in GenerateQueenNonCaptures(position.WhiteQueen, position.Occupied, board))
+            foreach (Move move in GenerateQueenNonCaptures(position.WhiteQueen, position.Occupied))
                 yield return move;
 
             foreach (Move move in GenerateKnightNonCaptures(position.WhiteKnight, position.Occupied))
@@ -127,7 +136,7 @@ public class MoveGenerator
             foreach (Move move in GenerateRookNonCaptures(position.BlackRook, position.Occupied))
                 yield return move;
 
-            foreach (Move move in GenerateQueenNonCaptures(position.BlackQueen, position.Occupied, board))
+            foreach (Move move in GenerateQueenNonCaptures(position.BlackQueen, position.Occupied))
                 yield return move;
 
             foreach (Move move in GenerateKnightNonCaptures(position.BlackKnight, position.Occupied))
@@ -224,7 +233,7 @@ public class MoveGenerator
         }
     }
 
-    private static IEnumerable<Move> GenerateQueenNonCaptures(ulong queens, ulong occupied, IPositionState board)
+    private static IEnumerable<Move> GenerateQueenNonCaptures(ulong queens, ulong occupied)
     {
         foreach (Move move in GenerateBishopNonCaptures(queens, occupied))
             yield return move;

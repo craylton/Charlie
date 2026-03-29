@@ -1,6 +1,5 @@
 ﻿using Charlie.Hash;
 using Charlie.Moves;
-using System.Numerics;
 
 namespace Charlie.BoardRepresentation;
 

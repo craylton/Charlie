@@ -102,6 +102,18 @@ public class Evaluator
         -10,-5,  0,  5,  5,  0,-5, -10,
     ];
 
+    private static readonly byte[] adjacentFilesMasks =
+    [
+        0b0000_0011,
+        0b0000_0111,
+        0b0000_1110,
+        0b0001_1100,
+        0b0011_1000,
+        0b0111_0000,
+        0b1110_0000,
+        0b1100_0000,
+    ];
+
     public static Score Evaluate(IPositionState board)
     {
         Board position = board.Board;
@@ -181,44 +193,54 @@ public class Evaluator
 
     private static void CalculatePawnScores(Board board, ref int whiteScore, ref int blackScore)
     {
-        bool[] whitePawnsOnFiles = new bool[8];
-        bool[] blackPawnsOnFiles = new bool[8];
+        ulong whitePawns = board.WhitePawn;
+        ulong blackPawns = board.BlackPawn;
+        int whiteFiles = 0;
+        int blackFiles = 0;
+
         for (int i = 0; i < Chessboard.Files.Length; i++)
         {
-            whitePawnsOnFiles[i] = (board.WhitePawn & Chessboard.Files[i]) != 0;
-            blackPawnsOnFiles[i] = (board.BlackPawn & Chessboard.Files[i]) != 0;
+            ulong fileMask = Chessboard.Files[i];
+
+            if ((whitePawns & fileMask) != 0)
+                whiteFiles |= 1 << i;
+
+            if ((blackPawns & fileMask) != 0)
+                blackFiles |= 1 << i;
         }
 
         for (int i = 0; i < Chessboard.Files.Length; i++)
         {
-            bool isWhitePawnToLeft = i != 0 && whitePawnsOnFiles[i - 1];
-            bool isWhitePawnToRight = i != Chessboard.Files.Length - 1 && whitePawnsOnFiles[i + 1];
+            int fileBit = 1 << i;
+            int adjacentMask = adjacentFilesMasks[i];
+            int neighbouringMask = adjacentMask ^ fileBit;
+            ulong fileMask = Chessboard.Files[i];
 
-            bool isBlackPawnToLeft = i != 0 && blackPawnsOnFiles[i - 1];
-            bool isBlackPawnToRight = i != Chessboard.Files.Length - 1 && blackPawnsOnFiles[i + 1];
+            bool whitePawnOnFile = (whiteFiles & fileBit) != 0;
+            bool blackPawnOnFile = (blackFiles & fileBit) != 0;
 
-            if (whitePawnsOnFiles[i])
+            if (whitePawnOnFile)
             {
                 // Isolated pawns
-                if (!isWhitePawnToLeft && !isWhitePawnToRight) whiteScore -= 10;
+                if ((whiteFiles & neighbouringMask) == 0) whiteScore -= 10;
 
                 // Doubled pawns
-                if (BitOperations.PopCount(board.WhitePawn & Chessboard.Files[i]) > 1) whiteScore -= 30;
+                if (BitOperations.PopCount(whitePawns & fileMask) > 1) whiteScore -= 30;
 
                 // Passed pawns
-                if (!blackPawnsOnFiles[i] && !isBlackPawnToLeft && !isBlackPawnToRight) whiteScore += 28;
+                if ((blackFiles & adjacentMask) == 0) whiteScore += 28;
             }
 
-            if (blackPawnsOnFiles[i])
+            if (blackPawnOnFile)
             {
                 // Isolated pawns
-                if (!isBlackPawnToLeft && !isBlackPawnToRight) blackScore -= 10;
+                if ((blackFiles & neighbouringMask) == 0) blackScore -= 10;
 
                 // Doubled pawns
-                if (BitOperations.PopCount(board.BlackPawn & Chessboard.Files[i]) > 1) blackScore -= 30;
+                if (BitOperations.PopCount(blackPawns & fileMask) > 1) blackScore -= 30;
 
                 // Passed pawns
-                if (!whitePawnsOnFiles[i] && !isWhitePawnToLeft && !isWhitePawnToRight) blackScore += 28;
+                if ((whiteFiles & adjacentMask) == 0) blackScore += 28;
             }
         }
     }
@@ -317,8 +339,11 @@ public class Evaluator
 
             for (int direction = 0; direction < 4; direction++)
             {
-                foreach (ulong attackedSquare in attacksBySquare[square, direction])
+                ulong[] rayAttacks = attacksBySquare[square, direction];
+
+                for (int i = 0; i < rayAttacks.Length; i++)
                 {
+                    ulong attackedSquare = rayAttacks[i];
                     attacks |= attackedSquare;
 
                     if ((attackedSquare & occupied) != 0)
