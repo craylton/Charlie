@@ -15,7 +15,25 @@ public class MoveGenerator
         }
     }
 
+    public static IEnumerable<Move> GenerateLegalMoves(SearchPosition board)
+    {
+        foreach (Move move in GeneratePseudoLegalMoves(board))
+        {
+            if (!move.LeavesPlayerInCheck(board))
+                yield return move;
+        }
+    }
+
     public static IEnumerable<Move> GenerateQuiescenceMoves(BoardState board)
+    {
+        foreach (Move move in GeneratePseudoLegalQuiescenceMoves(board))
+        {
+            if (!move.LeavesPlayerInCheck(board))
+                yield return move;
+        }
+    }
+
+    public static IEnumerable<Move> GenerateQuiescenceMoves(SearchPosition board)
     {
         foreach (Move move in GeneratePseudoLegalQuiescenceMoves(board))
         {
@@ -43,6 +61,25 @@ public class MoveGenerator
         }
     }
 
+    public static IEnumerable<Move> GenerateLegalMoves(SearchPosition board, IEnumerable<Move> bestMoves)
+    {
+        var seenMoves = new HashSet<Move>();
+
+        foreach (Move move in bestMoves)
+        {
+            if (seenMoves.Add(move))
+                yield return move;
+        }
+
+        foreach (Move move in GeneratePseudoLegalMoves(board))
+        {
+            if (move.LeavesPlayerInCheck(board) || !seenMoves.Add(move))
+                continue;
+
+            yield return move;
+        }
+    }
+
     public static IEnumerable<Move> TrimIllegalMoves(IEnumerable<Move> moves, BoardState board)
     {
         foreach (Move move in moves)
@@ -52,93 +89,101 @@ public class MoveGenerator
         }
     }
 
-    public static IEnumerable<Move> GeneratePseudoLegalMoves(BoardState board)
+    private static IEnumerable<Move> GeneratePseudoLegalMoves(IPositionState board)
     {
+        Board position = board.Board;
+
         foreach (Move move in GeneratePseudoLegalQuiescenceMoves(board))
             yield return move;
 
         if (board.ToMove == PieceColour.White)
         {
-            foreach (Move move in GeneratePawnQuietMoves(board.Board.WhitePawn, board))
+            foreach (Move move in GeneratePawnQuietMoves(position.WhitePawn, board))
                 yield return move;
 
-            foreach (Move move in GenerateBishopNonCaptures(board.Board.WhiteBishop, board.Board.Occupied))
+            foreach (Move move in GenerateBishopNonCaptures(position.WhiteBishop, position.Occupied))
                 yield return move;
 
-            foreach (Move move in GenerateRookNonCaptures(board.Board.WhiteRook, board.Board.Occupied))
+            foreach (Move move in GenerateRookNonCaptures(position.WhiteRook, position.Occupied))
                 yield return move;
 
-            foreach (Move move in GenerateQueenNonCaptures(board.Board.WhiteQueen, board.Board.Occupied, board))
+            foreach (Move move in GenerateQueenNonCaptures(position.WhiteQueen, position.Occupied, board))
                 yield return move;
 
-            foreach (Move move in GenerateKnightNonCaptures(board.Board.WhiteKnight, board.Board.Occupied))
+            foreach (Move move in GenerateKnightNonCaptures(position.WhiteKnight, position.Occupied))
                 yield return move;
 
-            foreach (Move move in GenerateKingNonCaptures(board.Board.WhiteKing, board.Board.Occupied, board))
+            foreach (Move move in GenerateKingNonCaptures(position.WhiteKing, position.Occupied, board))
                 yield return move;
         }
         else
         {
-            foreach (Move move in GeneratePawnQuietMoves(board.Board.BlackPawn, board))
+            foreach (Move move in GeneratePawnQuietMoves(position.BlackPawn, board))
                 yield return move;
 
-            foreach (Move move in GenerateBishopNonCaptures(board.Board.BlackBishop, board.Board.Occupied))
+            foreach (Move move in GenerateBishopNonCaptures(position.BlackBishop, position.Occupied))
                 yield return move;
 
-            foreach (Move move in GenerateRookNonCaptures(board.Board.BlackRook, board.Board.Occupied))
+            foreach (Move move in GenerateRookNonCaptures(position.BlackRook, position.Occupied))
                 yield return move;
 
-            foreach (Move move in GenerateQueenNonCaptures(board.Board.BlackQueen, board.Board.Occupied, board))
+            foreach (Move move in GenerateQueenNonCaptures(position.BlackQueen, position.Occupied, board))
                 yield return move;
 
-            foreach (Move move in GenerateKnightNonCaptures(board.Board.BlackKnight, board.Board.Occupied))
+            foreach (Move move in GenerateKnightNonCaptures(position.BlackKnight, position.Occupied))
                 yield return move;
 
-            foreach (Move move in GenerateKingNonCaptures(board.Board.BlackKing, board.Board.Occupied, board))
+            foreach (Move move in GenerateKingNonCaptures(position.BlackKing, position.Occupied, board))
                 yield return move;
         }
     }
 
-    public static IEnumerable<Move> GeneratePseudoLegalQuiescenceMoves(BoardState board)
+    private static IEnumerable<Move> GeneratePseudoLegalQuiescenceMoves(IPositionState board)
     {
+        Board position = board.Board;
+
         if (board.ToMove == PieceColour.White)
         {
-            foreach (Move move in GeneratePawnQuiescenceMoves(board.Board.WhitePawn, board))
+            ulong blackCapturablePieces = position.BlackPieces & ~position.BlackKing;
+
+            foreach (Move move in GeneratePawnQuiescenceMoves(position.WhitePawn, board, blackCapturablePieces))
                 yield return move;
 
-            foreach (Move move in GenerateKnightCaptures(board.Board.WhiteKnight, board.Board.BlackPieces))
+            foreach (Move move in GenerateKnightCaptures(position.WhiteKnight, blackCapturablePieces))
                 yield return move;
 
-            foreach (Move move in GenerateBishopCaptures(board.Board.WhiteBishop, board.Board.BlackPieces, board))
+            foreach (Move move in GenerateBishopCaptures(position.WhiteBishop, blackCapturablePieces, board))
                 yield return move;
 
-            foreach (Move move in GenerateQueenCaptures(board.Board.WhiteQueen, board.Board.BlackPieces, board))
+            foreach (Move move in GenerateQueenCaptures(position.WhiteQueen, blackCapturablePieces, board))
                 yield return move;
 
-            foreach (Move move in GenerateKingCaptures(board.Board.WhiteKing, board.Board.BlackPieces))
+            foreach (Move move in GenerateKingCaptures(position.WhiteKing, blackCapturablePieces))
                 yield return move;
 
-            foreach (Move move in GenerateRookCaptures(board.Board.WhiteRook, board.Board.BlackPieces, board))
+            foreach (Move move in GenerateRookCaptures(position.WhiteRook, blackCapturablePieces, board))
                 yield return move;
         }
         else
         {
-            foreach (Move move in GeneratePawnQuiescenceMoves(board.Board.BlackPawn, board))
+            ulong whiteCapturablePieces = position.WhitePieces & ~position.WhiteKing;
+
+            foreach (Move move in GeneratePawnQuiescenceMoves(position.BlackPawn, board, whiteCapturablePieces))
                 yield return move;
 
-            foreach (Move move in GenerateKnightCaptures(board.Board.BlackKnight, board.Board.WhitePieces))
+            foreach (Move move in GenerateKnightCaptures(position.BlackKnight, whiteCapturablePieces))
                 yield return move;
 
-            foreach (Move move in GenerateBishopCaptures(board.Board.BlackBishop, board.Board.WhitePieces, board))
+            foreach (Move move in GenerateBishopCaptures(position.BlackBishop, whiteCapturablePieces, board))
                 yield return move;
 
-            foreach (Move move in GenerateQueenCaptures(board.Board.BlackQueen, board.Board.WhitePieces, board))
+            foreach (Move move in GenerateQueenCaptures(position.BlackQueen, whiteCapturablePieces, board))
                 yield return move;
 
-            foreach (Move move in GenerateKingCaptures(board.Board.BlackKing, board.Board.WhitePieces))
+            foreach (Move move in GenerateKingCaptures(position.BlackKing, whiteCapturablePieces))
                 yield return move;
 
-            foreach (Move move in GenerateRookCaptures(board.Board.BlackRook, board.Board.WhitePieces, board))
+            foreach (Move move in GenerateRookCaptures(position.BlackRook, whiteCapturablePieces, board))
                 yield return move;
         }
     }
@@ -185,7 +230,7 @@ public class MoveGenerator
         }
     }
 
-    private static IEnumerable<Move> GenerateQueenNonCaptures(ulong queens, ulong occupied, BoardState board)
+    private static IEnumerable<Move> GenerateQueenNonCaptures(ulong queens, ulong occupied, IPositionState board)
     {
         foreach (Move move in GenerateBishopNonCaptures(queens, occupied))
             yield return move;
@@ -242,8 +287,9 @@ public class MoveGenerator
         }
     }
 
-    private static IEnumerable<Move> GenerateKingNonCaptures(ulong king, ulong occupied, BoardState board)
+    private static IEnumerable<Move> GenerateKingNonCaptures(ulong king, ulong occupied, IPositionState board)
     {
+        Board position = board.Board;
         ulong neighbours = Magics.Neighbours[BitOperations.TrailingZeroCount(king)] & ~occupied;
         while (neighbours != 0)
         {
@@ -256,8 +302,8 @@ public class MoveGenerator
         {
             // If can short castle
             if ((board.CastleRules & 0b0001) != 0 &&
-                (board.Board.Occupied & (Chessboard.SquareF1 | Chessboard.SquareG1)) == 0 &&
-                (board.Board.WhiteRook & Chessboard.SquareH1) != 0 &&
+                (position.Occupied & (Chessboard.SquareF1 | Chessboard.SquareG1)) == 0 &&
+                (position.WhiteRook & Chessboard.SquareH1) != 0 &&
                 !board.IsInCheck(PieceColour.White) &&
                 !board.IsUnderAttack(king >> 1, PieceColour.Black) &&
                 !board.IsUnderAttack(king >> 2, PieceColour.Black))
@@ -267,8 +313,8 @@ public class MoveGenerator
 
             // If can long castle
             if ((board.CastleRules & 0b0010) != 0 &&
-                (board.Board.Occupied & (Chessboard.SquareB1 | Chessboard.SquareC1 | Chessboard.SquareD1)) == 0 &&
-                (board.Board.WhiteRook & Chessboard.SquareA1) != 0 &&
+                (position.Occupied & (Chessboard.SquareB1 | Chessboard.SquareC1 | Chessboard.SquareD1)) == 0 &&
+                (position.WhiteRook & Chessboard.SquareA1) != 0 &&
                 !board.IsInCheck(PieceColour.White) &&
                 !board.IsUnderAttack(king << 1, PieceColour.Black) &&
                 !board.IsUnderAttack(king << 2, PieceColour.Black))
@@ -280,8 +326,8 @@ public class MoveGenerator
         {
             // If can short castle
             if ((board.CastleRules & 0b0100) != 0 &&
-                (board.Board.Occupied & (Chessboard.SquareF8 | Chessboard.SquareG8)) == 0 &&
-                (board.Board.BlackRook & Chessboard.SquareH8) != 0 &&
+                (position.Occupied & (Chessboard.SquareF8 | Chessboard.SquareG8)) == 0 &&
+                (position.BlackRook & Chessboard.SquareH8) != 0 &&
                 !board.IsInCheck(PieceColour.Black) &&
                 !board.IsUnderAttack(king >> 1, PieceColour.White) &&
                 !board.IsUnderAttack(king >> 2, PieceColour.White))
@@ -291,8 +337,8 @@ public class MoveGenerator
 
             // If can long castle
             if ((board.CastleRules & 0b1000) != 0 &&
-                (board.Board.Occupied & (Chessboard.SquareB8 | Chessboard.SquareC8 | Chessboard.SquareD8)) == 0 &&
-                (board.Board.BlackRook & Chessboard.SquareA8) != 0 &&
+                (position.Occupied & (Chessboard.SquareB8 | Chessboard.SquareC8 | Chessboard.SquareD8)) == 0 &&
+                (position.BlackRook & Chessboard.SquareA8) != 0 &&
                 !board.IsInCheck(PieceColour.Black) &&
                 !board.IsUnderAttack(king << 1, PieceColour.White) &&
                 !board.IsUnderAttack(king << 2, PieceColour.White))
@@ -302,7 +348,7 @@ public class MoveGenerator
         }
     }
 
-    private static IEnumerable<Move> GeneratePawnQuietMoves(ulong pawns, BoardState board)
+    private static IEnumerable<Move> GeneratePawnQuietMoves(ulong pawns, IPositionState board)
     {
         ulong occupiedBb = board.Board.Occupied;
 
@@ -342,7 +388,7 @@ public class MoveGenerator
         }
     }
 
-    private static IEnumerable<Move> GenerateQueenCaptures(ulong queens, ulong enemyPieces, BoardState board)
+    private static IEnumerable<Move> GenerateQueenCaptures(ulong queens, ulong enemyPieces, IPositionState board)
     {
         foreach (Move move in GenerateBishopCaptures(queens, enemyPieces, board))
             yield return move;
@@ -351,8 +397,9 @@ public class MoveGenerator
             yield return move;
     }
 
-    private static IEnumerable<Move> GenerateRookCaptures(ulong rooks, ulong enemyPieces, BoardState board)
+    private static IEnumerable<Move> GenerateRookCaptures(ulong rooks, ulong enemyPieces, IPositionState board)
     {
+        ulong occupied = board.Board.Occupied;
         while (rooks != 0)
         {
             int i = BitOperations.TrailingZeroCount(rooks);
@@ -364,14 +411,15 @@ public class MoveGenerator
                 foreach (var cell in Magics.TargetedRookAttacks[i, direction])
                 {
                     if ((cell & enemyPieces) != 0) yield return new Move(rook, cell);
-                    if ((cell & board.Board.Occupied) != 0) break;
+                    if ((cell & occupied) != 0) break;
                 }
             }
         }
     }
 
-    private static IEnumerable<Move> GenerateBishopCaptures(ulong bishops, ulong enemyPieces, BoardState board)
+    private static IEnumerable<Move> GenerateBishopCaptures(ulong bishops, ulong enemyPieces, IPositionState board)
     {
+        ulong occupied = board.Board.Occupied;
         while (bishops != 0)
         {
             int i = BitOperations.TrailingZeroCount(bishops);
@@ -383,7 +431,7 @@ public class MoveGenerator
                 foreach (var cell in Magics.TargetedBishopAttacks[i, direction])
                 {
                     if ((cell & enemyPieces) != 0) yield return new Move(bishop, cell);
-                    if ((cell & board.Board.Occupied) != 0) break;
+                    if ((cell & occupied) != 0) break;
                 }
             }
         }
@@ -429,11 +477,10 @@ public class MoveGenerator
             yield return new Move(king, king << 9);
     }
 
-    private static IEnumerable<Move> GeneratePawnQuiescenceMoves(ulong pawns, BoardState board)
+    private static IEnumerable<Move> GeneratePawnQuiescenceMoves(ulong pawns, IPositionState board, ulong enemyPieces)
     {
-        ulong occupiedBb = board.Board.Occupied;
-        ulong blackPiecesBb = board.Board.BlackPieces;
-        ulong whitePiecesBb = board.Board.WhitePieces;
+        Board position = board.Board;
+        ulong occupiedBb = position.Occupied;
 
         while (pawns != 0)
         {
@@ -444,7 +491,7 @@ public class MoveGenerator
             if (board.ToMove == PieceColour.White)
             {
                 // if the pawn can take to the left
-                if (((pawn >> 7) & blackPiecesBb & ~Chessboard.HFile) != 0)
+                if (((pawn >> 7) & enemyPieces & ~Chessboard.HFile) != 0)
                 {
                     // if moving forward will make it promote
                     if ((pawn & Chessboard.Rank7) != 0)
@@ -461,7 +508,7 @@ public class MoveGenerator
                 }
 
                 // if the pawn can take to the right
-                if (((pawn >> 9) & blackPiecesBb & ~Chessboard.AFile) != 0)
+                if (((pawn >> 9) & enemyPieces & ~Chessboard.AFile) != 0)
                 {
                     // if moving forward will make it promote
                     if ((pawn & Chessboard.Rank7) != 0)
@@ -501,7 +548,7 @@ public class MoveGenerator
             else
             {
                 // if the pawn can take to the left
-                if (((pawn << 9) & whitePiecesBb & ~Chessboard.HFile) != 0)
+                if (((pawn << 9) & enemyPieces & ~Chessboard.HFile) != 0)
                 {
                     // if moving forward will make it promote
                     if ((pawn & Chessboard.Rank2) != 0)
@@ -518,7 +565,7 @@ public class MoveGenerator
                 }
 
                 // if the pawn can take to the right
-                if (((pawn << 7) & whitePiecesBb & ~Chessboard.AFile) != 0)
+                if (((pawn << 7) & enemyPieces & ~Chessboard.AFile) != 0)
                 {
                     // if moving forward will make it promote
                     if ((pawn & Chessboard.Rank2) != 0)

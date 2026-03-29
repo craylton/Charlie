@@ -6,7 +6,7 @@ public class Evaluator
 {
     private const int pawn = 100, knight = 320, bishop = 338, rook = 525, queen = 920;
 
-    private readonly int[] pawnPsqt =
+    private static readonly int[] pawnPsqt =
     [
         0,  0,  0,  0,  0,  0,  0,  0,
         70, 70, 70, 70, 70, 70, 70, 70,
@@ -18,7 +18,7 @@ public class Evaluator
         0,  0,  0,  0,  0,  0,  0,  0,
     ];
 
-    private readonly int[] knightPsqt =
+    private static readonly int[] knightPsqt =
     [
         -50,-40,-30,-30,-30,-30,-40,-50,
         -40,-20,  0,  0,  0,  0,-20,-40,
@@ -30,7 +30,7 @@ public class Evaluator
         -50,-40,-30,-30,-30,-30,-40,-50,
     ];
 
-    private readonly int[] bishopPsqt =
+    private static readonly int[] bishopPsqt =
     [
         -20,-10,-10,-10,-10,-10,-10,-20,
         -10,  0,  0,  0,  0,  0,  0,-10,
@@ -42,7 +42,7 @@ public class Evaluator
         -20,-10,-10,-10,-10,-10,-10,-20,
     ];
 
-    private readonly int[] rookPsqt =
+    private static readonly int[] rookPsqt =
     [
          4,  6, 12, 14, 14, 12,  6,  4,
          4, 12, 21, 10, 10, 21, 12,  4,
@@ -54,7 +54,7 @@ public class Evaluator
        -17,-13, -9, -4, -4, -9,-13,-17,
     ];
 
-    private readonly int[] queenPsqt =
+    private static readonly int[] queenPsqt =
     [
         -20,-10,-10, -5, -5,-10,-10,-20,
         -10,  0,  0,  0,  0,  0,  0,-10,
@@ -66,7 +66,7 @@ public class Evaluator
         -20,-10,-10, -5, -5,-10,-10,-20,
     ];
 
-    private readonly int[] openingQueenPsqt =
+    private static readonly int[] openingQueenPsqt =
     [
         -20,-20,-20,-20,-20,-20,-20,-20,
         -20,-20,-20,-20,-20,-20,-20,-20,
@@ -78,7 +78,7 @@ public class Evaluator
           2,  5, 11, 17, 17, 11,  5,  2,
     ];
 
-    private readonly int[] kingPsqt =
+    private static readonly int[] kingPsqt =
     [
         -30,-40,-40,-50,-50,-40,-40,-30,
         -30,-40,-40,-50,-50,-40,-40,-30,
@@ -90,7 +90,7 @@ public class Evaluator
          20, 30, 10,  0,  0, 10, 30, 20
     ];
 
-    private readonly int[] endgameKingPsqt =
+    private static readonly int[] endgameKingPsqt =
     [
         -10,-5,  0,  5,  5,  0,-5, -10,
         -5,  0,  5,  8,  8,  5, 0, -5,
@@ -102,39 +102,45 @@ public class Evaluator
         -10,-5,  0,  5,  5,  0,-5, -10,
     ];
 
-    public Score Evaluate(BoardState board)
+    public Score Evaluate(IPositionState board)
     {
-        Score whiteScore = Score.Draw, blackScore = Score.Draw;
         Board position = board.Board;
 
-        int whiteMaterial = GetWhiteMaterialCount(board);
-        int blackMaterial = GetBlackMaterialCount(board);
+        int whiteMaterial = GetWhiteMaterialCount(position);
+        int blackMaterial = GetBlackMaterialCount(position);
+        int whiteScore = whiteMaterial;
+        int blackScore = blackMaterial;
+        int totalMaterial = whiteMaterial + blackMaterial;
 
-        whiteScore += whiteMaterial;
-        blackScore += blackMaterial;
+        bool isOpening = totalMaterial >= 6200;
+        bool isEndgame = totalMaterial <= 3500;
+        int pawnMultiplier = isEndgame ? 2 : 1;
+        int[] queenTable = isOpening ? openingQueenPsqt : queenPsqt;
+        int[] kingTable = isEndgame ? endgameKingPsqt : kingPsqt;
 
-        bool isOpening = whiteMaterial + blackMaterial >= 6200;
-        bool isEndgame = whiteMaterial + blackMaterial <= 3500;
+        whiteScore += GetPsqtScore(position.WhitePawn, pawnPsqt, pawnMultiplier);
+        whiteScore += GetPsqtScore(position.WhiteKnight, knightPsqt);
+        whiteScore += GetPsqtScore(position.WhiteBishop, bishopPsqt);
+        whiteScore += GetPsqtScore(position.WhiteRook, rookPsqt);
+        whiteScore += GetPsqtScore(position.WhiteQueen, queenTable);
+        whiteScore += GetPsqtScore(position.WhiteKing, kingTable);
 
-        ulong unoccupiedBb = ~position.Occupied;
-
-        for (int i = 0; i < 64; i++)
-        {
-            ulong thisSquare = 1ul << i;
-            if ((unoccupiedBb & thisSquare) != 0) continue;
-
-            // Assign values to each piece according to its position
-            whiteScore += CalculateWhitePsqt(board, isOpening, isEndgame, i, thisSquare);
-            blackScore += CalculateBlackPsqt(board, isOpening, isEndgame, i, thisSquare);
-        }
+        blackScore += GetMirroredPsqtScore(position.BlackPawn, pawnPsqt, pawnMultiplier);
+        blackScore += GetMirroredPsqtScore(position.BlackKnight, knightPsqt);
+        blackScore += GetMirroredPsqtScore(position.BlackBishop, bishopPsqt);
+        blackScore += GetMirroredPsqtScore(position.BlackRook, rookPsqt);
+        blackScore += GetMirroredPsqtScore(position.BlackQueen, queenTable);
+        blackScore += GetMirroredPsqtScore(position.BlackKing, kingTable);
 
         // Lazy eval
-        if ((whiteScore - blackScore) > 270 || (whiteScore - blackScore) < -270)
+        int score = whiteScore - blackScore;
+        if (score > 270 || score < -270)
         {
             if (isEndgame)
-                CalculatePawnScores(board, ref whiteScore, ref blackScore);
+                CalculatePawnScores(position, ref whiteScore, ref blackScore);
 
-            return (whiteScore - blackScore) * (board.ToMove == PieceColour.White ? 1 : -1);
+            score = whiteScore - blackScore;
+            return new Score(score * (board.ToMove == PieceColour.White ? 1 : -1));
         }
 
         ulong whiteAttacks = GetWhiteAttacks(position);
@@ -167,19 +173,20 @@ public class Evaluator
             blackScore -= BitOperations.PopCount(whiteTerritory & position.BlackQueen) * queen / 3;
         }
 
-        CalculatePawnScores(board, ref whiteScore, ref blackScore);
+        CalculatePawnScores(position, ref whiteScore, ref blackScore);
 
-        return (whiteScore - blackScore) * (board.ToMove == PieceColour.White ? 1 : -1);
+        score = whiteScore - blackScore;
+        return new Score(score * (board.ToMove == PieceColour.White ? 1 : -1));
     }
 
-    private static void CalculatePawnScores(BoardState board, ref Score whiteScore, ref Score blackScore)
+    private static void CalculatePawnScores(Board board, ref int whiteScore, ref int blackScore)
     {
         bool[] whitePawnsOnFiles = new bool[8];
         bool[] blackPawnsOnFiles = new bool[8];
         for (int i = 0; i < Chessboard.Files.Length; i++)
         {
-            whitePawnsOnFiles[i] = (board.Board.WhitePawn & Chessboard.Files[i]) != 0;
-            blackPawnsOnFiles[i] = (board.Board.BlackPawn & Chessboard.Files[i]) != 0;
+            whitePawnsOnFiles[i] = (board.WhitePawn & Chessboard.Files[i]) != 0;
+            blackPawnsOnFiles[i] = (board.BlackPawn & Chessboard.Files[i]) != 0;
         }
 
         for (int i = 0; i < Chessboard.Files.Length; i++)
@@ -196,7 +203,7 @@ public class Evaluator
                 if (!isWhitePawnToLeft && !isWhitePawnToRight) whiteScore -= 10;
 
                 // Doubled pawns
-                if (BitOperations.PopCount(board.Board.WhitePawn & Chessboard.Files[i]) > 1) whiteScore -= 30;
+                if (BitOperations.PopCount(board.WhitePawn & Chessboard.Files[i]) > 1) whiteScore -= 30;
 
                 // Passed pawns
                 if (!blackPawnsOnFiles[i] && !isBlackPawnToLeft && !isBlackPawnToRight) whiteScore += 28;
@@ -208,7 +215,7 @@ public class Evaluator
                 if (!isBlackPawnToLeft && !isBlackPawnToRight) blackScore -= 10;
 
                 // Doubled pawns
-                if (BitOperations.PopCount(board.Board.BlackPawn & Chessboard.Files[i]) > 1) blackScore -= 30;
+                if (BitOperations.PopCount(board.BlackPawn & Chessboard.Files[i]) > 1) blackScore -= 30;
 
                 // Passed pawns
                 if (!whitePawnsOnFiles[i] && !isWhitePawnToLeft && !isWhitePawnToRight) blackScore += 28;
@@ -216,25 +223,53 @@ public class Evaluator
         }
     }
 
-    private static int GetWhiteMaterialCount(BoardState board)
+    private static int GetPsqtScore(ulong pieces, int[] psqt, int multiplier = 1)
+    {
+        int score = 0;
+
+        while (pieces != 0)
+        {
+            int square = BitOperations.TrailingZeroCount(pieces);
+            score += psqt[square] * multiplier;
+            pieces &= pieces - 1;
+        }
+
+        return score;
+    }
+
+    private static int GetMirroredPsqtScore(ulong pieces, int[] psqt, int multiplier = 1)
+    {
+        int score = 0;
+
+        while (pieces != 0)
+        {
+            int square = BitOperations.TrailingZeroCount(pieces);
+            score += psqt[63 - square] * multiplier;
+            pieces &= pieces - 1;
+        }
+
+        return score;
+    }
+
+    private static int GetWhiteMaterialCount(Board board)
     {
         int whiteMaterial = 0;
-        whiteMaterial += BitOperations.PopCount(board.Board.WhitePawn) * pawn;
-        whiteMaterial += BitOperations.PopCount(board.Board.WhiteKnight) * knight;
-        whiteMaterial += BitOperations.PopCount(board.Board.WhiteBishop) * bishop;
-        whiteMaterial += BitOperations.PopCount(board.Board.WhiteRook) * rook;
-        whiteMaterial += BitOperations.PopCount(board.Board.WhiteQueen) * queen;
+        whiteMaterial += BitOperations.PopCount(board.WhitePawn) * pawn;
+        whiteMaterial += BitOperations.PopCount(board.WhiteKnight) * knight;
+        whiteMaterial += BitOperations.PopCount(board.WhiteBishop) * bishop;
+        whiteMaterial += BitOperations.PopCount(board.WhiteRook) * rook;
+        whiteMaterial += BitOperations.PopCount(board.WhiteQueen) * queen;
         return whiteMaterial;
     }
 
-    private static int GetBlackMaterialCount(BoardState board)
+    private static int GetBlackMaterialCount(Board board)
     {
         int blackMaterial = 0;
-        blackMaterial += BitOperations.PopCount(board.Board.BlackPawn) * pawn;
-        blackMaterial += BitOperations.PopCount(board.Board.BlackKnight) * knight;
-        blackMaterial += BitOperations.PopCount(board.Board.BlackBishop) * bishop;
-        blackMaterial += BitOperations.PopCount(board.Board.BlackRook) * rook;
-        blackMaterial += BitOperations.PopCount(board.Board.BlackQueen) * queen;
+        blackMaterial += BitOperations.PopCount(board.BlackPawn) * pawn;
+        blackMaterial += BitOperations.PopCount(board.BlackKnight) * knight;
+        blackMaterial += BitOperations.PopCount(board.BlackBishop) * bishop;
+        blackMaterial += BitOperations.PopCount(board.BlackRook) * rook;
+        blackMaterial += BitOperations.PopCount(board.BlackQueen) * queen;
         return blackMaterial;
     }
 
@@ -299,19 +334,19 @@ public class Evaluator
         return attacks;
     }
 
-    private Score CalculateWhitePsqt(BoardState board, bool isOpening, bool isEndgame, int cellIndex, ulong thisSquare)
+    private Score CalculateWhitePsqt(Board board, bool isOpening, bool isEndgame, int cellIndex, ulong thisSquare)
     {
         Score psqt = Score.Draw;
 
-        if ((board.Board.WhitePawn & thisSquare) != 0) psqt += pawnPsqt[cellIndex] * (isEndgame ? 2 : 1);
-        if ((board.Board.WhiteKnight & thisSquare) != 0) psqt += knightPsqt[cellIndex];
-        if ((board.Board.WhiteBishop & thisSquare) != 0) psqt += bishopPsqt[cellIndex];
-        if ((board.Board.WhiteRook & thisSquare) != 0) psqt += rookPsqt[cellIndex];
-        if ((board.Board.WhiteQueen & thisSquare) != 0)
+        if ((board.WhitePawn & thisSquare) != 0) psqt += pawnPsqt[cellIndex] * (isEndgame ? 2 : 1);
+        if ((board.WhiteKnight & thisSquare) != 0) psqt += knightPsqt[cellIndex];
+        if ((board.WhiteBishop & thisSquare) != 0) psqt += bishopPsqt[cellIndex];
+        if ((board.WhiteRook & thisSquare) != 0) psqt += rookPsqt[cellIndex];
+        if ((board.WhiteQueen & thisSquare) != 0)
         {
             psqt += isOpening ? openingQueenPsqt[cellIndex] : queenPsqt[cellIndex];
         }
-        if ((board.Board.WhiteKing & thisSquare) != 0)
+        if ((board.WhiteKing & thisSquare) != 0)
         {
             psqt += isEndgame ? endgameKingPsqt[cellIndex] : kingPsqt[cellIndex];
         }
@@ -319,19 +354,19 @@ public class Evaluator
         return psqt;
     }
 
-    private Score CalculateBlackPsqt(BoardState board, bool isOpening, bool isEndgame, int cellIndex, ulong thisSquare)
+    private Score CalculateBlackPsqt(Board board, bool isOpening, bool isEndgame, int cellIndex, ulong thisSquare)
     {
         Score psqt = Score.Draw;
 
-        if ((board.Board.BlackPawn & thisSquare) != 0) psqt += pawnPsqt[63 - cellIndex] * (isEndgame ? 2 : 1);
-        if ((board.Board.BlackKnight & thisSquare) != 0) psqt += knightPsqt[63 - cellIndex];
-        if ((board.Board.BlackBishop & thisSquare) != 0) psqt += bishopPsqt[63 - cellIndex];
-        if ((board.Board.BlackRook & thisSquare) != 0) psqt += rookPsqt[63 - cellIndex];
-        if ((board.Board.BlackQueen & thisSquare) != 0)
+        if ((board.BlackPawn & thisSquare) != 0) psqt += pawnPsqt[63 - cellIndex] * (isEndgame ? 2 : 1);
+        if ((board.BlackKnight & thisSquare) != 0) psqt += knightPsqt[63 - cellIndex];
+        if ((board.BlackBishop & thisSquare) != 0) psqt += bishopPsqt[63 - cellIndex];
+        if ((board.BlackRook & thisSquare) != 0) psqt += rookPsqt[63 - cellIndex];
+        if ((board.BlackQueen & thisSquare) != 0)
         {
             psqt += isOpening ? openingQueenPsqt[63 - cellIndex] : queenPsqt[63 - cellIndex];
         }
-        if ((board.Board.BlackKing & thisSquare) != 0)
+        if ((board.BlackKing & thisSquare) != 0)
         {
             psqt += isEndgame ? endgameKingPsqt[63 - cellIndex] : kingPsqt[63 - cellIndex];
         }

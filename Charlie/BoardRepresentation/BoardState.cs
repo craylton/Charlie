@@ -6,7 +6,7 @@ using System.Numerics;
 
 namespace Charlie.BoardRepresentation;
 
-public class BoardState
+public class BoardState : IPositionState
 {
     private static string StartPositionFen { get; } =
         "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -72,6 +72,24 @@ public class BoardState
         previousStates = new HistoryNode(HashCode, null);
     }
 
+    internal SearchPosition ToSearchPosition() => new(this);
+
+    internal long[] GetHistoryHashes()
+    {
+        int count = 0;
+
+        for (HistoryNode state = previousStates; state is not null; state = state.Previous)
+            count++;
+
+        long[] hashes = new long[count];
+        int index = count - 1;
+
+        for (HistoryNode state = previousStates; state is not null; state = state.Previous)
+            hashes[index--] = state.Hash;
+
+        return hashes;
+    }
+
     private static ulong GetEnPassantFromFen(char enPassantFile, bool whiteToMove)
     {
         if (enPassantFile == '-') return 0;
@@ -114,10 +132,6 @@ public class BoardState
         PieceColour nextToMove = ToMove == PieceColour.White ? PieceColour.Black : PieceColour.White;
         Board newBoard = new(Board, move);
         long childHash = UpdateHash(move, newBoard, nextToMove, castleRules, whiteEP, blackEP);
-
-#if DEBUG
-        Debug.Assert(childHash == Zobrist.ComputeFullHash(newBoard, nextToMove, castleRules, whiteEP, blackEP));
-#endif
 
         return new BoardState(
             previousStates,
@@ -303,7 +317,7 @@ public class BoardState
         return false;
     }
 
-    internal bool IsInCheck(PieceColour toMove)
+    public bool IsInCheck(PieceColour toMove)
     {
         if (toMove == PieceColour.White)
             return IsUnderAttack(Board.WhiteKing, PieceColour.Black);
@@ -311,7 +325,7 @@ public class BoardState
             return IsUnderAttack(Board.BlackKing, PieceColour.White);
     }
 
-    internal bool IsInPseudoCheck(PieceColour attacker)
+    public bool IsInPseudoCheck(PieceColour attacker)
     {
         if (attacker == PieceColour.Black)
         {
@@ -337,7 +351,7 @@ public class BoardState
         return false;
     }
 
-    internal bool IsUnderAttack(ulong cell, PieceColour attacker)
+    public bool IsUnderAttack(ulong cell, PieceColour attacker)
     {
         if (attacker == PieceColour.Black)
         {

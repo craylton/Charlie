@@ -12,6 +12,8 @@ namespace Charlie.Search;
 
 public class Searcher
 {
+    private const int MaxSearchPly = 256;
+
     private bool cancel;
     private readonly Timer timer = new() { AutoReset = false };
     private readonly Stopwatch sw = new();
@@ -21,6 +23,9 @@ public class Searcher
     private ulong nodesSearched;
 
     private readonly HashTable HashTable = new();
+    private readonly UndoState[] undoStack = new UndoState[MaxSearchPly];
+    private long[] repetitionHashes = [];
+    private int repetitionBaseLength;
 
     public event EventHandler<MoveInfo> IterationCompleted;
     public event EventHandler<MoveInfo> IterationFailedHigh;
@@ -35,6 +40,12 @@ public class Searcher
         cancel = false;
         nodesSearched = 0;
         sw.Start();
+
+        SearchPosition searchPosition = currentBoard.ToSearchPosition();
+        long[] rootHistory = currentBoard.GetHistoryHashes();
+        repetitionBaseLength = rootHistory.Length;
+        repetitionHashes = new long[repetitionBaseLength + MaxSearchPly + 1];
+        Array.Copy(rootHistory, repetitionHashes, repetitionBaseLength);
 
         if (searchParameters.SearchType == SearchType.Time)
         {
@@ -56,7 +67,7 @@ public class Searcher
         while (rootMoves.Count > 0)
         {
             pv = [];
-            eval = await AlphaBeta(currentBoard, alpha, beta, depth, rootMoves, pv, prevPv);
+            eval = await AlphaBeta(searchPosition, alpha, beta, depth, rootMoves, pv, prevPv);
             rootMoves.SortByPromise();
 
             bool isMate = eval.IsMateScore();
@@ -124,7 +135,7 @@ public class Searcher
     public void ClearHash() => HashTable.Clear();
 
     private async Task<Score> AlphaBeta(
-        BoardState boardState,
+        SearchPosition boardState,
         Score alpha,
         Score beta,
         int depth,
@@ -151,41 +162,52 @@ public class Searcher
                 childDepth--;
 
             Score eval;
-            BoardState newBoard = boardState.MakeMove(move);
+            boardState.MakeMoveInPlace(move, ref undoStack[0]);
+            RecordRepetitionHash(1, boardState.HashCode);
 
-            if (foundPv)
+            try
             {
-                eval = -await AlphaBetaInternal(
-                    newBoard,
-                    -alpha - 1,
-                    -alpha,
-                    childDepth,
-                    1,
-                    pvBuffer,
-                    childPvMoves);
-
-                if (eval > alpha && eval < beta)
+                if (foundPv)
                 {
                     eval = -await AlphaBetaInternal(
-                        newBoard,
+                        boardState,
+                        -alpha - 1,
+                        -alpha,
+                        childDepth,
+                        1,
+                        1,
+                        pvBuffer,
+                        childPvMoves);
+
+                    if (eval > alpha && eval < beta)
+                    {
+                        eval = -await AlphaBetaInternal(
+                            boardState,
+                            -beta,
+                            -alpha,
+                            childDepth,
+                            1,
+                            1,
+                            pvBuffer,
+                            childPvMoves);
+                    }
+                }
+                else
+                {
+                    eval = -await AlphaBetaInternal(
+                        boardState,
                         -beta,
                         -alpha,
                         childDepth,
+                        1,
                         1,
                         pvBuffer,
                         childPvMoves);
                 }
             }
-            else
+            finally
             {
-                eval = -await AlphaBetaInternal(
-                    newBoard,
-                    -beta,
-                    -alpha,
-                    childDepth,
-                    1,
-                    pvBuffer,
-                    childPvMoves);
+                boardState.UnmakeMove(move, in undoStack[0]);
             }
 
             moves[moveIndex].Score = eval;
@@ -225,11 +247,12 @@ public class Searcher
     }
 
     private async Task<Score> AlphaBetaInternal(
-        BoardState boardState,
+        SearchPosition boardState,
         Score alpha,
         Score beta,
         int depth,
         int height,
+        int ply,
         List<Move> pv,
         Move[] pvMoves)
     {
@@ -238,7 +261,7 @@ public class Searcher
         if (depth <= 0)
         {
             nodesSearched++;
-            return await Quiesce(boardState, alpha, beta);
+            return await Quiesce(boardState, alpha, beta, ply);
         }
 
         IEnumerable<Move> moves = GenerateOrderedMoves(boardState, pvMoves);
@@ -261,75 +284,87 @@ public class Searcher
             Move[] childPvMoves = isPvMove ? pvMoves[1..] : [];
             var pvBuffer = new List<Move>();
             var childDepth = depth - 1;
+            bool isCaptureOrPromotion = move.IsCaptureOrPromotion(boardState);
 
             Score eval = Score.Draw;
-            BoardState newBoard = boardState.MakeMove(move);
+            boardState.MakeMoveInPlace(move, ref undoStack[ply]);
+            RecordRepetitionHash(ply + 1, boardState.HashCode);
 
-            // Reductions and extensions
-            int extension = 0;
-
-            // Promotion extension
-            if (move.PromotionType != PromotionType.None)
-                extension++;
-
-            // PV extension
-            if (isPvMove && childDepth == 2)
-                extension++;
-
-            // Latter move reduction (we assume that the first move generated will be the best)
-            if (!isFirstMove && !move.IsCaptureOrPromotion(boardState))
-                extension--;
-
-            // Check extension
-            if (newBoard.IsInCheck(newBoard.ToMove))
-                extension++;
-
-            childDepth += extension;
-
-            if (newBoard.IsThreeMoveRepetition())
+            try
             {
-                nodesSearched++;
-                eval = Score.Draw;
-            }
-            // Early quiescence
-            else if (childDepth == 1 && move.IsCaptureOrPromotion(boardState))
-            {
-                nodesSearched++;
-                eval = -await Quiesce(newBoard, -beta, -alpha);
-            }
-            else if (foundPv)
-            {
-                eval = -await AlphaBetaInternal(
-                    newBoard,
-                    -alpha - 1,
-                    -alpha,
-                    childDepth,
-                    height + 1,
-                    pvBuffer,
-                    childPvMoves);
+                // Reductions and extensions
+                int extension = 0;
 
-                if (eval > alpha && eval < beta)
+                // Promotion extension
+                if (move.PromotionType != PromotionType.None)
+                    extension++;
+
+                // PV extension
+                if (isPvMove && childDepth == 2)
+                    extension++;
+
+                // Latter move reduction (we assume that the first move generated will be the best)
+                if (!isFirstMove && !isCaptureOrPromotion)
+                    extension--;
+
+                // Check extension
+                if (boardState.IsInCheck(boardState.ToMove))
+                    extension++;
+
+                childDepth += extension;
+
+                if (IsThreeMoveRepetition(ply + 1, boardState.HashCode))
+                {
+                    nodesSearched++;
+                    eval = Score.Draw;
+                }
+                // Early quiescence
+                else if (childDepth == 1 && isCaptureOrPromotion)
+                {
+                    nodesSearched++;
+                    eval = -await Quiesce(boardState, -beta, -alpha, ply + 1);
+                }
+                else if (foundPv)
                 {
                     eval = -await AlphaBetaInternal(
-                        newBoard,
+                        boardState,
+                        -alpha - 1,
+                        -alpha,
+                        childDepth,
+                        height + 1,
+                        ply + 1,
+                        pvBuffer,
+                        childPvMoves);
+
+                    if (eval > alpha && eval < beta)
+                    {
+                        eval = -await AlphaBetaInternal(
+                            boardState,
+                            -beta,
+                            -alpha,
+                            childDepth,
+                            height + 1,
+                            ply + 1,
+                            pvBuffer,
+                            childPvMoves);
+                    }
+                }
+                else
+                {
+                    eval = -await AlphaBetaInternal(
+                        boardState,
                         -beta,
                         -alpha,
                         childDepth,
                         height + 1,
+                        ply + 1,
                         pvBuffer,
                         childPvMoves);
                 }
             }
-            else
+            finally
             {
-                eval = -await AlphaBetaInternal(
-                    newBoard,
-                    -beta,
-                    -alpha,
-                    childDepth,
-                    height + 1,
-                    pvBuffer,
-                    childPvMoves);
+                boardState.UnmakeMove(move, in undoStack[ply]);
             }
 
             if (cancel) break;
@@ -359,7 +394,7 @@ public class Searcher
         return alpha;
     }
 
-    private async Task<Score> Quiesce(BoardState boardState, Score alpha, Score beta)
+    private async Task<Score> Quiesce(SearchPosition boardState, Score alpha, Score beta, int ply)
     {
         Score eval = evaluator.Evaluate(boardState);
 
@@ -370,9 +405,17 @@ public class Searcher
 
         foreach (Move move in moves)
         {
-            BoardState newBoardState = boardState.MakeMove(move);
+            boardState.MakeMoveInPlace(move, ref undoStack[ply]);
+            RecordRepetitionHash(ply + 1, boardState.HashCode);
 
-            eval = -await Quiesce(newBoardState, -beta, -alpha);
+            try
+            {
+                eval = -await Quiesce(boardState, -beta, -alpha, ply + 1);
+            }
+            finally
+            {
+                boardState.UnmakeMove(move, in undoStack[ply]);
+            }
 
             if (eval >= beta) return beta;
             if (eval > alpha) alpha = eval;
@@ -381,7 +424,7 @@ public class Searcher
         return alpha;
     }
 
-    private IEnumerable<Move> GenerateOrderedMoves(BoardState boardState, Move[] pvMoves)
+    private IEnumerable<Move> GenerateOrderedMoves(SearchPosition boardState, Move[] pvMoves)
     {
         Move ttBestMove = HashTable.ProbeHash(boardState.HashCode);
         var bestMoves = new List<Move>();
@@ -399,7 +442,8 @@ public class Searcher
     {
         sw.Start();
 
-        ulong permutationCount = await PerfTestInner(currentBoard, rootDepth);
+        SearchPosition rootPosition = currentBoard.ToSearchPosition();
+        ulong permutationCount = await PerfTestInner(rootPosition, rootDepth, 0);
         long timeTaken = sw.ElapsedMilliseconds;
 
         Stop();
@@ -407,7 +451,7 @@ public class Searcher
         var results = new PerftResults(permutationCount, (ulong)timeTaken);
         PerftComplete?.Invoke(this, results);
 
-        async Task<ulong> PerfTestInner(BoardState boardState, int subDepth)
+        async Task<ulong> PerfTestInner(SearchPosition boardState, int subDepth, int ply)
         {
             ulong count = 0;
 
@@ -417,8 +461,9 @@ public class Searcher
 
             foreach (Move move in moves)
             {
-                var newBoard = boardState.MakeMove(move);
-                var perft = await PerfTestInner(newBoard, subDepth - 1);
+                boardState.MakeMoveInPlace(move, ref undoStack[ply]);
+                var perft = await PerfTestInner(boardState, subDepth - 1, ply + 1);
+                boardState.UnmakeMove(move, in undoStack[ply]);
 
                 if (subDepth == rootDepth) Console.WriteLine($"{move}: {perft}");
 
@@ -427,5 +472,22 @@ public class Searcher
 
             return count;
         }
+    }
+
+    private void RecordRepetitionHash(int ply, long hash) =>
+        repetitionHashes[repetitionBaseLength - 1 + ply] = hash;
+
+    private bool IsThreeMoveRepetition(int ply, long hash)
+    {
+        int count = 0;
+        int upperBound = repetitionBaseLength - 1 + ply;
+
+        for (int i = 0; i <= upperBound; i++)
+        {
+            if (repetitionHashes[i] == hash && ++count == 3)
+                return true;
+        }
+
+        return false;
     }
 }

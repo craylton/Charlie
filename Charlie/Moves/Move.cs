@@ -76,12 +76,12 @@ public readonly struct Move : IEquatable<Move>
         return matches.Single();
     }
 
-    public bool IsCapture(BoardState board) => (board.Board.Occupied & ToCell) != 0;
+    public bool IsCapture(IPositionState board) => (board.Board.Occupied & ToCell) != 0;
 
-    public bool IsCaptureOrPromotion(BoardState board) =>
+    public bool IsCaptureOrPromotion(IPositionState board) =>
         IsCapture(board) || PromotionType != PromotionType.None;
 
-    public bool IsAdvancedPawnPush(BoardState board)
+    public bool IsAdvancedPawnPush(IPositionState board)
     {
         var whiteAdvancePush = Chessboard.Rank5 | Chessboard.Rank6 | Chessboard.Rank7;
         if (board.ToMove == PieceColour.White && (board.Board.WhitePawn & FromCell & whiteAdvancePush) != 0)
@@ -92,6 +92,23 @@ public readonly struct Move : IEquatable<Move>
             return true;
 
         return false;
+    }
+
+    public bool LeavesPlayerInCheck(SearchPosition board)
+    {
+        PieceColour attacker = board.ToMove == PieceColour.White ? PieceColour.Black : PieceColour.White;
+
+        UndoState undo = default;
+        board.MakeMoveInPlace(this, ref undo);
+
+        bool leavesPlayerInCheck = false;
+
+        if (board.IsInPseudoCheck(attacker))
+            leavesPlayerInCheck = board.IsInCheck(attacker == PieceColour.White ? PieceColour.Black : PieceColour.White);
+
+        board.UnmakeMove(this, in undo);
+
+        return leavesPlayerInCheck;
     }
 
     public bool IsValidMove() => !Equals(default);

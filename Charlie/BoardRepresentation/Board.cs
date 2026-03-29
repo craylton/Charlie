@@ -29,6 +29,34 @@ public readonly struct Board
 
     public ulong Occupied => WhitePieces | BlackPieces;
 
+    public Board(
+        ulong whiteKing,
+        ulong blackKing,
+        ulong whiteQueen,
+        ulong blackQueen,
+        ulong whiteRook,
+        ulong blackRook,
+        ulong whiteBishop,
+        ulong blackBishop,
+        ulong whiteKnight,
+        ulong blackKnight,
+        ulong whitePawn,
+        ulong blackPawn)
+    {
+        WhiteKing = whiteKing;
+        BlackKing = blackKing;
+        WhiteQueen = whiteQueen;
+        BlackQueen = blackQueen;
+        WhiteRook = whiteRook;
+        BlackRook = blackRook;
+        WhiteBishop = whiteBishop;
+        BlackBishop = blackBishop;
+        WhiteKnight = whiteKnight;
+        BlackKnight = blackKnight;
+        WhitePawn = whitePawn;
+        BlackPawn = blackPawn;
+    }
+
     public Board(Board oldBb, Move move)
     {
         WhiteKing = oldBb.WhiteKing;
