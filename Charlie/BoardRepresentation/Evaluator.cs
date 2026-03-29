@@ -102,7 +102,7 @@ public class Evaluator
         -10,-5,  0,  5,  5,  0,-5, -10,
     ];
 
-    public Score Evaluate(IPositionState board)
+    public static Score Evaluate(IPositionState board)
     {
         Board position = board.Board;
 
@@ -332,45 +332,5 @@ public class Evaluator
         }
 
         return attacks;
-    }
-
-    private Score CalculateWhitePsqt(Board board, bool isOpening, bool isEndgame, int cellIndex, ulong thisSquare)
-    {
-        Score psqt = Score.Draw;
-
-        if ((board.WhitePawn & thisSquare) != 0) psqt += pawnPsqt[cellIndex] * (isEndgame ? 2 : 1);
-        if ((board.WhiteKnight & thisSquare) != 0) psqt += knightPsqt[cellIndex];
-        if ((board.WhiteBishop & thisSquare) != 0) psqt += bishopPsqt[cellIndex];
-        if ((board.WhiteRook & thisSquare) != 0) psqt += rookPsqt[cellIndex];
-        if ((board.WhiteQueen & thisSquare) != 0)
-        {
-            psqt += isOpening ? openingQueenPsqt[cellIndex] : queenPsqt[cellIndex];
-        }
-        if ((board.WhiteKing & thisSquare) != 0)
-        {
-            psqt += isEndgame ? endgameKingPsqt[cellIndex] : kingPsqt[cellIndex];
-        }
-
-        return psqt;
-    }
-
-    private Score CalculateBlackPsqt(Board board, bool isOpening, bool isEndgame, int cellIndex, ulong thisSquare)
-    {
-        Score psqt = Score.Draw;
-
-        if ((board.BlackPawn & thisSquare) != 0) psqt += pawnPsqt[63 - cellIndex] * (isEndgame ? 2 : 1);
-        if ((board.BlackKnight & thisSquare) != 0) psqt += knightPsqt[63 - cellIndex];
-        if ((board.BlackBishop & thisSquare) != 0) psqt += bishopPsqt[63 - cellIndex];
-        if ((board.BlackRook & thisSquare) != 0) psqt += rookPsqt[63 - cellIndex];
-        if ((board.BlackQueen & thisSquare) != 0)
-        {
-            psqt += isOpening ? openingQueenPsqt[63 - cellIndex] : queenPsqt[63 - cellIndex];
-        }
-        if ((board.BlackKing & thisSquare) != 0)
-        {
-            psqt += isEndgame ? endgameKingPsqt[63 - cellIndex] : kingPsqt[63 - cellIndex];
-        }
-
-        return psqt;
     }
 }

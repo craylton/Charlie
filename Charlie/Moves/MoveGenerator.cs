@@ -196,15 +196,12 @@ public class MoveGenerator
             ulong knight = 1ul << i;
             knights &= knights - 1;
 
-            var magic = Magics.KnightAttacks[i];
-            while (magic != 0)
+            ulong targets = Magics.KnightAttacks[i] & enemyPieces;
+            while (targets != 0)
             {
-                var toSquare = 1ul << BitOperations.TrailingZeroCount(magic);
-
-                if ((toSquare & enemyPieces) != 0)
-                    yield return new Move(knight, toSquare);
-
-                magic ^= toSquare;
+                ulong toSquare = 1ul << BitOperations.TrailingZeroCount(targets);
+                yield return new Move(knight, toSquare);
+                targets ^= toSquare;
             }
         }
     }
@@ -217,15 +214,12 @@ public class MoveGenerator
             ulong knight = 1ul << i;
             knights &= knights - 1;
 
-            var magic = Magics.KnightAttacks[i];
-            while (magic != 0)
+            ulong targets = Magics.KnightAttacks[i] & ~occupied;
+            while (targets != 0)
             {
-                var toSquare = 1ul << BitOperations.TrailingZeroCount(magic);
-
-                if ((toSquare & occupied) == 0)
-                    yield return new Move(knight, toSquare);
-
-                magic ^= toSquare;
+                ulong toSquare = 1ul << BitOperations.TrailingZeroCount(targets);
+                yield return new Move(knight, toSquare);
+                targets ^= toSquare;
             }
         }
     }
@@ -291,22 +285,28 @@ public class MoveGenerator
     {
         Board position = board.Board;
         ulong neighbours = Magics.Neighbours[BitOperations.TrailingZeroCount(king)] & ~occupied;
+        PieceColour toMove = board.ToMove;
+        PieceColour attacker = toMove == PieceColour.White ? PieceColour.Black : PieceColour.White;
+
         while (neighbours != 0)
         {
-            var toSquare = 1ul << BitOperations.TrailingZeroCount(neighbours);
+            ulong toSquare = 1ul << BitOperations.TrailingZeroCount(neighbours);
             yield return new Move(king, toSquare);
             neighbours ^= toSquare;
         }
 
-        if (board.ToMove == PieceColour.White)
+        bool canCastle = board.CastleRules != 0;
+        bool isInCheck = canCastle && board.IsInCheck(toMove);
+
+        if (toMove == PieceColour.White)
         {
             // If can short castle
             if ((board.CastleRules & 0b0001) != 0 &&
                 (position.Occupied & (Chessboard.SquareF1 | Chessboard.SquareG1)) == 0 &&
                 (position.WhiteRook & Chessboard.SquareH1) != 0 &&
-                !board.IsInCheck(PieceColour.White) &&
-                !board.IsUnderAttack(king >> 1, PieceColour.Black) &&
-                !board.IsUnderAttack(king >> 2, PieceColour.Black))
+                !isInCheck &&
+                !board.IsUnderAttack(king >> 1, attacker) &&
+                !board.IsUnderAttack(king >> 2, attacker))
             {
                 yield return new Move(king, Chessboard.SquareG1, false, true, false, PromotionType.None);
             }
@@ -315,9 +315,9 @@ public class MoveGenerator
             if ((board.CastleRules & 0b0010) != 0 &&
                 (position.Occupied & (Chessboard.SquareB1 | Chessboard.SquareC1 | Chessboard.SquareD1)) == 0 &&
                 (position.WhiteRook & Chessboard.SquareA1) != 0 &&
-                !board.IsInCheck(PieceColour.White) &&
-                !board.IsUnderAttack(king << 1, PieceColour.Black) &&
-                !board.IsUnderAttack(king << 2, PieceColour.Black))
+                !isInCheck &&
+                !board.IsUnderAttack(king << 1, attacker) &&
+                !board.IsUnderAttack(king << 2, attacker))
             {
                 yield return new Move(king, Chessboard.SquareC1, false, true, false, PromotionType.None);
             }
@@ -328,9 +328,9 @@ public class MoveGenerator
             if ((board.CastleRules & 0b0100) != 0 &&
                 (position.Occupied & (Chessboard.SquareF8 | Chessboard.SquareG8)) == 0 &&
                 (position.BlackRook & Chessboard.SquareH8) != 0 &&
-                !board.IsInCheck(PieceColour.Black) &&
-                !board.IsUnderAttack(king >> 1, PieceColour.White) &&
-                !board.IsUnderAttack(king >> 2, PieceColour.White))
+                !isInCheck &&
+                !board.IsUnderAttack(king >> 1, attacker) &&
+                !board.IsUnderAttack(king >> 2, attacker))
             {
                 yield return new Move(king, Chessboard.SquareG8, false, true, false, PromotionType.None);
             }
@@ -339,9 +339,9 @@ public class MoveGenerator
             if ((board.CastleRules & 0b1000) != 0 &&
                 (position.Occupied & (Chessboard.SquareB8 | Chessboard.SquareC8 | Chessboard.SquareD8)) == 0 &&
                 (position.BlackRook & Chessboard.SquareA8) != 0 &&
-                !board.IsInCheck(PieceColour.Black) &&
-                !board.IsUnderAttack(king << 1, PieceColour.White) &&
-                !board.IsUnderAttack(king << 2, PieceColour.White))
+                !isInCheck &&
+                !board.IsUnderAttack(king << 1, attacker) &&
+                !board.IsUnderAttack(king << 2, attacker))
             {
                 yield return new Move(king, Chessboard.SquareC8, false, true, false, PromotionType.None);
             }

@@ -1,5 +1,6 @@
 using Charlie.Hash;
 using Charlie.Moves;
+using System;
 using System.Diagnostics;
 using System.Numerics;
 
@@ -7,6 +8,9 @@ namespace Charlie.BoardRepresentation;
 
 public class SearchPosition : IPositionState
 {
+    [ThreadStatic]
+    private static SearchPosition cachedBoardStateSearchPosition;
+
     public ulong WhiteKing { get; private set; }
     public ulong BlackKing { get; private set; }
 
@@ -50,6 +54,22 @@ public class SearchPosition : IPositionState
     public long HashCode { get; private set; }
 
     public SearchPosition(BoardState boardState)
+    {
+        Load(boardState);
+    }
+
+    private SearchPosition()
+    {
+    }
+
+    internal static SearchPosition GetReusable(BoardState boardState)
+    {
+        SearchPosition searchPosition = cachedBoardStateSearchPosition ??= new SearchPosition();
+        searchPosition.Load(boardState);
+        return searchPosition;
+    }
+
+    internal void Load(BoardState boardState)
     {
         Board board = boardState.Board;
         WhiteKing = board.WhiteKing;

@@ -115,14 +115,8 @@ public readonly struct Move : IEquatable<Move>
 
     public bool LeavesPlayerInCheck(BoardState board)
     {
-        PieceColour attacker = board.ToMove == PieceColour.White ? PieceColour.Black : PieceColour.White;
-
-        BoardState newState = board.MakeMove(this);
-        // Look if there are any enemy pieces aimed at the king
-        if (newState.IsInPseudoCheck(attacker))
-            return newState.IsInCheck(board.ToMove);
-
-        return false;
+        SearchPosition searchPosition = SearchPosition.GetReusable(board);
+        return LeavesPlayerInCheck(searchPosition);
     }
 
     public bool Equals(Move other) =>

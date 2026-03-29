@@ -18,8 +18,6 @@ public class Searcher
     private readonly Timer timer = new() { AutoReset = false };
     private readonly Stopwatch sw = new();
 
-    private readonly Evaluator evaluator = new();
-
     private ulong nodesSearched;
 
     private readonly HashTable HashTable = new();
@@ -396,7 +394,7 @@ public class Searcher
 
     private async Task<Score> Quiesce(SearchPosition boardState, Score alpha, Score beta, int ply)
     {
-        Score eval = evaluator.Evaluate(boardState);
+        Score eval = Evaluator.Evaluate(boardState);
 
         if (eval >= beta) return beta;
         if (eval > alpha) alpha = eval;
