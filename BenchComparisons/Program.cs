@@ -20,7 +20,7 @@ namespace BenchComparisons
             bench.BenchComplete += Bench_BenchComplete;
 
             var fens = File.ReadAllLines("fens.txt");
-            await bench.BenchTest(searcher, fens, 5);
+            await bench.BenchTest(searcher, fens, 7);
         }
 
         private static void Bench_BenchComplete(object sender, BenchResults results)

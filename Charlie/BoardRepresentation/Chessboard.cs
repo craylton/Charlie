@@ -2,8 +2,8 @@
 
 public static class Chessboard
 {
-    public static ulong[] Files { get; } = new ulong[]
-    {
+    public static ulong[] Files { get; } =
+    [
         AFile,
         BFile,
         CFile,
@@ -12,7 +12,7 @@ public static class Chessboard
         FFile,
         GFile,
         HFile,
-    };
+    ];
 
     public const ulong AFile = 0x80_80_80_80_80_80_80_80;
     public const ulong BFile = 0x40_40_40_40_40_40_40_40;
@@ -23,8 +23,8 @@ public static class Chessboard
     public const ulong GFile = 0x02_02_02_02_02_02_02_02;
     public const ulong HFile = 0x01_01_01_01_01_01_01_01;
 
-    public static ulong[] Ranks { get; } = new ulong[]
-    {
+    public static ulong[] Ranks { get; } =
+    [
         Rank1,
         Rank2,
         Rank3,
@@ -33,7 +33,7 @@ public static class Chessboard
         Rank6,
         Rank7,
         Rank8,
-    };
+    ];
 
     public const ulong Rank1 = 0xFF_00_00_00_00_00_00_00;
     public const ulong Rank2 = 0x00_FF_00_00_00_00_00_00;
@@ -116,7 +116,8 @@ public static class Chessboard
     public const ulong SquareH7 = Rank7 & HFile;
     public const ulong SquareH8 = Rank8 & HFile;
 
-    public static string[] CellNames { get; } = new string[] {
+    public static string[] CellNames { get; } =
+    [
         "a1","b1","c1","d1","e1","f1","g1","h1",
         "a2","b2","c2","d2","e2","f2","g2","h2",
         "a3","b3","c3","d3","e3","f3","g3","h3",
@@ -126,5 +127,5 @@ public static class Chessboard
         "a7","b7","c7","d7","e7","f7","g7","h7",
         "a8","b8","c8","d8","e8","f8","g8","h8",
         "invalid_square"
-    };
+    ];
 }

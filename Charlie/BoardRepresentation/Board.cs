@@ -1,6 +1,5 @@
 ﻿using Charlie.Hash;
 using Charlie.Moves;
-using System.Numerics;
 
 namespace Charlie.BoardRepresentation;
 
@@ -28,6 +27,34 @@ public readonly struct Board
     public ulong BlackPieces => BlackKing | BlackQueen | BlackRook | BlackBishop | BlackKnight | BlackPawn;
 
     public ulong Occupied => WhitePieces | BlackPieces;
+
+    public Board(
+        ulong whiteKing,
+        ulong blackKing,
+        ulong whiteQueen,
+        ulong blackQueen,
+        ulong whiteRook,
+        ulong blackRook,
+        ulong whiteBishop,
+        ulong blackBishop,
+        ulong whiteKnight,
+        ulong blackKnight,
+        ulong whitePawn,
+        ulong blackPawn)
+    {
+        WhiteKing = whiteKing;
+        BlackKing = blackKing;
+        WhiteQueen = whiteQueen;
+        BlackQueen = blackQueen;
+        WhiteRook = whiteRook;
+        BlackRook = blackRook;
+        WhiteBishop = whiteBishop;
+        BlackBishop = blackBishop;
+        WhiteKnight = whiteKnight;
+        BlackKnight = blackKnight;
+        WhitePawn = whitePawn;
+        BlackPawn = blackPawn;
+    }
 
     public Board(Board oldBb, Move move)
     {
@@ -226,106 +253,5 @@ public readonly struct Board
         }
     }
 
-    public long GetLongHashCode()
-    {
-        var hash = 0L;
-
-        var piece = WhiteKing;
-        while (piece != 0)
-        {
-            var cellNumber = BitOperations.TrailingZeroCount(piece);
-            hash ^= Zobrist.Keys[(int)PieceType.WhiteKing, cellNumber];
-            piece ^= 1ul << cellNumber;
-        }
-
-        piece = BlackKing;
-        while (piece != 0)
-        {
-            var cellNumber = BitOperations.TrailingZeroCount(piece);
-            hash ^= Zobrist.Keys[(int)PieceType.BlackKing, cellNumber];
-            piece ^= 1ul << cellNumber;
-        }
-
-        piece = WhiteQueen;
-        while (piece != 0)
-        {
-            var cellNumber = BitOperations.TrailingZeroCount(piece);
-            hash ^= Zobrist.Keys[(int)PieceType.WhiteQueen, cellNumber];
-            piece ^= 1ul << cellNumber;
-        }
-
-        piece = BlackQueen;
-        while (piece != 0)
-        {
-            var cellNumber = BitOperations.TrailingZeroCount(piece);
-            hash ^= Zobrist.Keys[(int)PieceType.BlackQueen, cellNumber];
-            piece ^= 1ul << cellNumber;
-        }
-
-        piece = WhiteRook;
-        while (piece != 0)
-        {
-            var cellNumber = BitOperations.TrailingZeroCount(piece);
-            hash ^= Zobrist.Keys[(int)PieceType.WhiteRook, cellNumber];
-            piece ^= 1ul << cellNumber;
-        }
-
-        piece = BlackRook;
-        while (piece != 0)
-        {
-            var cellNumber = BitOperations.TrailingZeroCount(piece);
-            hash ^= Zobrist.Keys[(int)PieceType.BlackRook, cellNumber];
-            piece ^= 1ul << cellNumber;
-        }
-
-        piece = WhiteBishop;
-        while (piece != 0)
-        {
-            var cellNumber = BitOperations.TrailingZeroCount(piece);
-            hash ^= Zobrist.Keys[(int)PieceType.WhiteBishop, cellNumber];
-            piece ^= 1ul << cellNumber;
-        }
-
-        piece = BlackBishop;
-        while (piece != 0)
-        {
-            var cellNumber = BitOperations.TrailingZeroCount(piece);
-            hash ^= Zobrist.Keys[(int)PieceType.BlackBishop, cellNumber];
-            piece ^= 1ul << cellNumber;
-        }
-
-        piece = WhiteKnight;
-        while (piece != 0)
-        {
-            var cellNumber = BitOperations.TrailingZeroCount(piece);
-            hash ^= Zobrist.Keys[(int)PieceType.WhiteKnight, cellNumber];
-            piece ^= 1ul << cellNumber;
-        }
-
-        piece = BlackKnight;
-        while (piece != 0)
-        {
-            var cellNumber = BitOperations.TrailingZeroCount(piece);
-            hash ^= Zobrist.Keys[(int)PieceType.BlackKnight, cellNumber];
-            piece ^= 1ul << cellNumber;
-        }
-
-        piece = WhitePawn;
-        while (piece != 0)
-        {
-            var cellNumber = BitOperations.TrailingZeroCount(piece);
-            hash ^= Zobrist.Keys[(int)PieceType.WhitePawn, cellNumber];
-            piece ^= 1ul << cellNumber;
-        }
-
-        piece = BlackPawn;
-        while (piece != 0)
-        {
-            var cellNumber = BitOperations.TrailingZeroCount(piece);
-            hash ^= Zobrist.Keys[(int)PieceType.BlackPawn, cellNumber];
-            piece ^= 1ul << cellNumber;
-        }
-
-        return hash;
-    }
+    public long GetLongHashCode() => Zobrist.ComputePieceHash(this);
 }

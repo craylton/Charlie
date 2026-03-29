@@ -178,11 +178,10 @@ public class Uci
 
     private static void Eval(string[] @params)
     {
-        var evaluator = new Evaluator();
         if (@params.Length >= 7 && @params[0] == "fen")
         {
             var boardState = new BoardState(@params[1..7]);
-            Console.WriteLine(evaluator.Evaluate(boardState));
+            Console.WriteLine(Evaluator.Evaluate(boardState));
         }
     }
 

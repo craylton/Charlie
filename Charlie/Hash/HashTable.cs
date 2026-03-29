@@ -5,14 +5,14 @@ namespace Charlie.Hash;
 
 public class HashTable
 {
-    private readonly Dictionary<long, HashElement> hashTable = new();
+    private readonly Dictionary<long, HashElement> hashTable = [];
 
     public void Clear() => hashTable.Clear();
 
     public Move ProbeHash(long hash)
     {
-        if (!hashTable.ContainsKey(hash)) return default;
-        return hashTable[hash].Move;
+        if (!hashTable.TryGetValue(hash, out HashElement value)) return default;
+        return value.Move;
     }
 
     public void RecordHash(long hashKey, int depth, Move move)

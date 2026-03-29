@@ -50,17 +50,17 @@ public readonly struct Move : IEquatable<Move>
 
     public static Move FromString(IEnumerable<Move> possibleMoves, string move)
     {
-        var from = new string(move.Take(2).ToArray());
-        var to = new string(new string(move.Take(4).ToArray()).TakeLast(2).ToArray());
+        var from = new string([.. move.Take(2)]);
+        var to = new string([.. new string([.. move.Take(4)]).TakeLast(2)]);
 
         ulong fromCell = 0, toCell = 0;
 
         for (int i = 0; i < Chessboard.CellNames.Length; i++)
         {
-            if (from.ToUpper() == Chessboard.CellNames[i].ToUpper())
+            if (from.Equals(Chessboard.CellNames[i], StringComparison.CurrentCultureIgnoreCase))
                 fromCell = 1ul << (63 - i);
 
-            if (to.ToUpper() == Chessboard.CellNames[i].ToUpper())
+            if (to.Equals(Chessboard.CellNames[i], StringComparison.CurrentCultureIgnoreCase))
                 toCell = 1ul << (63 - i);
         }
 
@@ -70,18 +70,18 @@ public readonly struct Move : IEquatable<Move>
         if (matches.Count() > 1 && move.Length >= 5)
         {
             string promotion = move[^1].ToString().ToUpper();
-            return matches.Single(m => m.PromotionType.GetSuffix().ToUpper() == promotion);
+            return matches.Single(m => m.PromotionType.GetSuffix().Equals(promotion, StringComparison.CurrentCultureIgnoreCase));
         }
 
         return matches.Single();
     }
 
-    public bool IsCapture(BoardState board) => (board.Board.Occupied & ToCell) != 0;
+    public bool IsCapture(IPositionState board) => (board.Board.Occupied & ToCell) != 0;
 
-    public bool IsCaptureOrPromotion(BoardState board) =>
+    public bool IsCaptureOrPromotion(IPositionState board) =>
         IsCapture(board) || PromotionType != PromotionType.None;
 
-    public bool IsAdvancedPawnPush(BoardState board)
+    public bool IsAdvancedPawnPush(IPositionState board)
     {
         var whiteAdvancePush = Chessboard.Rank5 | Chessboard.Rank6 | Chessboard.Rank7;
         if (board.ToMove == PieceColour.White && (board.Board.WhitePawn & FromCell & whiteAdvancePush) != 0)
@@ -94,18 +94,29 @@ public readonly struct Move : IEquatable<Move>
         return false;
     }
 
+    public bool LeavesPlayerInCheck(SearchPosition board)
+    {
+        PieceColour attacker = board.ToMove == PieceColour.White ? PieceColour.Black : PieceColour.White;
+
+        UndoState undo = default;
+        board.MakeMoveInPlace(this, ref undo);
+
+        bool leavesPlayerInCheck = false;
+
+        if (board.IsInPseudoCheck(attacker))
+            leavesPlayerInCheck = board.IsInCheck(attacker == PieceColour.White ? PieceColour.Black : PieceColour.White);
+
+        board.UnmakeMove(this, in undo);
+
+        return leavesPlayerInCheck;
+    }
+
     public bool IsValidMove() => !Equals(default);
 
     public bool LeavesPlayerInCheck(BoardState board)
     {
-        PieceColour attacker = board.ToMove == PieceColour.White ? PieceColour.Black : PieceColour.White;
-
-        BoardState newState = board.MakeMove(this);
-        // Look if there are any enemy pieces aimed at the king
-        if (newState.IsInPseudoCheck(attacker))
-            return newState.IsInCheck(board.ToMove);
-
-        return false;
+        SearchPosition searchPosition = SearchPosition.GetReusable(board);
+        return LeavesPlayerInCheck(searchPosition);
     }
 
     public bool Equals(Move other) =>

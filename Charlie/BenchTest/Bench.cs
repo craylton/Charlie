@@ -7,8 +7,8 @@ namespace Charlie.BenchTest;
 
 public class Bench
 {
-    private static string[] TestFens { get; } = new string[]
-    {
+    private static string[] TestFens { get; } =
+    [
         "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 10",
         "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 11",
@@ -57,7 +57,7 @@ public class Bench
 
         // Not stolen
         "r4bk1/r4pp1/R4nnp/2pPp3/2Q1P1bP/2B2N2/p1PN1PP1/6K1 w - - 2 35",
-    };
+    ];
 
     private static readonly string KiwiPete = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1";
 

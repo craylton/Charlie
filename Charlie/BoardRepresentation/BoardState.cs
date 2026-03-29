@@ -1,9 +1,11 @@
-﻿using Charlie.Moves;
+﻿using Charlie.Hash;
+using Charlie.Moves;
+using System;
 using System.Numerics;
 
 namespace Charlie.BoardRepresentation;
 
-public class BoardState
+public class BoardState : IPositionState
 {
     private static string StartPositionFen { get; } =
         "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -35,7 +37,8 @@ public class BoardState
         PieceColour toMove,
         byte castleRules,
         ulong whiteEnPassant,
-        ulong blackEnPassant)
+        ulong blackEnPassant,
+        long hashCode)
     {
         Board = bitBoard;
 
@@ -46,7 +49,7 @@ public class BoardState
 
         ToMove = toMove;
 
-        HashCode = CalculateLongHashCode();
+        HashCode = hashCode;
         this.previousStates = new HistoryNode(HashCode, previousStates);
     }
 
@@ -66,6 +69,24 @@ public class BoardState
         BlackEnPassant = GetEnPassantFromFen(enPassant[0], ToMove == PieceColour.Black);
         HashCode = CalculateLongHashCode();
         previousStates = new HistoryNode(HashCode, null);
+    }
+
+    internal SearchPosition ToSearchPosition() => new(this);
+
+    internal long[] GetHistoryHashes()
+    {
+        int count = 0;
+
+        for (HistoryNode state = previousStates; state is not null; state = state.Previous)
+            count++;
+
+        long[] hashes = new long[count];
+        int index = count - 1;
+
+        for (HistoryNode state = previousStates; state is not null; state = state.Previous)
+            hashes[index--] = state.Hash;
+
+        return hashes;
     }
 
     private static ulong GetEnPassantFromFen(char enPassantFile, bool whiteToMove)
@@ -97,7 +118,6 @@ public class BoardState
 
     public BoardState MakeMove(Move move)
     {
-        // Check if en passant will be possible next move
         ulong whiteEP = 0, blackEP = 0;
 
         if (move.IsDoublePush)
@@ -106,7 +126,24 @@ public class BoardState
             whiteEP = move.ToCell >> 8;
         }
 
-        // Check if castling rules have changed
+        byte castleRules = GetUpdatedCastleRules(move);
+
+        PieceColour nextToMove = ToMove == PieceColour.White ? PieceColour.Black : PieceColour.White;
+        Board newBoard = new(Board, move);
+        long childHash = UpdateHash(move, newBoard, nextToMove, castleRules, whiteEP, blackEP);
+
+        return new BoardState(
+            previousStates,
+            newBoard,
+            nextToMove,
+            castleRules,
+            whiteEP,
+            blackEP,
+            childHash);
+    }
+
+    private byte GetUpdatedCastleRules(Move move)
+    {
         byte castleRules = CastleRules;
 
         if ((Board.WhiteRook & move.FromCell & Chessboard.SquareH1) != 0)
@@ -115,7 +152,8 @@ public class BoardState
         if ((Board.WhiteRook & move.FromCell & Chessboard.SquareA1) != 0)
             castleRules &= unchecked((byte)~0b_00000010);
 
-        if ((Board.WhiteKing & move.FromCell) != 0) castleRules &= unchecked((byte)~0b_00000011);
+        if ((Board.WhiteKing & move.FromCell) != 0)
+            castleRules &= unchecked((byte)~0b_00000011);
 
         if ((Board.BlackRook & move.FromCell & Chessboard.SquareH8) != 0)
             castleRules &= unchecked((byte)~0b_00000100);
@@ -123,17 +161,141 @@ public class BoardState
         if ((Board.BlackRook & move.FromCell & Chessboard.SquareA8) != 0)
             castleRules &= unchecked((byte)~0b_00001000);
 
-        if ((Board.BlackKing & move.FromCell) != 0) castleRules &= unchecked((byte)~0b_00001100);
+        if ((Board.BlackKing & move.FromCell) != 0)
+            castleRules &= unchecked((byte)~0b_00001100);
 
-        PieceColour nextToMove = ToMove == PieceColour.White ? PieceColour.Black : PieceColour.White;
+        if (!move.IsEnPassant)
+        {
+            if ((Board.WhiteRook & move.ToCell & Chessboard.SquareH1) != 0)
+                castleRules &= unchecked((byte)~0b_00000001);
 
-        return new BoardState(
-            previousStates,
-            new Board(Board, move),
-            nextToMove,
-            castleRules,
-            whiteEP,
-            blackEP);
+            if ((Board.WhiteRook & move.ToCell & Chessboard.SquareA1) != 0)
+                castleRules &= unchecked((byte)~0b_00000010);
+
+            if ((Board.BlackRook & move.ToCell & Chessboard.SquareH8) != 0)
+                castleRules &= unchecked((byte)~0b_00000100);
+
+            if ((Board.BlackRook & move.ToCell & Chessboard.SquareA8) != 0)
+                castleRules &= unchecked((byte)~0b_00001000);
+        }
+
+        return castleRules;
+    }
+
+    private long UpdateHash(
+        Move move,
+        Board childBoard,
+        PieceColour nextToMove,
+        byte castleRules,
+        ulong whiteEnPassant,
+        ulong blackEnPassant)
+    {
+        long hash = HashCode;
+        int oldEnPassantFile = Zobrist.GetEnPassantFile(Board, ToMove, WhiteEnPassant, BlackEnPassant);
+
+        if (oldEnPassantFile >= 0)
+            hash ^= Zobrist.EnPassantFileKeys[oldEnPassantFile];
+
+        hash ^= Zobrist.CastlingKeys[CastleRules];
+
+        PieceType movingPiece = GetPieceOnSquare(Board, move.FromCell);
+        int fromSquare = BitOperations.TrailingZeroCount(move.FromCell);
+        int toSquare = BitOperations.TrailingZeroCount(move.ToCell);
+
+        hash = Zobrist.TogglePiece(hash, movingPiece, fromSquare);
+
+        if (move.IsCastle)
+        {
+            hash = Zobrist.TogglePiece(hash, movingPiece, toSquare);
+
+            (ulong rookFrom, ulong rookTo, PieceType rookPiece) = GetCastlingRookMove(move.ToCell);
+            hash = Zobrist.TogglePiece(hash, rookPiece, BitOperations.TrailingZeroCount(rookFrom));
+            hash = Zobrist.TogglePiece(hash, rookPiece, BitOperations.TrailingZeroCount(rookTo));
+        }
+        else
+        {
+            if (move.IsEnPassant)
+            {
+                ulong captureSquare = ToMove == PieceColour.White ? move.ToCell << 8 : move.ToCell >> 8;
+                PieceType capturedPawn = ToMove == PieceColour.White ? PieceType.BlackPawn : PieceType.WhitePawn;
+
+                hash = Zobrist.TogglePiece(hash, capturedPawn, BitOperations.TrailingZeroCount(captureSquare));
+            }
+            else if ((Board.Occupied & move.ToCell) != 0)
+            {
+                PieceType capturedPiece = GetPieceOnSquare(Board, move.ToCell);
+                hash = Zobrist.TogglePiece(hash, capturedPiece, toSquare);
+            }
+
+            if (move.PromotionType != PromotionType.None)
+            {
+                PieceType promotedPiece = GetPromotedPieceType(ToMove, move.PromotionType);
+                hash = Zobrist.TogglePiece(hash, promotedPiece, toSquare);
+            }
+            else
+            {
+                hash = Zobrist.TogglePiece(hash, movingPiece, toSquare);
+            }
+        }
+
+        hash ^= Zobrist.CastlingKeys[castleRules];
+
+        int newEnPassantFile = Zobrist.GetEnPassantFile(childBoard, nextToMove, whiteEnPassant, blackEnPassant);
+        if (newEnPassantFile >= 0)
+            hash ^= Zobrist.EnPassantFileKeys[newEnPassantFile];
+
+        return hash ^ Zobrist.SideToMoveKey;
+    }
+
+    private static (ulong RookFrom, ulong RookTo, PieceType RookPiece) GetCastlingRookMove(ulong kingTo)
+    {
+        if (kingTo == Chessboard.SquareC1)
+            return (Chessboard.SquareA1, Chessboard.SquareD1, PieceType.WhiteRook);
+
+        if (kingTo == Chessboard.SquareG1)
+            return (Chessboard.SquareH1, Chessboard.SquareF1, PieceType.WhiteRook);
+
+        if (kingTo == Chessboard.SquareC8)
+            return (Chessboard.SquareA8, Chessboard.SquareD8, PieceType.BlackRook);
+
+        if (kingTo == Chessboard.SquareG8)
+            return (Chessboard.SquareH8, Chessboard.SquareF8, PieceType.BlackRook);
+
+        throw new InvalidOperationException("Invalid castling move.");
+    }
+
+    private static PieceType GetPieceOnSquare(Board board, ulong square)
+    {
+        if ((board.WhiteKing & square) != 0) return PieceType.WhiteKing;
+        if ((board.BlackKing & square) != 0) return PieceType.BlackKing;
+        if ((board.WhiteQueen & square) != 0) return PieceType.WhiteQueen;
+        if ((board.BlackQueen & square) != 0) return PieceType.BlackQueen;
+        if ((board.WhiteRook & square) != 0) return PieceType.WhiteRook;
+        if ((board.BlackRook & square) != 0) return PieceType.BlackRook;
+        if ((board.WhiteBishop & square) != 0) return PieceType.WhiteBishop;
+        if ((board.BlackBishop & square) != 0) return PieceType.BlackBishop;
+        if ((board.WhiteKnight & square) != 0) return PieceType.WhiteKnight;
+        if ((board.BlackKnight & square) != 0) return PieceType.BlackKnight;
+        if ((board.WhitePawn & square) != 0) return PieceType.WhitePawn;
+        if ((board.BlackPawn & square) != 0) return PieceType.BlackPawn;
+
+        throw new InvalidOperationException("No piece on square.");
+    }
+
+    private static PieceType GetPromotedPieceType(PieceColour pieceColour, PromotionType promotionType)
+    {
+        return (pieceColour, promotionType) switch
+        {
+            (PieceColour.White, PromotionType.Queen) => PieceType.WhiteQueen,
+            (PieceColour.Black, PromotionType.Queen) => PieceType.BlackQueen,
+            (PieceColour.White, PromotionType.Rook) => PieceType.WhiteRook,
+            (PieceColour.Black, PromotionType.Rook) => PieceType.BlackRook,
+            (PieceColour.White, PromotionType.Bishop) => PieceType.WhiteBishop,
+            (PieceColour.Black, PromotionType.Bishop) => PieceType.BlackBishop,
+            (PieceColour.White, PromotionType.Knight) => PieceType.WhiteKnight,
+            (PieceColour.Black, PromotionType.Knight) => PieceType.BlackKnight,
+            _ => throw new InvalidOperationException("Invalid promotion type."),
+        };
     }
 
     internal bool IsThreeMoveRepetition()
@@ -154,7 +316,7 @@ public class BoardState
         return false;
     }
 
-    internal bool IsInCheck(PieceColour toMove)
+    public bool IsInCheck(PieceColour toMove)
     {
         if (toMove == PieceColour.White)
             return IsUnderAttack(Board.WhiteKing, PieceColour.Black);
@@ -162,7 +324,7 @@ public class BoardState
             return IsUnderAttack(Board.BlackKing, PieceColour.White);
     }
 
-    internal bool IsInPseudoCheck(PieceColour attacker)
+    public bool IsInPseudoCheck(PieceColour attacker)
     {
         if (attacker == PieceColour.Black)
         {
@@ -188,7 +350,7 @@ public class BoardState
         return false;
     }
 
-    internal bool IsUnderAttack(ulong cell, PieceColour attacker)
+    public bool IsUnderAttack(ulong cell, PieceColour attacker)
     {
         if (attacker == PieceColour.Black)
         {
@@ -272,16 +434,6 @@ public class BoardState
         return (Magics.KnightAttacks[cellIndex] & theirKnight) != 0;
     }
 
-    private long CalculateLongHashCode()
-    {
-        var hash = Board.GetLongHashCode() ^ (long)WhiteEnPassant ^ (long)BlackEnPassant;
-
-        for (int i = 0; i < 64 / 4; i++)
-            hash ^= CastleRules << i;
-
-        if (ToMove == PieceColour.Black)
-            hash ^= long.MaxValue;
-
-        return hash;
-    }
+    private long CalculateLongHashCode() =>
+        Zobrist.ComputeFullHash(Board, ToMove, CastleRules, WhiteEnPassant, BlackEnPassant);
 }
