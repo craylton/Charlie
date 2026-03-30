@@ -30,6 +30,9 @@ public class Searcher
     public event EventHandler<SearchResults> SearchComplete;
     public event EventHandler<PerftResults> PerftComplete;
 
+    public static int DefaultHashSizeInMegabytes => HashTable.DefaultSizeInMegabytes;
+    public int HashSizeInMegabytes => HashTable.SizeInMegabytes;
+
     public Searcher() => timer.Elapsed += (s, e) => cancel = true;
 
     public async Task Start(BoardState currentBoard, SearchParameters searchParameters)
@@ -141,6 +144,8 @@ public class Searcher
     }
 
     public void ClearHash() => HashTable.Clear();
+
+    public void SetHashSize(int sizeInMegabytes) => HashTable.Resize(sizeInMegabytes);
 
     private async ValueTask<Score> AlphaBeta(
         SearchPosition boardState,

@@ -1,5 +1,6 @@
 ﻿using Charlie.BenchTest;
 using Charlie.BoardRepresentation;
+using Charlie.Hash;
 using Charlie.Moves;
 using Charlie.Search;
 using System;
@@ -33,13 +34,20 @@ public class Uci
         while (true)
         {
             string input = Console.ReadLine();
-            string[] @params = input.Split(' ');
 
-            switch (input)
+            if (string.IsNullOrWhiteSpace(input))
+                continue;
+
+            string[] @params = input.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            string command = @params[0].ToLowerInvariant();
+
+            switch (command)
             {
                 case "uci":
                     Console.WriteLine("id name Charlie");
                     Console.WriteLine("id author Craylton");
+                    Console.WriteLine($"option name Hash type spin default {Searcher.DefaultHashSizeInMegabytes} min {HashTable.MinimumSizeInMegabytes} max {HashTable.MaximumSizeInMegabytes}");
+                    Console.WriteLine("option name Clear Hash type button");
                     Console.WriteLine("uciok");
                     break;
                 case "isready":
@@ -52,7 +60,7 @@ public class Uci
                     return;
             }
 
-            switch (@params[0])
+            switch (command)
             {
                 case "position":
                     boardState = Position(@params[1..]);
@@ -81,12 +89,12 @@ public class Uci
         BoardState boardState;
         int movesIndicatorIndex;
 
-        if (@params.Length > 0 && @params[0] == "startpos")
+        if (@params.Length > 0 && @params[0].Equals("startpos", StringComparison.OrdinalIgnoreCase))
         {
             boardState = new BoardState();
             movesIndicatorIndex = 1;
         }
-        else if (@params.Length >= 7 && @params[0] == "fen")
+        else if (@params.Length >= 7 && @params[0].Equals("fen", StringComparison.OrdinalIgnoreCase))
         {
             boardState = new BoardState(@params[1..7]);
             movesIndicatorIndex = 7;
@@ -96,7 +104,7 @@ public class Uci
             throw new Exception("Invalid position specified");
         }
 
-        if (@params.Length > movesIndicatorIndex && @params[movesIndicatorIndex] == "moves")
+        if (@params.Length > movesIndicatorIndex && @params[movesIndicatorIndex].Equals("moves", StringComparison.OrdinalIgnoreCase))
         {
             foreach (string moveInput in @params[(movesIndicatorIndex + 1)..])
             {
@@ -115,12 +123,14 @@ public class Uci
         int targetDepth = default;
         var searchType = SearchType.Infinite;
 
-        if (@params.Length >= 2 && @params[0] == "depth")
+        if (@params.Length >= 2 && @params[0].Equals("depth", StringComparison.OrdinalIgnoreCase))
         {
             searchType = SearchType.Depth;
             targetDepth = int.Parse(@params[1]);
         }
-        else if (@params.Length >= 4 && @params[0] == "wtime" && @params[2] == "btime")
+        else if (@params.Length >= 4
+            && @params[0].Equals("wtime", StringComparison.OrdinalIgnoreCase)
+            && @params[2].Equals("btime", StringComparison.OrdinalIgnoreCase))
         {
             searchType = SearchType.Time;
             int ourIncrement = 0;
@@ -129,7 +139,9 @@ public class Uci
 
             int timeAvailable = boardState.ToMove == PieceColour.White ? whiteTime : blackTime;
 
-            if (@params.Length >= 8 && @params[4] == "winc" && @params[6] == "binc")
+            if (@params.Length >= 8
+                && @params[4].Equals("winc", StringComparison.OrdinalIgnoreCase)
+                && @params[6].Equals("binc", StringComparison.OrdinalIgnoreCase))
             {
                 searchType = SearchType.Time;
                 int whiteIncrement = int.Parse(@params[5]);
@@ -147,12 +159,31 @@ public class Uci
 
     private void SetOption(string[] @params)
     {
-        if (@params.Length >= 2 && @params[0] == "name")
-        {
-            var optionName = string.Join(' ', @params[1..]);
+        int nameIndex = Array.FindIndex(@params, p => p.Equals("name", StringComparison.OrdinalIgnoreCase));
 
-            if (optionName == "Clear Hash")
-                searcher.ClearHash();
+        if (nameIndex < 0 || nameIndex == @params.Length - 1)
+            return;
+
+        int valueIndex = Array.FindIndex(@params, nameIndex + 1, p => p.Equals("value", StringComparison.OrdinalIgnoreCase));
+
+        string optionName = valueIndex >= 0
+            ? string.Join(' ', @params[(nameIndex + 1)..valueIndex])
+            : string.Join(' ', @params[(nameIndex + 1)..]);
+
+        if (optionName.Equals("Clear Hash", StringComparison.OrdinalIgnoreCase))
+        {
+            searcher.ClearHash();
+            return;
+        }
+
+        if (optionName.Equals("Hash", StringComparison.OrdinalIgnoreCase)
+            && valueIndex >= 0
+            && valueIndex < @params.Length - 1
+            && int.TryParse(@params[valueIndex + 1], out int hashSize)
+            && hashSize >= HashTable.MinimumSizeInMegabytes
+            && hashSize <= HashTable.MaximumSizeInMegabytes)
+        {
+            searcher.SetHashSize(hashSize);
         }
     }
 
@@ -160,7 +191,7 @@ public class Uci
     {
         int targetDepth = 4;
 
-        if (@params.Length >= 2 && @params[0] == "depth")
+        if (@params.Length >= 2 && @params[0].Equals("depth", StringComparison.OrdinalIgnoreCase))
             targetDepth = int.Parse(@params[1]);
 
         await bench.BenchTest(searcher, targetDepth);
@@ -178,7 +209,7 @@ public class Uci
 
     private static void Eval(string[] @params)
     {
-        if (@params.Length >= 7 && @params[0] == "fen")
+        if (@params.Length >= 7 && @params[0].Equals("fen", StringComparison.OrdinalIgnoreCase))
         {
             var boardState = new BoardState(@params[1..7]);
             Console.WriteLine(Evaluator.Evaluate(boardState));
