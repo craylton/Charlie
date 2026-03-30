@@ -1,23 +1,55 @@
 ﻿using Charlie.Moves;
-using System.Collections.Generic;
+using System;
 
 namespace Charlie.Hash;
 
 public class HashTable
 {
-    private readonly Dictionary<long, HashElement> hashTable = [];
+    private const int HashTableSize = 1 << 19;
+    private const ulong HashTableMask = HashTableSize - 1;
 
-    public void Clear() => hashTable.Clear();
+    private readonly HashSlot[] hashTable = new HashSlot[HashTableSize];
 
-    public Move ProbeHash(long hash)
+    public void Clear() => Array.Clear(hashTable);
+
+    public bool TryProbeHash(long hash, out HashElement value)
     {
-        if (!hashTable.TryGetValue(hash, out HashElement value)) return default;
-        return value.Move;
+        ref HashSlot slot = ref hashTable[GetIndex(hash)];
+
+        if (!slot.IsOccupied || slot.HashKey != hash)
+        {
+            value = default;
+            return false;
+        }
+
+        value = slot.Entry;
+        return true;
     }
 
-    public void RecordHash(long hashKey, int depth, Move move)
+    public void RecordHash(long hashKey, int depth, Score score, Move move, HashType type)
     {
-        if ((!hashTable.ContainsKey(hashKey) || hashTable[hashKey].Depth < depth) && move.IsValidMove())
-            hashTable[hashKey] = new HashElement(depth, move);
+        ref HashSlot slot = ref hashTable[GetIndex(hashKey)];
+
+        if (!slot.IsOccupied
+            || slot.HashKey != hashKey
+            || slot.Entry.Depth < depth
+            || slot.Entry.Depth == depth && type == HashType.Exact && slot.Entry.Type != HashType.Exact)
+        {
+            slot = new HashSlot
+            {
+                HashKey = hashKey,
+                Entry = new HashElement(depth, score, move, type),
+                IsOccupied = true,
+            };
+        }
+    }
+
+    private static int GetIndex(long hashKey) => (int)((ulong)hashKey & HashTableMask);
+
+    private struct HashSlot
+    {
+        public long HashKey;
+        public HashElement Entry;
+        public bool IsOccupied;
     }
 }

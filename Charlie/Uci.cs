@@ -200,7 +200,9 @@ public class Uci
         sb.Append(" pv " + string.Join(' ', moveInfo.Moves.Select(mi => mi.ToString())));
 
         Console.WriteLine(sb.ToString());
-        lastBestMove = moveInfo.Moves.First();
+
+        if (moveInfo.Moves.Any())
+            lastBestMove = moveInfo.Moves.First();
     }
 
     private void Searcher_IterationFailedLow(object sender, MoveInfo moveInfo)

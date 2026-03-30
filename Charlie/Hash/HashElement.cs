@@ -2,4 +2,11 @@
 
 namespace Charlie.Hash;
 
-public record HashElement(int Depth, Move Move);
+public enum HashType
+{
+    Exact,
+    Lower,
+    Upper,
+}
+
+public readonly record struct HashElement(int Depth, Score Score, Move Move, HashType Type);

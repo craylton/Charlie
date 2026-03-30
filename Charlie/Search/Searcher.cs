@@ -67,35 +67,46 @@ public class Searcher
             eval = await AlphaBeta(searchPosition, alpha, beta, depth, rootMoves, pv, prevPv, 0);
             rootMoves.SortByPromise();
 
+            bool failedLow = eval <= alpha;
+            bool failedHigh = eval >= beta;
             bool isMate = eval.IsMateScore();
 
             // Check if a stop command has been sent
             if (cancel) break;
 
             // If fail high/low, reset aspiration windows and try again
-            if (eval <= alpha || eval >= beta)
+            if (failedLow || failedHigh)
             {
                 // Extract the pv
-                prevPv = [bestMove];
+                prevPv = bestMove.IsValidMove() ? [bestMove] : [];
 
                 // Report the pv
                 var failedSearchInfo = new MoveInfo(depth, prevPv, eval, sw.ElapsedMilliseconds, nodesSearched);
 
-                if (eval <= alpha) IterationFailedLow?.Invoke(this, failedSearchInfo);
-                else if (eval >= beta) IterationFailedHigh?.Invoke(this, failedSearchInfo);
+                if (failedLow) IterationFailedLow?.Invoke(this, failedSearchInfo);
+                else if (failedHigh) IterationFailedHigh?.Invoke(this, failedSearchInfo);
 
                 alpha = Score.NegativeInfinity;
                 beta = Score.Infinity;
 
                 // Don't try again if we found mate because we won't find anything better
-                if (!isMate) continue;
+                if (failedLow || !isMate) continue;
             }
 
             // Extract the pv
+            prevPv = pv.Count > 0
+                ? [.. pv]
+                : bestMove.IsValidMove()
+                    ? [bestMove]
+                    : [];
+
+            if (prevPv.Length == 0)
+                break;
+
+            Move nextBestMove = prevPv[0];
             bool bestMoveChanged = false;
-            prevPv = [.. pv];
-            if (bestMove.IsValidMove() && prevPv[0] != bestMove) bestMoveChanged = true;
-            bestMove = prevPv[0];
+            if (bestMove.IsValidMove() && nextBestMove != bestMove) bestMoveChanged = true;
+            bestMove = nextBestMove;
 
             // Report the pv
             var moveInfo = new MoveInfo(depth, prevPv, eval, sw.ElapsedMilliseconds, nodesSearched);
@@ -141,6 +152,8 @@ public class Searcher
         Move[] pvMoves,
         int pvIndex)
     {
+        Score originalAlpha = alpha;
+        bool hasRepetitionHistory = CountRepetitions(0, boardState.HashCode) > 1;
         var foundPv = false;
         Move bestMove = default;
 
@@ -222,7 +235,9 @@ public class Searcher
                 pv.AddRange(pvBuffer);
                 moves[moveIndex].IncreasePromise(11);
 
-                HashTable.RecordHash(boardState.HashCode, depth, move);
+                if (!hasRepetitionHistory)
+                    RecordHash(boardState.HashCode, depth, eval, move, HashType.Lower, 0);
+
                 return eval;
             }
 
@@ -243,7 +258,12 @@ public class Searcher
             }
         }
 
-        HashTable.RecordHash(boardState.HashCode, depth, bestMove);
+        if (!cancel && !hasRepetitionHistory)
+        {
+            HashType hashType = alpha <= originalAlpha ? HashType.Upper : HashType.Exact;
+            RecordHash(boardState.HashCode, depth, alpha, bestMove, hashType, 0);
+        }
+
         return alpha;
     }
 
@@ -258,6 +278,16 @@ public class Searcher
         Move[] pvMoves,
         int pvIndex)
     {
+        Score originalAlpha = alpha;
+        int repetitionCount = CountRepetitions(ply, boardState.HashCode);
+
+        if (repetitionCount >= 3)
+        {
+            nodesSearched++;
+            return Score.Draw;
+        }
+
+        bool hasRepetitionHistory = repetitionCount > 1;
         var foundPv = false;
 
         if (depth <= 0)
@@ -266,7 +296,26 @@ public class Searcher
             return await Quiesce(boardState, alpha, beta, ply);
         }
 
-        using IEnumerator<Move> moveEnumerator = GenerateOrderedMoves(boardState, pvMoves, pvIndex).GetEnumerator();
+        Move ttBestMove = default;
+
+        if (!hasRepetitionHistory && HashTable.TryProbeHash(boardState.HashCode, out HashElement hashEntry))
+        {
+            ttBestMove = hashEntry.Move;
+            Score hashScore = UnpackHashScore(hashEntry.Score, ply);
+
+            if (hashEntry.Depth >= depth && CanUseHashScore(hashEntry.Type, hashScore, alpha, beta))
+            {
+                if (hashEntry.Move.IsValidMove())
+                {
+                    pv.Clear();
+                    pv.Add(hashEntry.Move);
+                }
+
+                return hashScore;
+            }
+        }
+
+        using IEnumerator<Move> moveEnumerator = GenerateOrderedMoves(boardState, pvMoves, pvIndex, ttBestMove).GetEnumerator();
 
         if (!moveEnumerator.MoveNext())
         {
@@ -316,7 +365,7 @@ public class Searcher
 
                 childDepth += extension;
 
-                if (IsThreeMoveRepetition(ply + 1, boardState.HashCode))
+                if (CountRepetitions(ply + 1, boardState.HashCode) >= 3)
                 {
                     nodesSearched++;
                     eval = Score.Draw;
@@ -377,7 +426,9 @@ public class Searcher
 
             if (eval >= beta)
             {
-                HashTable.RecordHash(boardState.HashCode, depth, move);
+                if (!hasRepetitionHistory)
+                    RecordHash(boardState.HashCode, depth, eval, move, HashType.Lower, ply);
+
                 return beta;
             }
 
@@ -396,7 +447,11 @@ public class Searcher
         }
         while (moveEnumerator.MoveNext());
 
-        HashTable.RecordHash(boardState.HashCode, depth, bestMove);
+        if (!cancel && !hasRepetitionHistory)
+        {
+            HashType hashType = alpha <= originalAlpha ? HashType.Upper : HashType.Exact;
+            RecordHash(boardState.HashCode, depth, alpha, bestMove, hashType, ply);
+        }
 
         return alpha;
     }
@@ -431,9 +486,8 @@ public class Searcher
         return alpha;
     }
 
-    private IEnumerable<Move> GenerateOrderedMoves(SearchPosition boardState, Move[] pvMoves, int pvIndex)
+    private IEnumerable<Move> GenerateOrderedMoves(SearchPosition boardState, Move[] pvMoves, int pvIndex, Move ttBestMove = default)
     {
-        Move ttBestMove = HashTable.ProbeHash(boardState.HashCode);
         bool hasPvMove = pvIndex < pvMoves.Length && !pvMoves[pvIndex].Equals(ttBestMove);
         Move pvMove = hasPvMove ? pvMoves[pvIndex] : default;
         bool hasTtBestMove = ttBestMove.IsValidMove();
@@ -477,20 +531,52 @@ public class Searcher
         }
     }
 
+    private void RecordHash(long hashKey, int depth, Score score, Move move, HashType type, int ply) =>
+        HashTable.RecordHash(hashKey, depth, PackHashScore(score, ply), move, type);
+
+    private static bool CanUseHashScore(HashType type, Score score, Score alpha, Score beta) =>
+        type switch
+        {
+            HashType.Exact => true,
+            HashType.Lower => score >= beta,
+            HashType.Upper => score <= alpha,
+            _ => false,
+        };
+
+    private static Score PackHashScore(Score score, int ply)
+    {
+        if (!score.IsMateScore()) return score;
+
+        int rawScore = (int)score;
+        return score.IsPositive()
+            ? new Score(rawScore + ply)
+            : new Score(rawScore - ply);
+    }
+
+    private static Score UnpackHashScore(Score score, int ply)
+    {
+        if (!score.IsMateScore()) return score;
+
+        int rawScore = (int)score;
+        return score.IsPositive()
+            ? new Score(rawScore - ply)
+            : new Score(rawScore + ply);
+    }
+
     private void RecordRepetitionHash(int ply, long hash) =>
         repetitionHashes[repetitionBaseLength - 1 + ply] = hash;
 
-    private bool IsThreeMoveRepetition(int ply, long hash)
+    private int CountRepetitions(int ply, long hash)
     {
         int count = 0;
         int upperBound = repetitionBaseLength - 1 + ply;
 
         for (int i = 0; i <= upperBound; i++)
         {
-            if (repetitionHashes[i] == hash && ++count == 3)
-                return true;
+            if (repetitionHashes[i] == hash)
+                count++;
         }
 
-        return false;
+        return count;
     }
 }
