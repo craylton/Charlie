@@ -13,7 +13,7 @@ public class Searcher
 {
     private const int MaxSearchPly = 256;
 
-    private bool cancel;
+    private volatile bool cancel;
     private readonly Timer timer = new() { AutoReset = false };
     private readonly Stopwatch sw = new();
 
@@ -35,11 +35,11 @@ public class Searcher
 
     public Searcher() => timer.Elapsed += (s, e) => cancel = true;
 
-    public async Task Start(BoardState currentBoard, SearchParameters searchParameters)
+    public void Start(BoardState currentBoard, SearchParameters searchParameters)
     {
         cancel = false;
         nodesSearched = 0;
-        sw.Start();
+        sw.Restart();
 
         SearchPosition searchPosition = currentBoard.ToSearchPosition();
         long[] rootHistory = currentBoard.GetHistoryHashes();
@@ -67,7 +67,7 @@ public class Searcher
         while (rootMoves.Count > 0)
         {
             pv = [];
-            eval = await AlphaBeta(searchPosition, alpha, beta, depth, rootMoves, pv, prevPv, 0);
+            eval = AlphaBeta(searchPosition, alpha, beta, depth, rootMoves, pv, prevPv, 0);
             rootMoves.SortByPromise();
 
             bool failedLow = eval <= alpha;
@@ -147,7 +147,7 @@ public class Searcher
 
     public void SetHashSize(int sizeInMegabytes) => HashTable.Resize(sizeInMegabytes);
 
-    private async ValueTask<Score> AlphaBeta(
+    private Score AlphaBeta(
         SearchPosition boardState,
         Score alpha,
         Score beta,
@@ -185,7 +185,7 @@ public class Searcher
             {
                 if (foundPv)
                 {
-                    eval = -await AlphaBetaInternal(
+                    eval = -AlphaBetaInternal(
                         boardState,
                         -alpha - 1,
                         -alpha,
@@ -198,7 +198,7 @@ public class Searcher
 
                     if (eval > alpha && eval < beta)
                     {
-                        eval = -await AlphaBetaInternal(
+                        eval = -AlphaBetaInternal(
                             boardState,
                             -beta,
                             -alpha,
@@ -212,7 +212,7 @@ public class Searcher
                 }
                 else
                 {
-                    eval = -await AlphaBetaInternal(
+                    eval = -AlphaBetaInternal(
                         boardState,
                         -beta,
                         -alpha,
@@ -257,10 +257,6 @@ public class Searcher
                 pv.Add(move);
                 pv.AddRange(pvBuffer);
             }
-            else if (moveIndex > moves.Count / 3 && !foundPv)
-            {
-                return eval;
-            }
         }
 
         if (!cancel && !hasRepetitionHistory)
@@ -272,7 +268,7 @@ public class Searcher
         return alpha;
     }
 
-    private async ValueTask<Score> AlphaBetaInternal(
+    private Score AlphaBetaInternal(
         SearchPosition boardState,
         Score alpha,
         Score beta,
@@ -298,7 +294,7 @@ public class Searcher
         if (depth <= 0)
         {
             nodesSearched++;
-            return await Quiesce(boardState, alpha, beta, ply);
+            return Quiesce(boardState, alpha, beta, ply);
         }
 
         Move ttBestMove = default;
@@ -379,11 +375,11 @@ public class Searcher
                 else if (childDepth == 1 && isCaptureOrPromotion)
                 {
                     nodesSearched++;
-                    eval = -await Quiesce(boardState, -beta, -alpha, ply + 1);
+                    eval = -Quiesce(boardState, -beta, -alpha, ply + 1);
                 }
                 else if (foundPv)
                 {
-                    eval = -await AlphaBetaInternal(
+                    eval = -AlphaBetaInternal(
                         boardState,
                         -alpha - 1,
                         -alpha,
@@ -396,7 +392,7 @@ public class Searcher
 
                     if (eval > alpha && eval < beta)
                     {
-                        eval = -await AlphaBetaInternal(
+                        eval = -AlphaBetaInternal(
                             boardState,
                             -beta,
                             -alpha,
@@ -410,7 +406,7 @@ public class Searcher
                 }
                 else
                 {
-                    eval = -await AlphaBetaInternal(
+                    eval = -AlphaBetaInternal(
                         boardState,
                         -beta,
                         -alpha,
@@ -461,7 +457,7 @@ public class Searcher
         return alpha;
     }
 
-    private async ValueTask<Score> Quiesce(SearchPosition boardState, Score alpha, Score beta, int ply)
+    private Score Quiesce(SearchPosition boardState, Score alpha, Score beta, int ply)
     {
         Score eval = Evaluator.Evaluate(boardState);
 
@@ -477,7 +473,7 @@ public class Searcher
 
             try
             {
-                eval = -await Quiesce(boardState, -beta, -alpha, ply + 1);
+                eval = -Quiesce(boardState, -beta, -alpha, ply + 1);
             }
             finally
             {

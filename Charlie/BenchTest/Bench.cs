@@ -79,7 +79,7 @@ public class Bench
         foreach (string fen in fens)
         {
             var boardState = new BoardState(fen.Split(' '));
-            await search.Start(boardState, searchParameters);
+            search.Start(boardState, searchParameters);
             search.ClearHash();
         }
 

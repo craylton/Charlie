@@ -15,6 +15,7 @@ public class Uci
 {
     private readonly Searcher searcher = new();
     private readonly Bench bench = new();
+    private Task searchTask;
     private Move lastBestMove;
 
     public void Initialise()
@@ -57,6 +58,7 @@ public class Uci
                     searcher.Stop();
                     break;
                 case "quit":
+                    searcher.Stop();
                     return;
             }
 
@@ -119,6 +121,9 @@ public class Uci
 
     private void Go(string[] @params, BoardState boardState)
     {
+        if (searchTask is { IsCompleted: false })
+            return;
+
         SearchTime searchTime = default;
         int targetDepth = default;
         var searchType = SearchType.Infinite;
@@ -154,7 +159,7 @@ public class Uci
         }
 
         var searchParameters = new SearchParameters(searchType, searchTime, targetDepth);
-        _ = Task.Run(async () => await searcher.Start(boardState, searchParameters));
+        searchTask = Task.Run(() => searcher.Start(boardState, searchParameters));
     }
 
     private void SetOption(string[] @params)
