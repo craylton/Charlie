@@ -149,7 +149,7 @@ public class Evaluator
         if (score > 270 || score < -270)
         {
             if (isEndgame)
-                CalculatePawnScores(position, ref whiteScore, ref blackScore);
+                CalculatePawnScores(position, isEndgame, ref whiteScore, ref blackScore);
 
             score = whiteScore - blackScore;
             return new Score(score * (board.ToMove == PieceColour.White ? 1 : -1));
@@ -185,13 +185,13 @@ public class Evaluator
             blackScore -= BitOperations.PopCount(whiteTerritory & position.BlackQueen) * queen / 3;
         }
 
-        CalculatePawnScores(position, ref whiteScore, ref blackScore);
+        CalculatePawnScores(position, isEndgame, ref whiteScore, ref blackScore);
 
         score = whiteScore - blackScore;
         return new Score(score * (board.ToMove == PieceColour.White ? 1 : -1));
     }
 
-    private static void CalculatePawnScores(Board board, ref int whiteScore, ref int blackScore)
+    private static void CalculatePawnScores(Board board, bool isEndgame, ref int whiteScore, ref int blackScore)
     {
         ulong whitePawns = board.WhitePawn;
         ulong blackPawns = board.BlackPawn;
@@ -222,25 +222,33 @@ public class Evaluator
             if (whitePawnOnFile)
             {
                 // Isolated pawns
-                if ((whiteFiles & neighbouringMask) == 0) whiteScore -= 10;
+                if ((whiteFiles & neighbouringMask) == 0) whiteScore -= 11;
 
                 // Doubled pawns
                 if (BitOperations.PopCount(whitePawns & fileMask) > 1) whiteScore -= 30;
 
                 // Passed pawns
-                if ((blackFiles & adjacentMask) == 0) whiteScore += 28;
+                if ((blackFiles & adjacentMask) == 0)
+                {
+                    whiteScore += 28;
+                    if (isEndgame) whiteScore += 11;
+                }
             }
 
             if (blackPawnOnFile)
             {
                 // Isolated pawns
-                if ((blackFiles & neighbouringMask) == 0) blackScore -= 10;
+                if ((blackFiles & neighbouringMask) == 0) blackScore -= 11;
 
                 // Doubled pawns
                 if (BitOperations.PopCount(blackPawns & fileMask) > 1) blackScore -= 30;
 
                 // Passed pawns
-                if ((whiteFiles & adjacentMask) == 0) blackScore += 28;
+                if ((whiteFiles & adjacentMask) == 0)
+                {
+                    blackScore += 28;
+                    if (isEndgame) blackScore += 11;
+                }
             }
         }
     }
