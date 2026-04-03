@@ -170,6 +170,7 @@ public class Evaluator
         // Hanging pieces are less valuable
         if (board.ToMove == PieceColour.Black)
         {
+            blackScore += 11;
             whiteScore -= BitOperations.PopCount(blackTerritory & position.WhitePawn) * pawn / 2;
             whiteScore -= BitOperations.PopCount(blackTerritory & position.WhiteKnight) * knight / 2;
             whiteScore -= BitOperations.PopCount(blackTerritory & position.WhiteBishop) * bishop / 2;
@@ -179,6 +180,7 @@ public class Evaluator
         }
         else if (board.ToMove == PieceColour.White)
         {
+            whiteScore += 11;
             blackScore -= BitOperations.PopCount(whiteTerritory & position.BlackPawn) * pawn / 2;
             blackScore -= BitOperations.PopCount(whiteTerritory & position.BlackKnight) * knight / 2;
             blackScore -= BitOperations.PopCount(whiteTerritory & position.BlackBishop) * bishop / 2;
