@@ -102,18 +102,6 @@ public class Evaluator
         -10,-5,  0,  5,  5,  0,-5, -10,
     ];
 
-    private static readonly byte[] adjacentFilesMasks =
-    [
-        0b0000_0011,
-        0b0000_0111,
-        0b0000_1110,
-        0b0001_1100,
-        0b0011_1000,
-        0b0111_0000,
-        0b1110_0000,
-        0b1100_0000,
-    ];
-
     public static Score Evaluate(IPositionState board)
     {
         Board position = board.Board;
@@ -197,99 +185,51 @@ public class Evaluator
     {
         ulong whitePawns = board.WhitePawn;
         ulong blackPawns = board.BlackPawn;
-        int whiteFiles = 0;
-        int blackFiles = 0;
+        byte whiteFiles = GetOccupiedFiles(whitePawns);
+        byte blackFiles = GetOccupiedFiles(blackPawns);
+        byte whiteNeighbouringFiles = GetNeighbouringFiles(whiteFiles);
+        byte blackNeighbouringFiles = GetNeighbouringFiles(blackFiles);
 
-        for (int i = 0; i < Chessboard.Files.Length; i++)
+        int whitePassedFiles = BitOperations.PopCount((uint)(whiteFiles & ~(blackFiles | blackNeighbouringFiles)));
+        int blackPassedFiles = BitOperations.PopCount((uint)(blackFiles & ~(whiteFiles | whiteNeighbouringFiles)));
+
+        // Isolated pawns
+        whiteScore -= BitOperations.PopCount((uint)(whiteFiles & ~whiteNeighbouringFiles)) * 12;
+        blackScore -= BitOperations.PopCount((uint)(blackFiles & ~blackNeighbouringFiles)) * 12;
+
+        // Passed pawns
+        whiteScore += whitePassedFiles * 28;
+        blackScore += blackPassedFiles * 28;
+        if (isEndgame)
         {
-            ulong fileMask = Chessboard.Files[i];
-
-            if ((whitePawns & fileMask) != 0)
-                whiteFiles |= 1 << i;
-
-            if ((blackPawns & fileMask) != 0)
-                blackFiles |= 1 << i;
-        }
-
-        for (int i = 0; i < Chessboard.Files.Length; i++)
-        {
-            int fileBit = 1 << i;
-            int adjacentMask = adjacentFilesMasks[i];
-            int neighbouringMask = adjacentMask ^ fileBit;
-            //ulong fileMask = Chessboard.Files[i];
-
-            bool whitePawnOnFile = (whiteFiles & fileBit) != 0;
-            bool blackPawnOnFile = (blackFiles & fileBit) != 0;
-
-            if (whitePawnOnFile)
-            {
-                // Isolated pawns
-                if ((whiteFiles & neighbouringMask) == 0) whiteScore -= 12;
-
-                // Doubled pawns
-                //if (BitOperations.PopCount(whitePawns & fileMask) > 1) whiteScore -= 6;
-
-                // Passed pawns
-                if ((blackFiles & adjacentMask) == 0)
-                {
-                    whiteScore += 28;
-                    if (isEndgame) whiteScore += 11;
-                }
-            }
-
-            if (blackPawnOnFile)
-            {
-                // Isolated pawns
-                if ((blackFiles & neighbouringMask) == 0) blackScore -= 12;
-
-                // Doubled pawns
-                //if (BitOperations.PopCount(blackPawns & fileMask) > 1) blackScore -= 6;
-
-                // Passed pawns
-                if ((whiteFiles & adjacentMask) == 0)
-                {
-                    blackScore += 28;
-                    if (isEndgame) blackScore += 11;
-                }
-            }
+            whiteScore += whitePassedFiles * 11;
+            blackScore += blackPassedFiles * 11;
         }
 
         // Chained pawns
-        while (whitePawns != 0)
-        {
-            int square = BitOperations.TrailingZeroCount(whitePawns);
-            if (IsUnderPawnAttack(board, 1ul << square, PieceColour.White))
-            {
-                whiteScore += 16;
-            }
-
-            whitePawns &= whitePawns - 1;
-        }
-        while (blackPawns != 0)
-        {
-            int square = BitOperations.TrailingZeroCount(blackPawns);
-            if (IsUnderPawnAttack(board, 1ul << square, PieceColour.Black))
-            {
-                blackScore += 16;
-            }
-
-            blackPawns &= blackPawns - 1;
-        }
+        ulong whitePawnAttacks = ((whitePawns & ~Chessboard.AFile) >> 7) | ((whitePawns & ~Chessboard.HFile) >> 9);
+        ulong blackPawnAttacks = ((blackPawns & ~Chessboard.AFile) << 9) | ((blackPawns & ~Chessboard.HFile) << 7);
+        whiteScore += BitOperations.PopCount(whitePawns & whitePawnAttacks) * 16;
+        blackScore += BitOperations.PopCount(blackPawns & blackPawnAttacks) * 16;
     }
 
-    private static bool IsUnderPawnAttack(Board board, ulong cell, PieceColour pawnOwner)
+    private static byte GetOccupiedFiles(ulong pawns)
     {
-        int cellIndex = BitOperations.TrailingZeroCount(cell);
-        ulong pawnAttacks = pawnOwner == PieceColour.Black
-            ? Magics.WhitePawnAttacks[cellIndex]
-            : Magics.BlackPawnAttacks[cellIndex];
+        byte occupiedFiles = 0;
 
-        ulong pawns = pawnOwner == PieceColour.Black
-            ? board.BlackPawn
-            : board.WhitePawn;
+        if ((pawns & Chessboard.AFile) != 0) occupiedFiles |= 0b0000_0001;
+        if ((pawns & Chessboard.BFile) != 0) occupiedFiles |= 0b0000_0010;
+        if ((pawns & Chessboard.CFile) != 0) occupiedFiles |= 0b0000_0100;
+        if ((pawns & Chessboard.DFile) != 0) occupiedFiles |= 0b0000_1000;
+        if ((pawns & Chessboard.EFile) != 0) occupiedFiles |= 0b0001_0000;
+        if ((pawns & Chessboard.FFile) != 0) occupiedFiles |= 0b0010_0000;
+        if ((pawns & Chessboard.GFile) != 0) occupiedFiles |= 0b0100_0000;
+        if ((pawns & Chessboard.HFile) != 0) occupiedFiles |= 0b1000_0000;
 
-        return (pawnAttacks & pawns) != 0;
+        return occupiedFiles;
     }
+
+    private static byte GetNeighbouringFiles(byte files) => (byte)((files << 1) | (files >> 1));
 
     private static int GetPsqtScore(ulong pieces, int[] psqt, int multiplier = 1)
     {
