@@ -176,7 +176,6 @@ public class Evaluator
             whiteScore -= BitOperations.PopCount(blackTerritory & position.WhiteBishop) * bishop / 2;
             whiteScore -= BitOperations.PopCount(blackTerritory & position.WhiteRook) * rook / 2;
             whiteScore -= BitOperations.PopCount(blackTerritory & position.WhiteQueen) * queen / 2;
-
         }
         else if (board.ToMove == PieceColour.White)
         {
@@ -280,25 +279,16 @@ public class Evaluator
 
     private static bool IsUnderPawnAttack(Board board, ulong cell, PieceColour pawnOwner)
     {
-        bool up = (cell & Chessboard.Rank8) == 0,
-        down = (cell & Chessboard.Rank1) == 0,
-        right = (cell & Chessboard.HFile) == 0,
-        left = (cell & Chessboard.AFile) == 0;
+        int cellIndex = BitOperations.TrailingZeroCount(cell);
+        ulong pawnAttacks = pawnOwner == PieceColour.Black
+            ? Magics.WhitePawnAttacks[cellIndex]
+            : Magics.BlackPawnAttacks[cellIndex];
 
-        ulong neighbours = Magics.Neighbours[BitOperations.TrailingZeroCount(cell)];
+        ulong pawns = pawnOwner == PieceColour.Black
+            ? board.BlackPawn
+            : board.WhitePawn;
 
-        if (pawnOwner == PieceColour.Black && (neighbours & board.BlackPawn) != 0)
-        {
-            if (up && right && ((cell >> 9) & board.BlackPawn) != 0) return true;
-            if (up && left && ((cell >> 7) & board.BlackPawn) != 0) return true;
-        }
-        else if (pawnOwner == PieceColour.White && (neighbours & board.WhitePawn) != 0)
-        {
-            if (down && right && ((cell << 7) & board.WhitePawn) != 0) return true;
-            if (down && left && ((cell << 9) & board.WhitePawn) != 0) return true;
-        }
-
-        return false;
+        return (pawnAttacks & pawns) != 0;
     }
 
     private static int GetPsqtScore(ulong pieces, int[] psqt, int multiplier = 1)

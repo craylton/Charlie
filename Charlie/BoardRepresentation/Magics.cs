@@ -9,6 +9,10 @@ public static class Magics
 
     public static ulong[] AllRookAttacks { get; private set; }
 
+    public static ulong[] WhitePawnAttacks { get; private set; }
+
+    public static ulong[] BlackPawnAttacks { get; private set; }
+
     // 64 squares * 4 directions, in order: up-right up-left down-right down-left
     public static ulong[,][] TargetedBishopAttacks { get; private set; }
 
@@ -20,6 +24,7 @@ public static class Magics
     {
         GenerateRookAttacks();
         GenerateBishopAttacks();
+        GeneratePawnAttacks();
         GenerateNeighbours();
     }
 
@@ -138,6 +143,29 @@ public static class Magics
         }
     }
 
+    private static void GeneratePawnAttacks()
+    {
+        WhitePawnAttacks = new ulong[64];
+        BlackPawnAttacks = new ulong[64];
+
+        for (int i = 0; i < 64; i++)
+        {
+            ulong cell = 1ul << i;
+
+            if ((cell & Chessboard.AFile) == 0)
+            {
+                WhitePawnAttacks[i] |= cell >> 7;
+                BlackPawnAttacks[i] |= cell << 9;
+            }
+
+            if ((cell & Chessboard.HFile) == 0)
+            {
+                WhitePawnAttacks[i] |= cell >> 9;
+                BlackPawnAttacks[i] |= cell << 7;
+            }
+        }
+    }
+
     public static ulong[] KnightAttacks { get; } =
     [
         0b00000000_00000000_00000000_00000000_00000000_00000010_00000100_00000000,
@@ -213,4 +241,3 @@ public static class Magics
         0b00000000_00100000_01000000_00000000_00000000_00000000_00000000_00000000,
     ];
 }
-
