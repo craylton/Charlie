@@ -146,7 +146,7 @@ public class Evaluator
 
         // Lazy eval
         int score = whiteScore - blackScore;
-        if (score > 270 || score < -270)
+        if (score > 340 || score < -340)
         {
             if (isEndgame)
                 CalculatePawnScores(position, isEndgame, ref whiteScore, ref blackScore);
@@ -164,25 +164,26 @@ public class Evaluator
         whiteScore += (BitOperations.PopCount(whiteAttacks) + BitOperations.PopCount(whiteTerritory)) * 2;
         blackScore += (BitOperations.PopCount(blackAttacks) + BitOperations.PopCount(blackTerritory)) * 2;
 
-        whiteScore += BitOperations.PopCount((position.WhitePawn >> 8) & whiteTerritory) * 8;
-        blackScore += BitOperations.PopCount((position.BlackPawn << 8) & blackTerritory) * 8;
+        whiteScore += BitOperations.PopCount((position.WhitePawn >> 8) & whiteTerritory) * 9;
+        blackScore += BitOperations.PopCount((position.BlackPawn << 8) & blackTerritory) * 9;
 
         // Hanging pieces are less valuable
         if (board.ToMove == PieceColour.Black)
         {
-            whiteScore -= BitOperations.PopCount(blackTerritory & position.WhitePawn) * pawn / 3;
+            whiteScore -= BitOperations.PopCount(blackTerritory & position.WhitePawn) * pawn / 2;
             whiteScore -= BitOperations.PopCount(blackTerritory & position.WhiteKnight) * knight / 2;
             whiteScore -= BitOperations.PopCount(blackTerritory & position.WhiteBishop) * bishop / 2;
-            whiteScore -= BitOperations.PopCount(blackTerritory & position.WhiteRook) * rook / 3;
-            whiteScore -= BitOperations.PopCount(blackTerritory & position.WhiteQueen) * queen / 3;
+            whiteScore -= BitOperations.PopCount(blackTerritory & position.WhiteRook) * rook / 2;
+            whiteScore -= BitOperations.PopCount(blackTerritory & position.WhiteQueen) * queen / 2;
+
         }
         else if (board.ToMove == PieceColour.White)
         {
-            blackScore -= BitOperations.PopCount(whiteTerritory & position.BlackPawn) * pawn / 3;
+            blackScore -= BitOperations.PopCount(whiteTerritory & position.BlackPawn) * pawn / 2;
             blackScore -= BitOperations.PopCount(whiteTerritory & position.BlackKnight) * knight / 2;
             blackScore -= BitOperations.PopCount(whiteTerritory & position.BlackBishop) * bishop / 2;
-            blackScore -= BitOperations.PopCount(whiteTerritory & position.BlackRook) * rook / 3;
-            blackScore -= BitOperations.PopCount(whiteTerritory & position.BlackQueen) * queen / 3;
+            blackScore -= BitOperations.PopCount(whiteTerritory & position.BlackRook) * rook / 2;
+            blackScore -= BitOperations.PopCount(whiteTerritory & position.BlackQueen) * queen / 2;
         }
 
         CalculatePawnScores(position, isEndgame, ref whiteScore, ref blackScore);
@@ -222,7 +223,7 @@ public class Evaluator
             if (whitePawnOnFile)
             {
                 // Isolated pawns
-                if ((whiteFiles & neighbouringMask) == 0) whiteScore -= 11;
+                if ((whiteFiles & neighbouringMask) == 0) whiteScore -= 12;
 
                 // Doubled pawns
                 if (BitOperations.PopCount(whitePawns & fileMask) > 1) whiteScore -= 30;
@@ -238,7 +239,7 @@ public class Evaluator
             if (blackPawnOnFile)
             {
                 // Isolated pawns
-                if ((blackFiles & neighbouringMask) == 0) blackScore -= 11;
+                if ((blackFiles & neighbouringMask) == 0) blackScore -= 12;
 
                 // Doubled pawns
                 if (BitOperations.PopCount(blackPawns & fileMask) > 1) blackScore -= 30;
