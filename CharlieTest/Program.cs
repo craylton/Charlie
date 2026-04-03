@@ -9,7 +9,8 @@ namespace CharlieTest
             var cuteChessLocation = @"C:\Program Files (x86)\cutechess\cutechess-cli.exe";
             var openingsLocation = @"noob_2moves.pgn";
             var pgnOutputLocation = @"tournament.pgn";
-            var numberOfMatches = 10;
+            var numberOfMatches = 100;
+            var timeControlMinutes = 2;
 
             var startInfo = new ProcessStartInfo
             {
@@ -17,7 +18,7 @@ namespace CharlieTest
                 Arguments =
                     "-engine conf=\"Charlie dev\" " +
                     "-engine conf=\"Charlie test\" " +
-                    "-each tc=5+0.05 " +
+                    $"-each tc={timeControlMinutes}+{(double)timeControlMinutes / 100} " +
                     $"-openings file=\"{openingsLocation}\" " +
                     "format=pgn " +
                     "order=random " +
