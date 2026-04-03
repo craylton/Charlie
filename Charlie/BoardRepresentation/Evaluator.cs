@@ -252,6 +252,51 @@ public class Evaluator
                 }
             }
         }
+
+        // Chained pawns
+        while (whitePawns != 0)
+        {
+            int square = BitOperations.TrailingZeroCount(whitePawns);
+            if (IsUnderPawnAttack(board, 1ul << square, PieceColour.White))
+            {
+                whiteScore += 16;
+            }
+
+            whitePawns &= whitePawns - 1;
+        }
+        while (blackPawns != 0)
+        {
+            int square = BitOperations.TrailingZeroCount(blackPawns);
+            if (IsUnderPawnAttack(board, 1ul << square, PieceColour.Black))
+            {
+                blackScore += 16;
+            }
+
+            blackPawns &= blackPawns - 1;
+        }
+    }
+
+    private static bool IsUnderPawnAttack(Board board, ulong cell, PieceColour pawnOwner)
+    {
+        bool up = (cell & Chessboard.Rank8) == 0,
+        down = (cell & Chessboard.Rank1) == 0,
+        right = (cell & Chessboard.HFile) == 0,
+        left = (cell & Chessboard.AFile) == 0;
+
+        ulong neighbours = Magics.Neighbours[BitOperations.TrailingZeroCount(cell)];
+
+        if (pawnOwner == PieceColour.Black && (neighbours & board.BlackPawn) != 0)
+        {
+            if (up && right && ((cell >> 9) & board.BlackPawn) != 0) return true;
+            if (up && left && ((cell >> 7) & board.BlackPawn) != 0) return true;
+        }
+        else if (pawnOwner == PieceColour.White && (neighbours & board.WhitePawn) != 0)
+        {
+            if (down && right && ((cell << 7) & board.WhitePawn) != 0) return true;
+            if (down && left && ((cell << 9) & board.WhitePawn) != 0) return true;
+        }
+
+        return false;
     }
 
     private static int GetPsqtScore(ulong pieces, int[] psqt, int multiplier = 1)
