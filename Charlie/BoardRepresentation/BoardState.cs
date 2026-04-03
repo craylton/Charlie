@@ -370,10 +370,10 @@ public class BoardState : IPositionState
 
     private bool IsUnderImmediateAttack(ulong cell, ulong theirKing, PieceColour attacker)
     {
-        bool up = (cell & ~Chessboard.Rank8) != 0,
-        down = (cell & ~Chessboard.Rank1) != 0,
-        right = (cell & ~Chessboard.HFile) != 0,
-        left = (cell & ~Chessboard.AFile) != 0;
+        bool up = (cell & Chessboard.Rank8) == 0,
+        down = (cell & Chessboard.Rank1) == 0,
+        right = (cell & Chessboard.HFile) == 0,
+        left = (cell & Chessboard.AFile) == 0;
 
         ulong neighbours = Magics.Neighbours[BitOperations.TrailingZeroCount(cell)];
 

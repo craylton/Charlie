@@ -215,7 +215,7 @@ public class Evaluator
             int fileBit = 1 << i;
             int adjacentMask = adjacentFilesMasks[i];
             int neighbouringMask = adjacentMask ^ fileBit;
-            ulong fileMask = Chessboard.Files[i];
+            //ulong fileMask = Chessboard.Files[i];
 
             bool whitePawnOnFile = (whiteFiles & fileBit) != 0;
             bool blackPawnOnFile = (blackFiles & fileBit) != 0;
@@ -226,7 +226,7 @@ public class Evaluator
                 if ((whiteFiles & neighbouringMask) == 0) whiteScore -= 12;
 
                 // Doubled pawns
-                if (BitOperations.PopCount(whitePawns & fileMask) > 1) whiteScore -= 30;
+                //if (BitOperations.PopCount(whitePawns & fileMask) > 1) whiteScore -= 6;
 
                 // Passed pawns
                 if ((blackFiles & adjacentMask) == 0)
@@ -242,7 +242,7 @@ public class Evaluator
                 if ((blackFiles & neighbouringMask) == 0) blackScore -= 12;
 
                 // Doubled pawns
-                if (BitOperations.PopCount(blackPawns & fileMask) > 1) blackScore -= 30;
+                //if (BitOperations.PopCount(blackPawns & fileMask) > 1) blackScore -= 6;
 
                 // Passed pawns
                 if ((whiteFiles & adjacentMask) == 0)
