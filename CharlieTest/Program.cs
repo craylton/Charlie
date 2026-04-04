@@ -10,7 +10,7 @@ namespace CharlieTest
             var openingsLocation = @"noob_2moves.pgn";
             var pgnOutputLocation = @"tournament.pgn";
             var numberOfMatches = 100;
-            var timeControlMinutes = 2;
+            var timeControlSeconds = 1;
 
             var startInfo = new ProcessStartInfo
             {
@@ -18,7 +18,7 @@ namespace CharlieTest
                 Arguments =
                     "-engine conf=\"Charlie dev\" " +
                     "-engine conf=\"Charlie test\" " +
-                    $"-each tc={timeControlMinutes}+{(double)timeControlMinutes / 100} " +
+                    $"-each tc={timeControlSeconds}+{(double)timeControlSeconds / 100} " +
                     $"-openings file=\"{openingsLocation}\" " +
                     "format=pgn " +
                     "order=random " +

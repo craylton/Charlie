@@ -157,28 +157,21 @@ internal static class PositionUtilities
         if (cell == 0)
             return false;
 
-        bool up = (cell & ~Chessboard.Rank8) != 0,
-        down = (cell & ~Chessboard.Rank1) != 0,
-        right = (cell & ~Chessboard.HFile) != 0,
-        left = (cell & ~Chessboard.AFile) != 0;
-
-        ulong neighbours = Magics.Neighbours[BitOperations.TrailingZeroCount(cell)];
+        int cellIndex = BitOperations.TrailingZeroCount(cell);
+        ulong neighbours = Magics.Neighbours[cellIndex];
 
         if ((neighbours & theirKing) != 0)
             return true;
 
-        if (attacker == PieceColour.Black && (neighbours & board.BlackPawn) != 0)
-        {
-            if (up && right && ((cell >> 9) & board.BlackPawn) != 0) return true;
-            if (up && left && ((cell >> 7) & board.BlackPawn) != 0) return true;
-        }
-        else if (attacker == PieceColour.White && (neighbours & board.WhitePawn) != 0)
-        {
-            if (down && right && ((cell << 7) & board.WhitePawn) != 0) return true;
-            if (down && left && ((cell << 9) & board.WhitePawn) != 0) return true;
-        }
+        ulong pawnAttacks = attacker == PieceColour.Black
+            ? Magics.WhitePawnAttacks[cellIndex]
+            : Magics.BlackPawnAttacks[cellIndex];
 
-        return false;
+        ulong theirPawns = attacker == PieceColour.Black
+            ? board.BlackPawn
+            : board.WhitePawn;
+
+        return (pawnAttacks & theirPawns) != 0;
     }
 
     private static bool IsUnderRayAttack(Board board, ulong cell, ulong theirQueen, ulong theirRook, ulong theirBishop)

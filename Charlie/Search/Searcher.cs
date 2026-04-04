@@ -116,8 +116,8 @@ public class Searcher
             IterationCompleted?.Invoke(this, moveInfo);
 
             // Set new aspiration windows
-            alpha = eval - 35;
-            beta = eval + 30;
+            alpha = eval - 38;
+            beta = eval + 38;
             depth++;
 
             // Check if we need to abort search
@@ -191,7 +191,6 @@ public class Searcher
                         -alpha,
                         childDepth,
                         1,
-                        1,
                         pvBuffer,
                         pvMoves,
                         childPvIndex);
@@ -203,7 +202,6 @@ public class Searcher
                             -beta,
                             -alpha,
                             childDepth,
-                            1,
                             1,
                             pvBuffer,
                             pvMoves,
@@ -217,7 +215,6 @@ public class Searcher
                         -beta,
                         -alpha,
                         childDepth,
-                        1,
                         1,
                         pvBuffer,
                         pvMoves,
@@ -274,13 +271,12 @@ public class Searcher
         Score beta,
         int depth,
         int height,
-        int ply,
         List<Move> pv,
         Move[] pvMoves,
         int pvIndex)
     {
         Score originalAlpha = alpha;
-        int repetitionCount = CountRepetitions(ply, boardState.HashCode);
+        int repetitionCount = CountRepetitions(height, boardState.HashCode);
 
         if (repetitionCount >= 3)
         {
@@ -294,7 +290,7 @@ public class Searcher
         if (depth <= 0)
         {
             nodesSearched++;
-            return Quiesce(boardState, alpha, beta, ply);
+            return Quiesce(boardState, alpha, beta, height);
         }
 
         Move ttBestMove = default;
@@ -302,7 +298,7 @@ public class Searcher
         if (!hasRepetitionHistory && HashTable.TryProbeHash(boardState.HashCode, out HashElement hashEntry))
         {
             ttBestMove = hashEntry.Move;
-            Score hashScore = UnpackHashScore(hashEntry.Score, ply);
+            Score hashScore = UnpackHashScore(hashEntry.Score, height);
 
             if (hashEntry.Depth >= depth && CanUseHashScore(hashEntry.Type, hashScore, alpha, beta))
             {
@@ -340,8 +336,8 @@ public class Searcher
             bool isCaptureOrPromotion = move.IsCaptureOrPromotion(boardState);
 
             Score eval = Score.Draw;
-            boardState.MakeMoveInPlace(move, ref undoStack[ply]);
-            RecordRepetitionHash(ply + 1, boardState.HashCode);
+            boardState.MakeMoveInPlace(move, ref undoStack[height]);
+            RecordRepetitionHash(height + 1, boardState.HashCode);
 
             try
             {
@@ -366,7 +362,7 @@ public class Searcher
 
                 childDepth += extension;
 
-                if (CountRepetitions(ply + 1, boardState.HashCode) >= 3)
+                if (CountRepetitions(height + 1, boardState.HashCode) >= 3)
                 {
                     nodesSearched++;
                     eval = Score.Draw;
@@ -375,7 +371,7 @@ public class Searcher
                 else if (childDepth == 1 && isCaptureOrPromotion)
                 {
                     nodesSearched++;
-                    eval = -Quiesce(boardState, -beta, -alpha, ply + 1);
+                    eval = -Quiesce(boardState, -beta, -alpha, height + 1);
                 }
                 else if (foundPv)
                 {
@@ -385,7 +381,6 @@ public class Searcher
                         -alpha,
                         childDepth,
                         height + 1,
-                        ply + 1,
                         pvBuffer,
                         pvMoves,
                         childPvIndex);
@@ -398,7 +393,6 @@ public class Searcher
                             -alpha,
                             childDepth,
                             height + 1,
-                            ply + 1,
                             pvBuffer,
                             pvMoves,
                             childPvIndex);
@@ -412,7 +406,6 @@ public class Searcher
                         -alpha,
                         childDepth,
                         height + 1,
-                        ply + 1,
                         pvBuffer,
                         pvMoves,
                         childPvIndex);
@@ -420,7 +413,7 @@ public class Searcher
             }
             finally
             {
-                boardState.UnmakeMove(move, in undoStack[ply]);
+                boardState.UnmakeMove(move, in undoStack[height]);
             }
 
             if (cancel) break;
@@ -428,7 +421,7 @@ public class Searcher
             if (eval >= beta)
             {
                 if (!hasRepetitionHistory)
-                    RecordHash(boardState.HashCode, depth, eval, move, HashType.Lower, ply);
+                    RecordHash(boardState.HashCode, depth, eval, move, HashType.Lower, height);
 
                 return beta;
             }
@@ -451,7 +444,7 @@ public class Searcher
         if (!cancel && !hasRepetitionHistory)
         {
             HashType hashType = alpha <= originalAlpha ? HashType.Upper : HashType.Exact;
-            RecordHash(boardState.HashCode, depth, alpha, bestMove, hashType, ply);
+            RecordHash(boardState.HashCode, depth, alpha, bestMove, hashType, height);
         }
 
         return alpha;
