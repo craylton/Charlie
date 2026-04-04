@@ -164,6 +164,8 @@ public class Evaluator
             whiteScore -= BitOperations.PopCount(blackTerritory & position.WhiteBishop) * bishop / 2;
             whiteScore -= BitOperations.PopCount(blackTerritory & position.WhiteRook) * rook / 2;
             whiteScore -= BitOperations.PopCount(blackTerritory & position.WhiteQueen) * queen / 2;
+
+            if (board.IsInPseudoCheck(PieceColour.White)) blackScore -= 6;
         }
         else if (board.ToMove == PieceColour.White)
         {
@@ -173,6 +175,8 @@ public class Evaluator
             blackScore -= BitOperations.PopCount(whiteTerritory & position.BlackBishop) * bishop / 2;
             blackScore -= BitOperations.PopCount(whiteTerritory & position.BlackRook) * rook / 2;
             blackScore -= BitOperations.PopCount(whiteTerritory & position.BlackQueen) * queen / 2;
+
+            if (board.IsInPseudoCheck(PieceColour.Black)) whiteScore -= 6;
         }
 
         CalculatePawnScores(position, isEndgame, ref whiteScore, ref blackScore);
