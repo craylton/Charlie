@@ -1,6 +1,6 @@
 ﻿namespace Charlie.Search;
 
-public record SearchParameters(SearchType SearchType, SearchTime SearchTime, int DepthLimit)
+public record SearchParameters(SearchType SearchType, SearchTime SearchTime, int DepthLimit, int TestValue = 0)
 {
     public bool CanContinueSearching(
         int nextDepth,

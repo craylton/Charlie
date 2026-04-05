@@ -49,6 +49,7 @@ public class Uci
                     Console.WriteLine("id author Craylton");
                     Console.WriteLine($"option name Hash type spin default {Searcher.DefaultHashSizeInMegabytes} min {HashTable.MinimumSizeInMegabytes} max {HashTable.MaximumSizeInMegabytes}");
                     Console.WriteLine("option name Clear Hash type button");
+                    Console.WriteLine("option name TestValue type spin default 0 min 0 max 100");
                     Console.WriteLine("uciok");
                     break;
                 case "isready":
@@ -189,6 +190,14 @@ public class Uci
             && hashSize <= HashTable.MaximumSizeInMegabytes)
         {
             searcher.SetHashSize(hashSize);
+        }
+
+        if (optionName.Equals("TestValue", StringComparison.OrdinalIgnoreCase)
+            && valueIndex >= 0
+            && valueIndex < @params.Length - 1
+            && int.TryParse(@params[valueIndex + 1], out int testValue))
+        {
+            searcher.SetTestValue(testValue);
         }
     }
 

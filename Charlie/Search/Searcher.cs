@@ -13,6 +13,8 @@ public class Searcher
 {
     private const int MaxSearchPly = 256;
 
+    private int testValue;
+
     private volatile bool cancel;
     private readonly Timer timer = new() { AutoReset = false };
     private readonly Stopwatch sw = new();
@@ -235,7 +237,7 @@ public class Searcher
                 pv.Clear();
                 pv.Add(move);
                 pv.AddRange(pvBuffer);
-                moves[moveIndex].IncreasePromise(11);
+                moves[moveIndex].IncreasePromise(testValue);
 
                 if (!hasRepetitionHistory)
                     RecordHash(boardState.HashCode, depth, eval, move, HashType.Lower, 0);
@@ -573,4 +575,6 @@ public class Searcher
 
         return count;
     }
+
+    internal void SetTestValue(int testValue) => this.testValue = testValue;
 }
