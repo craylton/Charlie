@@ -1,4 +1,6 @@
-﻿using System;
+﻿using CharlieTest.Optimisation;
+using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.Threading.Tasks;
 
@@ -15,6 +17,8 @@ namespace CharlieTest
 
             var choice = Console.ReadKey();
             Console.WriteLine();
+            Stopwatch stopwatch = Stopwatch.StartNew();
+
             if (choice.KeyChar != '1')
             {
                 var numberOfMatches = 100;
@@ -27,6 +31,9 @@ namespace CharlieTest
                 var maxValue = 80;
                 await OptimiseParameter(minValue, maxValue);
             }
+
+            string elapsedSecondsString = stopwatch.Elapsed.TotalSeconds.ToString("0.###", CultureInfo.InvariantCulture);
+            Console.WriteLine($"Completed in {elapsedSecondsString} seconds.");
         }
 
         private static async Task RunSingleMatch(int numberOfMatches, int timeControlSeconds)
@@ -48,7 +55,7 @@ namespace CharlieTest
             await RunOptimisationMatch(cuteChess, optimiser, maxValue);
             await RunOptimisationMatch(cuteChess, optimiser, midpoint);
 
-            int numTrials = 500;
+            int numTrials = 1;
 
             for (var i = 0; i < numTrials; i++)
             {
@@ -65,18 +72,20 @@ namespace CharlieTest
                 return;
             }
 
-            WriteOptimisationSummary(optimiser, trendline, minValue, maxValue);
+            WriteOptimisationSummary(trendline, minValue, maxValue);
         }
 
         private static async Task RunOptimisationMatch(CuteChessWrapper cuteChess, Optimiser optimiser, int testValue)
         {
-            var result = await cuteChess.RunSingleMatch(15, 2, false, testValue);
+            var result = await cuteChess.RunSingleMatch(12, 2, false, testValue);
             optimiser.AddResult(testValue, result.EloDifference);
+
+            string eloDifferenceString = result.EloDifference.ToString(CultureInfo.InvariantCulture);
             Console.WriteLine();
-            Console.WriteLine($"TestValue={testValue}\tResult={result.EloDifference.ToString(CultureInfo.InvariantCulture)}");
+            Console.WriteLine($"TestValue={testValue}\tResult={eloDifferenceString}");
         }
 
-        private static void WriteOptimisationSummary(Optimiser optimiser, Optimiser.QuadraticTrendline trendline, int minValue, int maxValue)
+        private static void WriteOptimisationSummary(QuadraticTrendline trendline, int minValue, int maxValue)
         {
             var bestPoint = trendline.FindMaximumPoint(minValue, maxValue);
             var recommendedValue = Math.Clamp(
@@ -84,23 +93,16 @@ namespace CharlieTest
                 minValue,
                 maxValue);
 
+            string bestValueString = bestPoint.X.ToString("0.###", CultureInfo.InvariantCulture);
+            string recommendedValueString = recommendedValue.ToString(CultureInfo.InvariantCulture);
+            string bestPointEloString = bestPoint.Y.ToString("0.###", CultureInfo.InvariantCulture);
+
             Console.WriteLine("Best-fit quadratic:");
-            Console.WriteLine(FormatEquation(trendline));
-            Console.WriteLine($"Best x ~= {bestPoint.X.ToString("0.###", CultureInfo.InvariantCulture)} (nearest test value {recommendedValue.ToString(CultureInfo.InvariantCulture)}), expected y ~= {bestPoint.Y.ToString("0.###", CultureInfo.InvariantCulture)}");
+            Console.WriteLine(trendline.ToString());
+            Console.WriteLine($"Best x ~= {bestValueString} (nearest test value {recommendedValueString}), expected y ~= {bestPointEloString}");
             Console.WriteLine();
 
-            OptimisationGraphWriter.WriteTrendlineGraph(optimiser, trendline, minValue, maxValue, bestPoint);
-        }
-
-        private static string FormatEquation(Optimiser.QuadraticTrendline trendline) =>
-            $"y = {trendline.A.ToString("0.000000", CultureInfo.InvariantCulture)}x^2 {FormatSignedTerm(trendline.B, "x")} {FormatSignedTerm(trendline.C, string.Empty)}";
-
-        private static string FormatSignedTerm(double coefficient, string suffix)
-        {
-            var magnitude = Math.Abs(coefficient).ToString("0.000000", CultureInfo.InvariantCulture);
-            return coefficient < 0d
-                ? $"- {magnitude}{suffix}"
-                : $"+ {magnitude}{suffix}";
+            OptimisationGraphWriter.WriteTrendlineGraph(trendline, minValue, maxValue, bestPoint);
         }
     }
 }
