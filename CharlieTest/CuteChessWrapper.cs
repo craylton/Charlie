@@ -9,7 +9,11 @@ namespace CharlieTest
 {
     internal class CuteChessWrapper
     {
-        public async Task<TournamentResult> RunSingleMatch(int numberOfMatches, int timeControlSeconds, int? testValue = null)
+        public async Task<TournamentResult> RunSingleMatch(
+            int numberOfMatches,
+            int timeControlSeconds,
+            bool writeAllOutput,
+            int? testValue = null)
         {
             var cuteChessLocation = @"C:\Program Files (x86)\cutechess\cutechess-cli.exe";
             var openingsLocation = @"noob_2moves.pgn";
@@ -44,12 +48,10 @@ namespace CharlieTest
             using var cuteChess = new Process { StartInfo = startInfo };
 
             cuteChess.OutputDataReceived += (_, e) =>
-                HandleCuteChessOutputData(testValue, e, standardOutput, standardOutputClosed);
+                HandleCuteChessOutputData(e, standardOutput, standardOutputClosed, writeAllOutput);
 
             cuteChess.ErrorDataReceived += (_, e) =>
                 HandleCuteChessErrorData(e, standardError, standardErrorClosed);
-
-            Console.WriteLine($"Starting tournament for TestValue={testValue?.ToString() ?? "default"}");
 
             cuteChess.Start();
             cuteChess.BeginOutputReadLine();
@@ -94,10 +96,10 @@ namespace CharlieTest
         }
 
         private void HandleCuteChessOutputData(
-            int? testValue,
             DataReceivedEventArgs e,
             StringBuilder standardOutput,
-            TaskCompletionSource<bool> standardOutputClosed)
+            TaskCompletionSource<bool> standardOutputClosed,
+            bool writeAllOutput)
         {
             if (e.Data is null)
             {
@@ -106,22 +108,25 @@ namespace CharlieTest
             }
 
             standardOutput.AppendLine(e.Data);
-            ReportProgress(e.Data, testValue);
+            ReportProgress(e.Data, writeAllOutput);
         }
 
-        private void ReportProgress(string outputLine, int? testValue)
+        private void ReportProgress(string outputLine, bool writeAllOutput)
         {
             if (outputLine.StartsWith("Finished game", StringComparison.OrdinalIgnoreCase))
                 return;
 
-            Console.WriteLine($"[TestValue={testValue?.ToString() ?? "default"}] {outputLine}");
+            if (writeAllOutput)
+                Console.WriteLine(outputLine);
+            else
+                Console.Write('.');
         }
     }
 
-        public sealed record TournamentResult(
-            int? TestValue,
-            int ExitCode,
-            string StandardOutput,
-            string StandardError,
-            double EloDifference);
+    public sealed record TournamentResult(
+        int? TestValue,
+        int ExitCode,
+        string StandardOutput,
+        string StandardError,
+        double EloDifference);
 }

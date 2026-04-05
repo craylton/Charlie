@@ -7,9 +7,13 @@ namespace CharlieTest
 
     internal class Optimiser
     {
+        private const double NumericalTolerance = 1e-12;
+
         private readonly List<OptimiserResult> _results = [];
         private readonly int _minValue;
         private readonly int _maxValue;
+
+        public IReadOnlyList<OptimiserResult> Results => _results;
 
         public Optimiser(int minValue, int maxValue)
         {
@@ -33,16 +37,42 @@ namespace CharlieTest
             if (_results.Count < 3)
                 throw new InvalidOperationException("At least three results are required before choosing the next value.");
 
-            if (!TryFitQuadratic(out var trendline))
+            if (!TryFitQuadratic(out QuadraticTrendline trendline))
                 return ChooseBoundaryFromObservedResults();
 
-            if (trendline.TryFindMaximum(_minValue, _maxValue, out var nextValue))
-                return nextValue;
+            var minimumY = trendline.FindMinimum(_minValue, _maxValue);
+            var shiftedTrendline = trendline.ShiftDown(minimumY);
+            var area = shiftedTrendline.GetAreaUnderCurve(_minValue, _maxValue);
 
-            return trendline.Evaluate(_minValue) >= trendline.Evaluate(_maxValue)
-                ? _minValue
-                : _maxValue;
+            if (area <= NumericalTolerance)
+                return ChooseRandomValue();
+
+            var probabilityDensity = shiftedTrendline.DivideBy(area);
+            return SampleFromDensity(probabilityDensity);
         }
+
+        public bool TryGetTrendline(out QuadraticTrendline trendline) => TryFitQuadratic(out trendline);
+
+        private int SampleFromDensity(QuadraticTrendline probabilityDensity)
+        {
+            var maxDensity = probabilityDensity.FindMaximum(_minValue, _maxValue);
+
+            if (maxDensity <= NumericalTolerance)
+                return ChooseRandomValue();
+
+            while (true)
+            {
+                var candidate = ChooseRandomValue();
+                var sampleY = Random.Shared.NextDouble() * maxDensity;
+                var densityAtCandidate = Math.Max(0d, probabilityDensity.Evaluate(candidate));
+
+                if (sampleY <= densityAtCandidate)
+                    return candidate;
+            }
+        }
+
+        private int ChooseRandomValue() =>
+            (int)Random.Shared.NextInt64(_minValue, (long)_maxValue + 1);
 
         private bool TryFitQuadratic(out QuadraticTrendline trendline)
         {
@@ -144,25 +174,62 @@ namespace CharlieTest
             - (m12 * ((m21 * m33) - (m23 * m31)))
             + (m13 * ((m21 * m32) - (m22 * m31)));
 
-        private readonly record struct QuadraticTrendline(double A, double B, double C)
+        internal readonly record struct QuadraticTrendline(double A, double B, double C)
         {
-            public double Evaluate(int x) => (A * x * x) + (B * x) + C;
+            public double Evaluate(double x) => (A * x * x) + (B * x) + C;
 
-            public bool TryFindMaximum(int minValue, int maxValue, out int nextValue)
+            public double Evaluate(int x) => Evaluate((double)x);
+
+            public double FindMinimum(int minValue, int maxValue) =>
+                FindMinimumPoint(minValue, maxValue).Y;
+
+            public double FindMaximum(int minValue, int maxValue) =>
+                FindMaximumPoint(minValue, maxValue).Y;
+
+            public (double X, double Y) FindMinimumPoint(int minValue, int maxValue) =>
+                FindExtremePoint(minValue, maxValue, findMaximum: false);
+
+            public (double X, double Y) FindMaximumPoint(int minValue, int maxValue) =>
+                FindExtremePoint(minValue, maxValue, findMaximum: true);
+
+            public QuadraticTrendline ShiftDown(double y) => new(A, B, C - y);
+
+            public QuadraticTrendline DivideBy(double value) => new(A / value, B / value, C / value);
+
+            public double GetAreaUnderCurve(int minValue, int maxValue) =>
+                Antiderivative(maxValue) - Antiderivative(minValue);
+
+            private (double X, double Y) FindExtremePoint(int minValue, int maxValue, bool findMaximum)
             {
-                nextValue = default;
+                var bestX = (double)minValue;
+                var bestY = Evaluate(minValue);
 
-                if (A >= 0 || Math.Abs(A) < double.Epsilon)
-                    return false;
+                var valueAtMax = Evaluate(maxValue);
+                if (IsBetter(valueAtMax, bestY, findMaximum))
+                {
+                    bestX = maxValue;
+                    bestY = valueAtMax;
+                }
 
-                var x = -B / (2 * A);
-                if (x < minValue || x > maxValue)
-                    return false;
+                if (Math.Abs(A) <= NumericalTolerance)
+                    return (bestX, bestY);
 
-                nextValue = (int)Math.Round(x, MidpointRounding.AwayFromZero);
-                nextValue = Math.Clamp(nextValue, minValue, maxValue);
-                return true;
+                var vertexX = -B / (2 * A);
+                if (vertexX < minValue || vertexX > maxValue)
+                    return (bestX, bestY);
+
+                var vertexY = Evaluate(vertexX);
+                if (IsBetter(vertexY, bestY, findMaximum))
+                    return (vertexX, vertexY);
+
+                return (bestX, bestY);
             }
+
+            private static bool IsBetter(double candidate, double current, bool findMaximum) =>
+                findMaximum ? candidate > current : candidate < current;
+
+            private double Antiderivative(double x) =>
+                ((A / 3d) * x * x * x) + ((B / 2d) * x * x) + (C * x);
         }
     }
 }
