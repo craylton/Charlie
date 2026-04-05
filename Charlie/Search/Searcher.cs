@@ -118,8 +118,8 @@ public class Searcher
             IterationCompleted?.Invoke(this, moveInfo);
 
             // Set new aspiration windows
-            alpha = eval - 38;
-            beta = eval + 38;
+            alpha = eval - 45;
+            beta = eval + 45;
             depth++;
 
             // Check if we need to abort search
