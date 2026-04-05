@@ -237,7 +237,7 @@ public class Searcher
                 pv.Clear();
                 pv.Add(move);
                 pv.AddRange(pvBuffer);
-                moves[moveIndex].IncreasePromise(testValue);
+                moves[moveIndex].IncreasePromise(11);
 
                 if (!hasRepetitionHistory)
                     RecordHash(boardState.HashCode, depth, eval, move, HashType.Lower, 0);
