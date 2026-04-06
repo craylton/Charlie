@@ -198,6 +198,7 @@ public class Uci
             && int.TryParse(@params[valueIndex + 1], out int testValue))
         {
             searcher.SetTestValue(testValue);
+            Evaluator.SetTestValue(testValue);
         }
     }
 

@@ -4,14 +4,16 @@ namespace Charlie.BoardRepresentation;
 
 public class Evaluator
 {
+    private static int testValue;
+
     private const int pawn = 100, knight = 320, bishop = 338, rook = 525, queen = 920;
 
     private static readonly int[] pawnPsqt =
     [
         0,  0,  0,  0,  0,  0,  0,  0,
-        70, 70, 70, 70, 70, 70, 70, 70,
-        15, 15, 25, 40, 40, 25, 15, 15,
-        10, 10, 15, 25, 25, 15, 10, 10,
+        66, 66, 66, 66, 66, 66, 66, 66,
+        25, 25, 35, 50, 50, 35, 25, 25,
+        10, 10, 25, 25, 25, 25, 10, 10,
         0,  0,  0,  20, 20,  0, 0,  0,
         5, -5, -10, 0,  0, -10,-5,  5,
         5, 10, 10, -20,-20, 10,10,  5,
@@ -348,4 +350,6 @@ public class Evaluator
 
         return attacks;
     }
+
+    internal static void SetTestValue(int testValue) => Evaluator.testValue = testValue;
 }
