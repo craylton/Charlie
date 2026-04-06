@@ -5,8 +5,8 @@ namespace CharlieTest.Optimisation
 {
     internal static class OptimisationGraphWriter
     {
-        private const int GraphWidth = 64;
-        private const int GraphHeight = 20;
+        private static int GraphWidth = 64;
+        private static int GraphHeight = 20;
         private const int AxisLabelWidth = 8;
         private const int AxisColumn = 0;
         private const double VerticalPaddingRatio = 0.1d;
@@ -22,8 +22,14 @@ namespace CharlieTest.Optimisation
             QuadraticTrendline trendline,
             int minValue,
             int maxValue,
-            (double X, double Y) bestPoint)
+            (double X, double Y) bestPoint,
+            bool isMiniGraph = false)
         {
+            if (isMiniGraph)
+            {
+                GraphWidth = 32;
+                GraphHeight = 8;
+            }
             var (minimumY, maximumY) = GetGraphRange(trendline, minValue, maxValue, bestPoint.Y);
             var canvas = CreateCanvas();
             var zeroRow = TryGetZeroRow(minimumY, maximumY);
@@ -35,7 +41,10 @@ namespace CharlieTest.Optimisation
 
             PlotTrendline(canvas, trendline, minValue, maxValue, minimumY, maximumY);
             PlotBestPoint(canvas, bestPoint, minValue, maxValue, minimumY, maximumY);
-            WriteGraph(canvas, minValue, maxValue, minimumY, maximumY, zeroRow);
+            WriteGraph(canvas, minValue, maxValue, minimumY, maximumY, zeroRow, isMiniGraph);
+
+            GraphWidth = 64;
+            GraphHeight = 20;
         }
 
         private static (double Min, double Max) GetGraphRange(
@@ -144,9 +153,11 @@ namespace CharlieTest.Optimisation
             int maxValue,
             double minimumY,
             double maximumY,
-            int? zeroRow)
+            int? zeroRow,
+            bool isMiniGraph)
         {
-            Console.WriteLine("y: expected Elo gain");
+            if (!isMiniGraph)
+                Console.WriteLine("y: expected Elo gain");
 
             for (var row = 0; row < GraphHeight; row++)
             {
@@ -155,8 +166,9 @@ namespace CharlieTest.Optimisation
             }
 
             Console.WriteLine($"{string.Empty,AxisLabelWidth} {CreateXTickLine(minValue, maxValue)}");
-            Console.WriteLine($"{string.Empty,AxisLabelWidth} x: test value");
-            Console.WriteLine($"{string.Empty,AxisLabelWidth} {TrendlineCharacter} = trendline, {BestPointCharacter} = best fit peak");
+
+            if (!isMiniGraph)
+                Console.WriteLine($"{string.Empty,AxisLabelWidth} x: test value");
         }
 
         private static void UpdateRange(ref double minimum, ref double maximum, double value)
