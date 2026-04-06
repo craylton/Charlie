@@ -8,16 +8,17 @@ namespace CharlieTest
 {
     class Program
     {
+        private const int OptimisationMatchCount = 12;
+        private const int OptimisationTimeControlSeconds = 2;
+
         static async Task Main()
         {
-
             Console.WriteLine("Are you looking to run a single match or optimise a parameter?");
             Console.WriteLine("1: Optimise parameter");
             Console.WriteLine("Any other key: Run single match");
 
             var choice = Console.ReadKey();
             Console.WriteLine();
-            Stopwatch stopwatch = Stopwatch.StartNew();
 
             if (choice.KeyChar != '1')
             {
@@ -27,13 +28,10 @@ namespace CharlieTest
             }
             else
             {
-                var minValue = 10;
-                var maxValue = 80;
+                var minValue = 5;
+                var maxValue = 40;
                 await OptimiseParameter(minValue, maxValue);
             }
-
-            string elapsedSecondsString = stopwatch.Elapsed.TotalSeconds.ToString("0.###", CultureInfo.InvariantCulture);
-            Console.WriteLine($"Completed in {elapsedSecondsString} seconds.");
         }
 
         private static async Task RunSingleMatch(int numberOfMatches, int timeControlSeconds)
@@ -46,43 +44,66 @@ namespace CharlieTest
 
         private static async Task OptimiseParameter(int minValue, int maxValue)
         {
+            var stopwatch = Stopwatch.StartNew();
             var cuteChess = new CuteChessWrapper();
             var optimiser = new Optimiser(minValue, maxValue);
 
-            var midpoint = minValue + ((maxValue - minValue) / 2);
+            await RunPreliminaryTrials(cuteChess, optimiser, minValue, maxValue);
 
-            await RunOptimisationMatch(cuteChess, optimiser, minValue);
-            await RunOptimisationMatch(cuteChess, optimiser, maxValue);
-            await RunOptimisationMatch(cuteChess, optimiser, midpoint);
-
-            int numTrials = 1;
+            const int numTrials = 200;
 
             for (var i = 0; i < numTrials; i++)
             {
-                Console.WriteLine($"Running trial {i}/{numTrials}");
                 var nextValue = optimiser.ChooseNextValue();
+                Console.WriteLine($"Running trial: {i + 1}/{numTrials}\tTestValue:{nextValue}");
                 await RunOptimisationMatch(cuteChess, optimiser, nextValue);
+
+                if (i % 10 == 0 && i != 0)
+                {
+                    var timeRemainingSeconds = GetTimeRemainingSeconds(stopwatch.Elapsed.TotalSeconds, numTrials, i);
+                    Console.WriteLine($"Estimated time remaining: {timeRemainingSeconds} seconds.");
+                }
+
+                Console.WriteLine();
+
+                if (!optimiser.TryGetTrendline(out var trendline))
+                {
+                    Console.WriteLine("Unable to fit a quadratic trendline to the optimisation results.");
+                    return;
+                }
+
+                WriteOptimisationSummary(trendline, minValue, maxValue);
+                var elapsedSecondsString = stopwatch.Elapsed.TotalSeconds.ToString("0.###", CultureInfo.InvariantCulture);
+                Console.WriteLine($"Completed in {elapsedSecondsString} seconds.");
             }
+        }
 
-            Console.WriteLine();
+        private static async Task RunPreliminaryTrials(CuteChessWrapper cuteChess, Optimiser optimiser, int minValue, int maxValue)
+        {
+            var midpoint = minValue + ((maxValue - minValue) / 2);
 
-            if (!optimiser.TryGetTrendline(out var trendline))
-            {
-                Console.WriteLine("Unable to fit a quadratic trendline to the optimisation results.");
-                return;
-            }
+            Console.WriteLine($"Running preliminary trial 1\tTestValue:{minValue}");
+            await RunOptimisationMatch(cuteChess, optimiser, minValue);
+            Console.WriteLine($"Running preliminary trial 2\tTestValue:{maxValue}");
+            await RunOptimisationMatch(cuteChess, optimiser, maxValue);
+            Console.WriteLine($"Running preliminary trial 3\tTestValue:{midpoint}");
+            await RunOptimisationMatch(cuteChess, optimiser, midpoint);
+        }
 
-            WriteOptimisationSummary(trendline, minValue, maxValue);
+        private static double GetTimeRemainingSeconds(double timeElapsedSeconds, int numTrials, int trialIndex)
+        {
+            var trialsPerSecond = (trialIndex + 1) / timeElapsedSeconds;
+            var trialsRemaining = numTrials - (trialIndex + 1);
+            return trialsRemaining / trialsPerSecond;
         }
 
         private static async Task RunOptimisationMatch(CuteChessWrapper cuteChess, Optimiser optimiser, int testValue)
         {
-            var result = await cuteChess.RunSingleMatch(12, 2, false, testValue);
+            var result = await cuteChess.RunSingleMatch(OptimisationMatchCount, OptimisationTimeControlSeconds, false, testValue);
             optimiser.AddResult(testValue, result.EloDifference);
 
-            string eloDifferenceString = result.EloDifference.ToString(CultureInfo.InvariantCulture);
-            Console.WriteLine();
-            Console.WriteLine($"TestValue={testValue}\tResult={eloDifferenceString}");
+            var eloDifferenceString = result.EloDifference.ToString(CultureInfo.InvariantCulture);
+            Console.WriteLine($"Elo diff={eloDifferenceString}");
         }
 
         private static void WriteOptimisationSummary(QuadraticTrendline trendline, int minValue, int maxValue)
@@ -93,9 +114,9 @@ namespace CharlieTest
                 minValue,
                 maxValue);
 
-            string bestValueString = bestPoint.X.ToString("0.###", CultureInfo.InvariantCulture);
-            string recommendedValueString = recommendedValue.ToString(CultureInfo.InvariantCulture);
-            string bestPointEloString = bestPoint.Y.ToString("0.###", CultureInfo.InvariantCulture);
+            var bestValueString = bestPoint.X.ToString("0.###", CultureInfo.InvariantCulture);
+            var recommendedValueString = recommendedValue.ToString(CultureInfo.InvariantCulture);
+            var bestPointEloString = bestPoint.Y.ToString("0.###", CultureInfo.InvariantCulture);
 
             Console.WriteLine("Best-fit quadratic:");
             Console.WriteLine(trendline.ToString());
