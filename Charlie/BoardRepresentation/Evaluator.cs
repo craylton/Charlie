@@ -11,12 +11,12 @@ public class Evaluator
     private static readonly int[] pawnPsqt =
     [
         0,  0,  0,  0,  0,  0,  0,  0,
-        66, 66, 66, 66, 66, 66, 66, 66,
-        25, 25, 35, 50, 50, 35, 25, 25,
-        10, 10, 25, 25, 25, 25, 10, 10,
-        0,  0,  0,  20, 20,  0, 0,  0,
-        5, -5, -10, 0,  0, -10,-5,  5,
-        5, 10, 10, -20,-20, 10,10,  5,
+        80, 66, 66, 50, 50, 66, 66, 80,
+        29, 22, 32, 41, 41, 32, 22, 29,
+        16, 10, 25, 17, 17, 25, 10, 16,
+        4,  0,  0,  12, 12,  0, 0,  4,
+        8, -5, -10, 0,  0, -10,-5,  8,
+        12, 10, 10, -20,-20, 10,10, 12,
         0,  0,  0,  0,  0,  0,  0,  0,
     ];
 
@@ -204,8 +204,8 @@ public class Evaluator
         blackScore -= BitOperations.PopCount((uint)(blackFiles & ~blackNeighbouringFiles)) * 12;
 
         // Passed pawns
-        whiteScore += whitePassedFiles * 28;
-        blackScore += blackPassedFiles * 28;
+        whiteScore += whitePassedFiles * 26;
+        blackScore += blackPassedFiles * 26;
         if (isEndgame)
         {
             whiteScore += whitePassedFiles * 11;
