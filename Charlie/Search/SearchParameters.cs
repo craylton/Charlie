@@ -7,7 +7,7 @@ public record SearchParameters(SearchType SearchType, SearchTime SearchTime, int
         long elapsedMs,
         Score eval,
         bool bestMoveChanged,
-        int bestMoveConfidence,
+        double bestMoveConfidence,
         bool isMate = false)
     {
         if (SearchType == SearchType.Time)

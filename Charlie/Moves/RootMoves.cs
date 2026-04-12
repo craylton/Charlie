@@ -1,4 +1,5 @@
 ﻿using Charlie.BoardRepresentation;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -39,16 +40,16 @@ public class RootMoves : List<EvaluatedMove>
         foreach (var move in orderedMoves) Add(move);
     }
 
-    public int GetConfidence(Move bestMove)
+    public double GetConfidence(Move bestMove)
     {
-        if (Count == 1) return 1000000;
+        if (Count == 1) return 1;
 
         var bestMovePromise = this.Single(rootMove => rootMove.Move == bestMove).Promise;
         var highestPromise = this.First().Promise;
         var secondHighestPromise = this.ElementAt(1).Promise;
 
         return bestMovePromise == highestPromise
-            ? bestMovePromise - secondHighestPromise
+            ? (double)(bestMovePromise - secondHighestPromise) / Math.Max(bestMovePromise, 1)
             : 0;
     }
 }
