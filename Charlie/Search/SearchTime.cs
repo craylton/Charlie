@@ -4,7 +4,7 @@ namespace Charlie.Search;
 
 public record SearchTime(int AvailableTime, int Increment)
 {
-    public int MaxTime => Math.Max(AvailableTime / 2, 1);
+    public int MaxTime => Math.Max(3 * AvailableTime / 4, 1);
 
     public bool CanContinueSearching(
         long elapsedMs,
@@ -16,10 +16,10 @@ public record SearchTime(int AvailableTime, int Increment)
         if (elapsedMs > MaxTime / 4)
             return false;
 
-        double timeForMove = AvailableTime / 80;
+        double timeForMove = AvailableTime / 25d;
 
         // Use more time if we aren't doing well
-        if ((int)eval < 50)
+        if (eval < 50)
         {
             double multiplier = (450 - (int)eval) / 400d;
             timeForMove *= Math.Clamp(multiplier, 1.0, 1.5);
@@ -28,7 +28,7 @@ public record SearchTime(int AvailableTime, int Increment)
         // Use lower proportion of time when clock is very low
         if (AvailableTime < 10000)
         {
-            double multiplier = Math.Sqrt(AvailableTime) / 125 + 0.2;
+            double multiplier = AvailableTime / 20000 + 0.5;
             timeForMove *= multiplier;
         }
 
@@ -41,11 +41,14 @@ public record SearchTime(int AvailableTime, int Increment)
 
         // Use more time if we just changed our minds about the best move
         if (bestMoveChanged)
-            timeForMove *= 1.8;
+            timeForMove *= 180d / 100d;
 
         // Use less time if we are very confident about the best move
-        timeForMove *= 26 / (Math.Pow(bestMoveConfidence, 2 / 3d) + 17);
+        timeForMove *= 1 - (bestMoveConfidence / 50d);
 
-        return elapsedMs <= timeForMove + Increment / 4 + 10;
+        // Make sure we haven't assigned ourselves more time than we had available
+        timeForMove = Math.Min(timeForMove, MaxTime);
+
+        return elapsedMs <= timeForMove;
     }
 }
