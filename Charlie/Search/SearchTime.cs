@@ -4,7 +4,10 @@ namespace Charlie.Search;
 
 public record SearchTime(int AvailableTime, int Increment)
 {
-    public int MaxTime => Math.Clamp(3 * AvailableTime / 4 + Increment / 2, 1, AvailableTime);
+    public int MaxTime => Math.Clamp(
+        3 * AvailableTime / 4 + 2 * Increment,
+        1,
+        AvailableTime - 1);
 
     public bool CanContinueSearching(
         long elapsedMs,
@@ -45,7 +48,7 @@ public record SearchTime(int AvailableTime, int Increment)
             timeForMove *= 180d / 100d;
 
         // Use less time if we are very confident about the best move
-        timeForMove *= 1.5 - Math.Clamp(bestMoveConfidence, 0, 1);
+        timeForMove *= 1.25 - Math.Clamp(bestMoveConfidence, 0, 1);
 
         // Make sure we haven't assigned ourselves more time than we had available
         timeForMove = Math.Min(timeForMove, MaxTime);
