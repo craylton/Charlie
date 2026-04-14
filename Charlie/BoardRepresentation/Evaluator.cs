@@ -22,12 +22,12 @@ public class Evaluator
 
     private static readonly int[] knightPsqt =
     [
-        -50,-40,-30,-30,-30,-30,-40,-50,
-        -40,-20,  0,  0,  0,  0,-20,-40,
-        -30,  0, 10, 15, 15, 10,  0,-30,
-        -30,  5, 15, 20, 20, 15,  5,-30,
+        -40,-35,-25,-25,-25,-25,-35,-40,
+        -35,-15,  1,  3,  3,  1,-15,-35,
+        -30,  0, 11, 15, 15, 11,  0,-30,
+        -30,  5, 16, 21, 21, 16,  5,-30,
         -30,  0, 15, 20, 20, 15,  0,-30,
-        -30,  5, 10, 15, 15, 10,  5,-30,
+        -30,  5,  9, 15, 15,  9,  5,-30,
         -40,-20,  0,  5,  5,  0,-20,-40,
         -50,-40,-30,-30,-30,-30,-40,-50,
     ];
@@ -204,12 +204,23 @@ public class Evaluator
         blackScore -= BitOperations.PopCount((uint)(blackFiles & ~blackNeighbouringFiles)) * 12;
 
         // Passed pawns
-        whiteScore += whitePassedFiles * 26;
-        blackScore += blackPassedFiles * 26;
+        whiteScore += whitePassedFiles * 22;
+        blackScore += blackPassedFiles * 22;
         if (isEndgame)
         {
-            whiteScore += whitePassedFiles * 11;
-            blackScore += blackPassedFiles * 11;
+            whiteScore += whitePassedFiles * 9;
+            blackScore += blackPassedFiles * 9;
+        }
+
+        int whiteTruePassedPawns = GetTruePassedPawnCount(whitePawns, blackPawns, isWhite: true);
+        int blackTruePassedPawns = GetTruePassedPawnCount(blackPawns, whitePawns, isWhite: false);
+
+        whiteScore += whiteTruePassedPawns * 15;
+        blackScore += blackTruePassedPawns * 15;
+        if (isEndgame)
+        {
+            whiteScore += whiteTruePassedPawns * 8;
+            blackScore += blackTruePassedPawns * 8;
         }
 
         // Chained pawns
@@ -217,6 +228,7 @@ public class Evaluator
         ulong blackPawnAttacks = ((blackPawns & ~Chessboard.AFile) << 9) | ((blackPawns & ~Chessboard.HFile) << 7);
         whiteScore += BitOperations.PopCount(whitePawns & whitePawnAttacks) * 16;
         blackScore += BitOperations.PopCount(blackPawns & blackPawnAttacks) * 16;
+
     }
 
     private static byte GetOccupiedFiles(ulong pawns)
@@ -233,6 +245,41 @@ public class Evaluator
         if ((pawns & Chessboard.HFile) != 0) occupiedFiles |= 0b1000_0000;
 
         return occupiedFiles;
+    }
+
+    private static int GetTruePassedPawnCount(ulong pawns, ulong opposingPawns, bool isWhite)
+    {
+        int truePassedPawns = 0;
+
+        while (pawns != 0)
+        {
+            int square = BitOperations.TrailingZeroCount(pawns);
+            int rank = 7 - square / 8;
+            ulong pawn = 1ul << square;
+            byte file = GetOccupiedFiles(pawn);
+            byte relevantFiles = (byte)(file | GetNeighbouringFiles(file));
+            ulong ranksAhead = isWhite ? Magics.ForwardRanks[rank] : Magics.BackwardRanks[rank];
+
+            if ((opposingPawns & ranksAhead & GetFileMask(relevantFiles)) == 0)
+                truePassedPawns++;
+
+            pawns &= pawns - 1;
+        }
+
+        return truePassedPawns;
+    }
+
+    private static ulong GetFileMask(byte files)
+    {
+        ulong fileMask = 0;
+
+        for (int i = 0; i < Chessboard.Files.Length; i++)
+        {
+            if ((files & (1 << i)) != 0)
+                fileMask |= Chessboard.Files[i];
+        }
+
+        return fileMask;
     }
 
     private static byte GetNeighbouringFiles(byte files) => (byte)((files << 1) | (files >> 1));
