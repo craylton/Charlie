@@ -15,8 +15,4 @@
     </Content>
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Charlie\Charlie.csproj" />
-  </ItemGroup>
-
 </Project>

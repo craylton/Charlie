@@ -18,21 +18,13 @@ namespace CharlieTest
             var cuteChessLocation = @"C:\Program Files (x86)\cutechess\cutechess-cli.exe";
             var openingsLocation = @"noob_2moves.pgn";
             var pgnOutputLocation = @"tournament.pgn";
-            var testValueArgument = testValue.HasValue ? $"option.TestValue=\"{testValue.Value}\"" : "";
+            var testValueArgument = testValue.HasValue ? $"option.TestValue={testValue.Value} " : "";
             var standardOutput = new StringBuilder();
             var standardError = new StringBuilder();
             var standardOutputClosed = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             var standardErrorClosed = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
-            var startInfo = new ProcessStartInfo
-            {
-                FileName = cuteChessLocation,
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                CreateNoWindow = true,
-                Arguments =
-                    $"-engine conf=\"Charlie dev\" {testValueArgument} " +
+            string arguments = $"-engine conf=\"Charlie dev\" {testValueArgument}" +
                     "-engine conf=\"Charlie test\" " +
                     $"-each tc={timeControlSeconds}+{(double)timeControlSeconds / 100} " +
                     $"-openings file=\"{openingsLocation}\" " +
@@ -42,7 +34,16 @@ namespace CharlieTest
                     $"-rounds {numberOfMatches} " +
                     $"-pgnout \"{pgnOutputLocation}\" " +
                     "-recover " +
-                    "-concurrency 10 "
+                    "-concurrency 10 ";
+
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = cuteChessLocation,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true,
+                Arguments = arguments
             };
 
             using var cuteChess = new Process { StartInfo = startInfo };
@@ -74,11 +75,22 @@ namespace CharlieTest
                 .Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
                 .LastOrDefault(line => line.StartsWith("Elo difference", StringComparison.OrdinalIgnoreCase))
                 .Split(':', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                .LastOrDefault()
+                .ElementAtOrDefault(1)
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .FirstOrDefault()
                 .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
                 .FirstOrDefault();
 
-            return double.Parse(eloGain, CultureInfo.InvariantCulture);
+            if (string.Equals(eloGain, "inf", StringComparison.OrdinalIgnoreCase))
+                return 1000d;
+
+            if (string.Equals(eloGain, "-inf", StringComparison.OrdinalIgnoreCase))
+                return -1000d;
+
+            if (double.TryParse(eloGain, CultureInfo.InvariantCulture, out var gain))
+                return gain;
+
+            return 1000d;
         }
 
         private void HandleCuteChessErrorData(
