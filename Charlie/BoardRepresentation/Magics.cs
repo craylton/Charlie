@@ -20,16 +20,12 @@ public static class Magics
 
     public static ulong[] Neighbours { get; private set; }
 
-    public static ulong[] ForwardRanks { get; private set; }
-    public static ulong[] BackwardRanks { get; private set; }
-
     public static void Initialise()
     {
         GenerateRookAttacks();
         GenerateBishopAttacks();
         GeneratePawnAttacks();
         GenerateNeighbours();
-        GenerateRelativeRanks();
     }
 
     private static void GenerateRookAttacks()
@@ -145,28 +141,6 @@ public static class Magics
             Neighbours[i] |= centre << 8;
             Neighbours[i] |= centre >> 8;
         }
-    }
-
-    private static void GenerateRelativeRanks()
-    {
-        ForwardRanks = new ulong[8];
-        BackwardRanks = new ulong[8];
-
-        ForwardRanks[6] = Chessboard.Rank8;
-        ForwardRanks[5] = ForwardRanks[6] | Chessboard.Rank7;
-        ForwardRanks[4] = ForwardRanks[5] | Chessboard.Rank6;
-        ForwardRanks[3] = ForwardRanks[4] | Chessboard.Rank5;
-        ForwardRanks[2] = ForwardRanks[3] | Chessboard.Rank4;
-        ForwardRanks[1] = ForwardRanks[2] | Chessboard.Rank3;
-        ForwardRanks[0] = ForwardRanks[1] | Chessboard.Rank2;
-
-        BackwardRanks[1] = Chessboard.Rank1;
-        BackwardRanks[2] = BackwardRanks[1] | Chessboard.Rank2;
-        BackwardRanks[3] = BackwardRanks[2] | Chessboard.Rank3;
-        BackwardRanks[4] = BackwardRanks[3] | Chessboard.Rank4;
-        BackwardRanks[5] = BackwardRanks[4] | Chessboard.Rank5;
-        BackwardRanks[6] = BackwardRanks[5] | Chessboard.Rank6;
-        BackwardRanks[7] = BackwardRanks[6] | Chessboard.Rank7;
     }
 
     private static void GeneratePawnAttacks()
