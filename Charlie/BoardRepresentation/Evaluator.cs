@@ -6,7 +6,7 @@ public class Evaluator
 {
     private static int testValue;
 
-    private const int pawn = 100, knight = 326, bishop = 358, rook = 519, queen = 1035;
+    private const int pawn = 100, knight = 351, bishop = 374, rook = 602, queen = 1147;
 
     private static readonly int[] pawnPsqt =
     [

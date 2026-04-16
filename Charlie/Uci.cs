@@ -49,7 +49,7 @@ public class Uci
                     Console.WriteLine("id author Craylton");
                     Console.WriteLine($"option name Hash type spin default {Searcher.DefaultHashSizeInMegabytes} min {HashTable.MinimumSizeInMegabytes} max {HashTable.MaximumSizeInMegabytes}");
                     Console.WriteLine("option name Clear Hash type button");
-                    Console.WriteLine("option name TestValue type spin default 0 min 0 max 100");
+                    Console.WriteLine("option name TestValue type spin default 0 min -10000 max 10000");
                     Console.WriteLine("uciok");
                     break;
                 case "isready":
