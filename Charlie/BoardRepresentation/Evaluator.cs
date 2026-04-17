@@ -6,12 +6,12 @@ public class Evaluator
 {
     private static int testValue;
 
-    private const int pawn = 100, knight = 351, bishop = 374, rook = 602, queen = 1147;
+    private const int pawn = 100, knight = 351, bishop = 374, rook = 587, queen = 1245;
 
     private static readonly int[] pawnPsqt =
     [
         0,  0,  0,  0,  0,  0,  0,  0,
-        79, 70, 70, 64, 64, 70, 70, 79,
+        73, 64, 64, 58, 58, 64, 64, 73,
         29, 22, 32, 41, 41, 32, 22, 29,
         16, 10, 25, 17, 17, 25, 10, 16,
         4,  0,  0,  12, 12,  0, 0,  4,
@@ -115,8 +115,8 @@ public class Evaluator
         int totalMaterial = whiteMaterial + blackMaterial;
 
         bool isOpening = totalMaterial >= 6200;
-        bool isEndgame = totalMaterial <= 3500;
-        int pawnMultiplier = isEndgame ? 2 : 1;
+        bool isEndgame = totalMaterial <= 3485;
+        int pawnMultiplier = isEndgame ? 214 : 100;
         int[] queenTable = isOpening ? openingQueenPsqt : queenPsqt;
         int[] kingTable = isEndgame ? endgameKingPsqt : kingPsqt;
 
@@ -204,12 +204,12 @@ public class Evaluator
         blackScore -= BitOperations.PopCount((uint)(blackFiles & ~blackNeighbouringFiles)) * 12;
 
         // Passed pawns
-        whiteScore += whitePassedFiles * 22;
-        blackScore += blackPassedFiles * 22;
+        whiteScore += whitePassedFiles * 21;
+        blackScore += blackPassedFiles * 21;
         if (isEndgame)
         {
-            whiteScore += whitePassedFiles * 9;
-            blackScore += blackPassedFiles * 9;
+            whiteScore += whitePassedFiles * 24;
+            blackScore += blackPassedFiles * 24;
         }
 
         // Chained pawns
@@ -217,7 +217,6 @@ public class Evaluator
         ulong blackPawnAttacks = ((blackPawns & ~Chessboard.AFile) << 9) | ((blackPawns & ~Chessboard.HFile) << 7);
         whiteScore += BitOperations.PopCount(whitePawns & whitePawnAttacks) * 16;
         blackScore += BitOperations.PopCount(blackPawns & blackPawnAttacks) * 16;
-
     }
 
     private static byte GetOccupiedFiles(ulong pawns)
@@ -238,28 +237,28 @@ public class Evaluator
 
     private static byte GetNeighbouringFiles(byte files) => (byte)((files << 1) | (files >> 1));
 
-    private static int GetPsqtScore(ulong pieces, int[] psqt, int multiplier = 1)
+    private static int GetPsqtScore(ulong pieces, int[] psqt, int multiplier = 100)
     {
         int score = 0;
 
         while (pieces != 0)
         {
             int square = BitOperations.TrailingZeroCount(pieces);
-            score += psqt[square] * multiplier;
+            score += psqt[square] * multiplier / 100;
             pieces &= pieces - 1;
         }
 
         return score;
     }
 
-    private static int GetMirroredPsqtScore(ulong pieces, int[] psqt, int multiplier = 1)
+    private static int GetMirroredPsqtScore(ulong pieces, int[] psqt, int multiplier = 100)
     {
         int score = 0;
 
         while (pieces != 0)
         {
             int square = BitOperations.TrailingZeroCount(pieces);
-            score += psqt[63 - square] * multiplier;
+            score += psqt[63 - square] * multiplier / 100;
             pieces &= pieces - 1;
         }
 
