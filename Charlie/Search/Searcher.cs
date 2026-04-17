@@ -240,7 +240,7 @@ public class Searcher
                 pv.Clear();
                 pv.Add(move);
                 pv.AddRange(pvBuffer);
-                moves[moveIndex].IncreasePromise(11);
+                moves[moveIndex].IncreasePromise(6);
 
                 if (!hasRepetitionHistory)
                     RecordHash(boardState.HashCode, depth, eval, move, HashType.Lower, 0);
@@ -252,7 +252,7 @@ public class Searcher
             {
                 alpha = eval;
                 bestMove = move;
-                moves[moveIndex].IncreasePromise(7);
+                moves[moveIndex].IncreasePromise(8);
                 foundPv = true;
 
                 pv.Clear();
