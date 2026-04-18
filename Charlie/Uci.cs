@@ -204,7 +204,7 @@ public class Uci
 
     private async Task Bench(string[] @params)
     {
-        int targetDepth = 4;
+        int targetDepth = 6;
 
         if (@params.Length >= 2 && @params[0].Equals("depth", StringComparison.OrdinalIgnoreCase))
             targetDepth = int.Parse(@params[1]);

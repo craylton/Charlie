@@ -142,7 +142,7 @@ public class Evaluator
         if (score > 426 || score < -426)
         {
             if (isEndgame)
-                CalculatePawnScores(position, isEndgame, ref whiteScore, ref blackScore);
+                CalculatePawnScores(position, pawnMultiplier, ref whiteScore, ref blackScore);
 
             score = whiteScore - blackScore;
             return new Score(score * (board.ToMove == PieceColour.White ? 1 : -1));
@@ -184,14 +184,15 @@ public class Evaluator
             if (board.IsInPseudoCheck(PieceColour.Black)) whiteScore -= 6;
         }
 
-        CalculatePawnScores(position, isEndgame, ref whiteScore, ref blackScore);
+        CalculatePawnScores(position, pawnMultiplier, ref whiteScore, ref blackScore);
 
         score = whiteScore - blackScore;
         return new Score(score * (board.ToMove == PieceColour.White ? 1 : -1));
     }
 
-    private static void CalculatePawnScores(Board board, bool isEndgame, ref int whiteScore, ref int blackScore)
+    private static void CalculatePawnScores(Board board, int multiplier, ref int whiteScore, ref int blackScore)
     {
+        int whitePawnBonus = 0, blackPawnBonus = 0;
         ulong whitePawns = board.WhitePawn;
         ulong blackPawns = board.BlackPawn;
         byte whiteFiles = GetOccupiedFiles(whitePawns);
@@ -203,23 +204,22 @@ public class Evaluator
         int blackPassedFiles = BitOperations.PopCount((uint)(blackFiles & ~(whiteFiles | whiteNeighbouringFiles)));
 
         // Isolated pawns
-        whiteScore -= BitOperations.PopCount((uint)(whiteFiles & ~whiteNeighbouringFiles)) * 12;
-        blackScore -= BitOperations.PopCount((uint)(blackFiles & ~blackNeighbouringFiles)) * 12;
+        whitePawnBonus -= BitOperations.PopCount((uint)(whiteFiles & ~whiteNeighbouringFiles)) * 12;
+        blackPawnBonus -= BitOperations.PopCount((uint)(blackFiles & ~blackNeighbouringFiles)) * 12;
 
         // Passed pawns
-        whiteScore += whitePassedFiles * 21;
-        blackScore += blackPassedFiles * 21;
-        if (isEndgame)
-        {
-            whiteScore += whitePassedFiles * 24;
-            blackScore += blackPassedFiles * 24;
-        }
+        whitePawnBonus += whitePassedFiles * 21;
+        blackPawnBonus += blackPassedFiles * 21;
 
         // Chained pawns
         ulong whitePawnAttacks = ((whitePawns & ~Chessboard.AFile) >> 7) | ((whitePawns & ~Chessboard.HFile) >> 9);
         ulong blackPawnAttacks = ((blackPawns & ~Chessboard.AFile) << 9) | ((blackPawns & ~Chessboard.HFile) << 7);
-        whiteScore += BitOperations.PopCount(whitePawns & whitePawnAttacks) * 16;
-        blackScore += BitOperations.PopCount(blackPawns & blackPawnAttacks) * 16;
+        whitePawnBonus += BitOperations.PopCount(whitePawns & whitePawnAttacks) * 16;
+        blackPawnBonus += BitOperations.PopCount(blackPawns & blackPawnAttacks) * 16;
+
+        var dampenedMultiplier = (multiplier + pawn) / (2 * pawn);
+        whiteScore += whitePawnBonus * dampenedMultiplier;
+        blackScore += blackPawnBonus * dampenedMultiplier;
     }
 
     private static byte GetOccupiedFiles(ulong pawns)
