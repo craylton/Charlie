@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System;
+using System.Numerics;
 
 namespace Charlie.BoardRepresentation;
 
@@ -116,7 +117,9 @@ public class Evaluator
 
         bool isOpening = totalMaterial >= 6200;
         bool isEndgame = totalMaterial <= 3485;
-        int pawnMultiplier = isEndgame ? 214 : 100;
+
+        int pawnMultiplier = Math.Clamp(345 - totalMaterial / 17, pawn, 345);
+
         int[] queenTable = isOpening ? openingQueenPsqt : queenPsqt;
         int[] kingTable = isEndgame ? endgameKingPsqt : kingPsqt;
 
@@ -237,14 +240,14 @@ public class Evaluator
 
     private static byte GetNeighbouringFiles(byte files) => (byte)((files << 1) | (files >> 1));
 
-    private static int GetPsqtScore(ulong pieces, int[] psqt, int multiplier = 100)
+    private static int GetPsqtScore(ulong pieces, int[] psqt, int multiplier = pawn)
     {
         int score = 0;
 
         while (pieces != 0)
         {
             int square = BitOperations.TrailingZeroCount(pieces);
-            score += psqt[square] * multiplier / 100;
+            score += psqt[square] * multiplier / pawn;
             pieces &= pieces - 1;
         }
 
